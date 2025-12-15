@@ -40,10 +40,10 @@ const DetailPacking = ({ packingId, onClose }) => {
 
   const getStatusText = (status) => {
     const statusMap = {
-      DA_NHAP_KHO: "Đã nhập kho",
-      CHUA_NHAP_KHO: "Chưa nhập kho",
-      DANG_VAN_CHUYEN: "Đang vận chuyển",
-      DA_GIAO: "Đã giao",
+      DA_NHAP_KHO: "In Stock",
+      CHUA_NHAP_KHO: "Not Yet Received",
+      DANG_VAN_CHUYEN: "In Transit",
+      DA_GIAO: "Delivered",
     };
     return statusMap[status] || status;
   };

@@ -110,7 +110,7 @@ const orderSteps = [
   },
   {
     icon: Users2,
-    title: "XÁC NHẬN & THANH TOÁN",
+    title: "XÁC NHẬN THANH TOÁN",
     desc: "Sau khi đồng ý với báo giá, khách hàng tiến hành xác nhận đơn hàng và thanh toán. Hệ thống Tiximax bắt đầu thực hiện các bước mua hàng và logistics ngay lập tức, đảm bảo tiến độ.",
   },
   {
