@@ -265,6 +265,15 @@ const QuestionPage = () => {
 
                 {/* Submit Button */}
                 <div>
+                  <p className="text-gray-700 mb-4 leading-relaxed px-4">
+                    Để được báo giá cụ thể nhất, hãy điền đầy đủ thông tin yêu
+                    cầu
+                  </p>
+                  <div className="flex items-center justify-center gap-3 mb-4">
+                    <div className="w-8 h-0.5 bg-yellow-400"></div>
+                    <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
+                    <div className="w-8 h-0.5 bg-yellow-400"></div>
+                  </div>
                   <button
                     onClick={handleSubmit}
                     className="w-full md:w-auto px-12 py-4 bg-gray-900 text-white font-bold uppercase rounded-lg hover:bg-gray-800 transition-colors duration-300 shadow-lg"

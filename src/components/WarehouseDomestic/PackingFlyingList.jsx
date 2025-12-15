@@ -8,10 +8,12 @@ import {
   RefreshCw,
   CheckCircle,
   Package,
+  Download,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import packingsService from "../../Services/Warehouse/packingsService";
 import receivePackingService from "../../Services/Warehouse/receivepackingService";
+import * as XLSX from "xlsx";
 
 const PackingFlyingList = () => {
   const [packings, setPackings] = useState([]);
@@ -21,7 +23,8 @@ const PackingFlyingList = () => {
   const [totalPackings, setTotalPackings] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterDate, setFilterDate] = useState("");
-  const [selectedPackings, setSelectedPackings] = useState([]);
+  const [selectedPackings, setSelectedPackings] = useState([]); // Array of packingId
+  const [exportLoading, setExportLoading] = useState(false);
 
   // Helper function to extract error message from backend response
   const getErrorMessage = (error) => {
@@ -76,21 +79,21 @@ const PackingFlyingList = () => {
     return packingList.length;
   };
 
-  // Handle checkbox selection
-  const handleSelectPacking = (packingCode) => {
+  // Handle checkbox selection - DÙNG packingId
+  const handleSelectPacking = (packingId) => {
     setSelectedPackings((prev) =>
-      prev.includes(packingCode)
-        ? prev.filter((code) => code !== packingCode)
-        : [...prev, packingCode]
+      prev.includes(packingId)
+        ? prev.filter((id) => id !== packingId)
+        : [...prev, packingId]
     );
   };
 
-  // Handle select all
+  // Handle select all - DÙNG packingId
   const handleSelectAll = () => {
     if (selectedPackings.length === filteredPackings.length) {
       setSelectedPackings([]);
     } else {
-      setSelectedPackings(filteredPackings.map((p) => p.packingCode));
+      setSelectedPackings(filteredPackings.map((p) => p.packingId));
     }
   };
 
@@ -103,7 +106,13 @@ const PackingFlyingList = () => {
     setLoading(true);
     try {
       const note = "Đã nhận tại kho nội địa";
-      await receivePackingService.confirmReceipt(selectedPackings, note);
+
+      // Map packingId → packingCode nếu API cần packingCode
+      const packingCodes = packings
+        .filter((p) => selectedPackings.includes(p.packingId))
+        .map((p) => p.packingCode);
+
+      await receivePackingService.confirmReceipt(packingCodes, note);
       toast.success("Xác nhận nhận hàng thành công!");
       setSelectedPackings([]);
       await loadPackings(currentPage, pageSize);
@@ -114,6 +123,218 @@ const PackingFlyingList = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Handle Export Excel - DÙNG packingId
+  const handleExportSelected = async () => {
+    if (selectedPackings.length === 0) {
+      toast.error("Vui lòng chọn ít nhất một kiện hàng để xuất!");
+      return;
+    }
+
+    setExportLoading(true);
+    try {
+      // Gửi array of packingId
+      const data = await packingsService.exportPackings(selectedPackings);
+
+      if (!data || data.length === 0) {
+        toast.error("Không có dữ liệu để xuất!");
+        return;
+      }
+
+      // Helper function to ensure array
+      const ensureArray = (value) => {
+        if (Array.isArray(value)) return value;
+        if (value === null || value === undefined || value === "") return [];
+        return [value];
+      };
+
+      // Create header
+      const excelData = [
+        // [
+        //   "STT",
+        //   "Mã kiện hàng",
+        //   "Mã chuyến bay",
+        //   "Mã đơn hàng",
+        //   "Mã tracking",
+        //   "Tên sản phẩm",
+        //   "Số lượng",
+        //   "Giá tiền",
+        //   "Link sản phẩm",
+        //   "Phân loại",
+        //   "Chiều cao (cm)",
+        //   "Chiều dài (cm)",
+        //   "Chiều rộng (cm)",
+        //   "Thể tích (m³)",
+        //   "Trọng lượng (kg)",
+        //   "Mã khách hàng",
+        //   "Tên khách hàng",
+        //   "Điểm đến",
+        //   "Nhân viên",
+        // ],
+        [
+          "No.",
+          "Package Code",
+          "Flight Code",
+          "Order Code",
+          "Tracking Code",
+          "Product Name",
+          "Quantity",
+          "Price",
+          "Product Link",
+          "Category",
+          "Height (cm)",
+          "Length (cm)",
+          "Width (cm)",
+          "Volume (m³)",
+          "Weight (kg)",
+          "Customer Code",
+          "Customer Name",
+          "Destination",
+          "Staff",
+        ],
+      ];
+
+      let stt = 1;
+
+      // Process each packing
+      data.forEach((packing) => {
+        // Convert to arrays
+        const productNames = ensureArray(packing.productNames);
+        const quantities = ensureArray(packing.quantities);
+        const productLinks = ensureArray(packing.productLink);
+
+        // Handle price - có thể là number hoặc array
+        let prices = [];
+        if (Array.isArray(packing.price)) {
+          prices = packing.price;
+        } else if (
+          typeof packing.price === "number" ||
+          typeof packing.price === "string"
+        ) {
+          const priceValue = packing.price;
+          const itemCount = Math.max(productNames.length, quantities.length, 1);
+          prices = Array(itemCount).fill(priceValue);
+        } else {
+          prices = [];
+        }
+
+        // Find max length
+        const maxLength = Math.max(
+          productNames.length,
+          quantities.length,
+          prices.length,
+          productLinks.length,
+          1
+        );
+
+        // Create a row for each product
+        for (let i = 0; i < maxLength; i++) {
+          excelData.push([
+            stt,
+            packing.packingCode || "",
+            packing.flightCode || "",
+            packing.orderCode || "",
+            packing.trackingCode || "",
+            productNames[i] || "",
+            quantities[i] || "",
+            prices[i] !== undefined && prices[i] !== null ? prices[i] : "",
+            productLinks[i] || "",
+            packing.classify || "",
+            packing.height || "",
+            packing.length || "",
+            packing.width || "",
+            packing.dim ? Number(packing.dim).toFixed(4) : "",
+            packing.netWeight ? Number(packing.netWeight).toFixed(2) : "",
+            packing.customerCode || "",
+            packing.customerName || "",
+            packing.destination || "",
+            packing.staffName || "",
+          ]);
+          stt++;
+        }
+      });
+
+      // Create worksheet
+      const ws = XLSX.utils.aoa_to_sheet(excelData);
+
+      // Column widths
+      ws["!cols"] = [
+        { wch: 5 }, // STT
+        { wch: 18 }, // Mã kiện hàng
+        { wch: 15 }, // Mã chuyến bay
+        { wch: 15 }, // Mã đơn hàng
+        { wch: 15 }, // Mã tracking
+        { wch: 30 }, // Tên sản phẩm
+        { wch: 10 }, // Số lượng
+        { wch: 15 }, // Giá tiền
+        { wch: 50 }, // Link sản phẩm
+        { wch: 18 }, // Phân loại
+        { wch: 12 }, // Chiều cao
+        { wch: 12 }, // Chiều dài
+        { wch: 12 }, // Chiều rộng
+        { wch: 12 }, // Thể tích
+        { wch: 15 }, // Trọng lượng
+        { wch: 15 }, // Mã khách hàng
+        { wch: 20 }, // Tên khách hàng
+        { wch: 15 }, // Điểm đến
+        { wch: 20 }, // Nhân viên
+      ];
+
+      // Style header row
+      const range = XLSX.utils.decode_range(ws["!ref"]);
+      for (let col = range.s.c; col <= range.e.c; col++) {
+        const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
+        if (!ws[cellAddress]) continue;
+
+        ws[cellAddress].s = {
+          fill: {
+            fgColor: { rgb: "2563EB" },
+          },
+          font: {
+            color: { rgb: "FFFFFF" },
+            bold: true,
+            sz: 12,
+          },
+          alignment: {
+            horizontal: "center",
+            vertical: "center",
+          },
+          border: {
+            top: { style: "thin", color: { rgb: "000000" } },
+            bottom: { style: "thin", color: { rgb: "000000" } },
+            left: { style: "thin", color: { rgb: "000000" } },
+            right: { style: "thin", color: { rgb: "000000" } },
+          },
+        };
+      }
+
+      // Format price columns as number with thousand separator
+      for (let row = 1; row < excelData.length; row++) {
+        const priceCell = XLSX.utils.encode_cell({ r: row, c: 7 });
+        if (ws[priceCell] && typeof ws[priceCell].v === "number") {
+          ws[priceCell].z = "#,##0";
+        }
+      }
+
+      // Create workbook and export
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Packings");
+
+      const fileName = `packings_flying_export_${
+        new Date().toISOString().split("T")[0]
+      }.xlsx`;
+      XLSX.writeFile(wb, fileName);
+
+      toast.success(
+        `Xuất thành công ${data.length} kiện hàng (${stt - 1} dòng chi tiết)!`
+      );
+    } catch (error) {
+      console.error("Export error:", error);
+      toast.error(error.message || "Export thất bại!");
+    } finally {
+      setExportLoading(false);
     }
   };
 
@@ -142,8 +363,8 @@ const PackingFlyingList = () => {
   const totalPages = Math.ceil(totalPackings / pageSize);
 
   return (
-    <div className="p-6  min-h-screen">
-      <div className=" mx-auto">
+    <div className="p-6 min-h-screen">
+      <div className="mx-auto">
         {/* Header */}
         <div className="bg-blue-600 rounded-xl shadow-sm p-5 mb-4">
           <div className="flex items-center gap-3">
@@ -199,6 +420,30 @@ const PackingFlyingList = () => {
               <option value={100}>100 / trang</option>
             </select>
 
+            {/* Export Button */}
+            <button
+              onClick={handleExportSelected}
+              disabled={selectedPackings.length === 0 || exportLoading}
+              className={`flex items-center gap-2 px-5 py-2 text-sm font-medium rounded-lg transition-colors ${
+                selectedPackings.length === 0 || exportLoading
+                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                  : "bg-green-600 text-white hover:bg-green-700"
+              }`}
+            >
+              {exportLoading ? (
+                <>
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  Đang xuất...
+                </>
+              ) : (
+                <>
+                  <Download size={18} />
+                  Xuất Excel ({selectedPackings.length})
+                </>
+              )}
+            </button>
+
+            {/* Receive Button */}
             <button
               onClick={handleConfirmReceipt}
               disabled={loading || selectedPackings.length === 0}
@@ -306,7 +551,7 @@ const PackingFlyingList = () => {
                     <tr
                       key={packing.packingId}
                       className={`hover:bg-blue-50/60 transition-colors ${
-                        selectedPackings.includes(packing.packingCode)
+                        selectedPackings.includes(packing.packingId)
                           ? "bg-blue-50/60"
                           : ""
                       }`}
@@ -315,11 +560,9 @@ const PackingFlyingList = () => {
                       <td className="px-4 py-3">
                         <input
                           type="checkbox"
-                          checked={selectedPackings.includes(
-                            packing.packingCode
-                          )}
+                          checked={selectedPackings.includes(packing.packingId)}
                           onChange={() =>
-                            handleSelectPacking(packing.packingCode)
+                            handleSelectPacking(packing.packingId)
                           }
                           className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                         />
@@ -338,9 +581,9 @@ const PackingFlyingList = () => {
                       {/* Packing List */}
                       <td className="px-4 py-3">
                         <div className="flex flex-wrap gap-1 max-w-md">
-                          {packing.packingList.slice(0, 2).map((item) => (
+                          {packing.packingList.slice(0, 2).map((item, idx) => (
                             <span
-                              key={item}
+                              key={idx}
                               className="inline-block px-2 py-0.5 bg-blue-50 text-blue-700 text-xs rounded border border-blue-100"
                             >
                               {item}

@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 const services = [
   {
     id: 1,
     title: "Dịch Vụ Vận Chuyển",
+    path: "/services/shipping",
     description:
       "Dịch vụ vận chuyển quốc tế trọn gói tuyến Mỹ, Nhật, Hàn, Indonesia về Việt Nam. Tiximax cam kết quy trình minh bạch, tối ưu cước phí và thời gian vận chuyển nhanh chóng. Chúng tôi đảm bảo hàng hóa đến tay bạn an toàn và đúng hẹn, giúp bạn tiết kiệm chi phí logistics tối đa.",
     image:
@@ -27,6 +28,7 @@ const services = [
   {
     id: 2,
     title: "Dịch Vụ Mua Hộ",
+    path: "/services/purchase",
     description:
       "Cần mua hộ hàng Mỹ, Nhật, Hàn, Indonesia? Đội ngũ Tiximax giúp bạn mua sắm tại mọi website. Cam kết mua đúng link, đúng sản phẩm với mức phí ưu đãi nhất. Sử dụng dịch vụ mua hộ để tiếp cận hàng hóa toàn cầu chính hãng mà không cần thẻ quốc tế phức tạp.",
     image:
@@ -36,6 +38,7 @@ const services = [
   {
     id: 3,
     title: "Dịch Vụ Đấu Giá",
+    path: "/services/auction",
     description:
       "Thỏa sức săn hàng độc và giá trị cao từ các sàn đấu giá eBay, Yahoo Auction. Dịch vụ đấu giá hộ Tiximax giúp bạn tham gia đấu giá an toàn, dễ dàng, tăng cơ hội thắng với mức phí cạnh tranh. Nhận tư vấn chi tiết quy trình và thủ tục nhanh chóng.",
     image:
@@ -59,6 +62,7 @@ const services = [
   {
     id: 4,
     title: "Dịch Vụ Thông Quan Hộ",
+    path: "/services/customs",
     description:
       "Giải pháp thông quan hải quan chuyên nghiệp cho hàng hóa xuất nhập khẩu số lượng lớn. Tiximax giúp bạn xử lý toàn bộ thủ tục pháp lý, hồ sơ hải quan nhanh gọn, tránh rủi ro và phạt. Đảm bảo lô hàng được thông quan suôn sẻ, đúng luật và tối ưu thời gian.",
     image:
@@ -82,6 +86,7 @@ const services = [
   {
     id: 5,
     title: "Dịch Vụ Ký Gửi Kho",
+    path: "/services/storage",
     description:
       "Dịch vụ ký gửi kho hàng và gom hàng tại Mỹ, Nhật, Hàn miễn phí trong thời gian quy định. Tiximax cung cấp địa chỉ kho uy tín, hỗ trợ kiểm đếm, đóng gói chuẩn quốc tế. Tận dụng ký gửi kho để tối ưu chi phí vận chuyển và gom đơn hàng tiện lợi.",
     image:
@@ -110,7 +115,7 @@ const Service = () => {
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   // Responsive items per view
-  React.useEffect(() => {
+  useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 768) {
         setItemsPerView(1);
@@ -153,6 +158,8 @@ const Service = () => {
     setTimeout(() => setIsTransitioning(false), 600);
   };
 
+  const maxIndicator = Math.max(1, services.length - itemsPerView + 1);
+
   return (
     <section className="py-20 bg-white">
       <div className="container mx-auto px-6">
@@ -176,6 +183,7 @@ const Service = () => {
             disabled={isTransitioning}
             className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 md:-translate-x-12 z-10 w-12 h-24 bg-yellow-400 hover:bg-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed text-white flex items-center justify-center transition-colors duration-300 shadow-lg"
             aria-label="Previous"
+            type="button"
           >
             <svg
               className="w-6 h-6"
@@ -208,7 +216,13 @@ const Service = () => {
                   className="flex-shrink-0 px-3"
                   style={{ width: `${100 / itemsPerView}%` }}
                 >
-                  <div className="flex flex-col items-center text-center group">
+                  {/* Entire card is clickable (href) */}
+                  <a
+                    href={service.path}
+                    className="flex flex-col items-center text-center group cursor-pointer"
+                    aria-label={service.title}
+                    title={service.title}
+                  >
                     {/* Image Container */}
                     <div className="relative mb-6 w-full">
                       <div className="relative w-64 h-64 mx-auto rounded-full overflow-hidden border-4 border-gray-200 group-hover:border-yellow-400 transition-colors duration-300 shadow-lg">
@@ -216,14 +230,17 @@ const Service = () => {
                           src={service.image}
                           alt={service.title}
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                          loading="lazy"
                         />
                         {/* Overlay with icon */}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-8">
-                          <div className="text-white">{service.icon}</div>
+                          <div className="text-white">
+                            {service.icon || null}
+                          </div>
                         </div>
                       </div>
 
-                      {/* Brands badges (for service 2) */}
+                      {/* Brands badges (optional) */}
                       {service.brands && (
                         <div className="absolute top-4 left-1/2 -translate-x-1/2 flex flex-wrap gap-2 justify-center max-w-xs">
                           {service.brands.map((brand, index) => (
@@ -247,7 +264,7 @@ const Service = () => {
                         {service.description}
                       </p>
                     </div>
-                  </div>
+                  </a>
                 </div>
               ))}
             </div>
@@ -259,6 +276,7 @@ const Service = () => {
             disabled={isTransitioning}
             className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 md:translate-x-12 z-10 w-12 h-24 bg-yellow-400 hover:bg-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed text-white flex items-center justify-center transition-colors duration-300 shadow-lg"
             aria-label="Next"
+            type="button"
           >
             <svg
               className="w-6 h-6"
@@ -278,9 +296,7 @@ const Service = () => {
 
         {/* Indicators */}
         <div className="flex justify-center gap-2 mt-12">
-          {Array.from({
-            length: services.length - itemsPerView + 1,
-          }).map((_, index) => (
+          {Array.from({ length: maxIndicator }).map((_, index) => (
             <button
               key={index}
               onClick={() => goToSlide(index)}
@@ -291,15 +307,19 @@ const Service = () => {
                   : "w-2 h-2 bg-gray-300 hover:bg-gray-400"
               } rounded-full`}
               aria-label={`Go to slide ${index + 1}`}
+              type="button"
             />
           ))}
         </div>
 
         {/* Bottom CTA */}
         <div className="text-center mt-12">
-          <button className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-4 rounded-xl font-bold transition-all duration-300 shadow-lg hover:shadow-xl">
+          <a
+            href="/services"
+            className="inline-flex bg-gray-900 hover:bg-gray-800 text-white px-8 py-4 rounded-xl font-bold transition-all duration-300 shadow-lg hover:shadow-xl"
+          >
             Xem tất cả dịch vụ
-          </button>
+          </a>
         </div>
       </div>
     </section>

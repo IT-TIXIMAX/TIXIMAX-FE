@@ -16,7 +16,6 @@ const services = [
       "Vận chuyển",
       "Đấu giá",
       "Ký gửi kho",
-      "Phụ tùng xe máy",
       "Thông quan hộ",
       "Fulfillment",
     ],
@@ -30,7 +29,7 @@ const services = [
       "https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/Flag_of_Vietnam.svg/250px-Flag_of_Vietnam.svg.png",
     market: "Japan - VietNam",
     description:
-      "Cung cấp dịch vụ vận chuyển - đấu giá - mua hộ từ Nhật Bản về Việt Nam.",
+      "Cung cấp dịch vụ vận chuyển - đấu giá - mua hộ 2 chiều từ Nhật Bản về Việt Nam.",
     specialties: [
       "Mua hộ",
       "Vận chuyển",
@@ -46,16 +45,17 @@ const services = [
     domain: "tiximax.kr",
     country:
       "https://upload.wikimedia.org/wikipedia/commons/0/09/Flag_of_South_Korea.svg",
-    market: "South Korea ",
+    vietnamFlag:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/Flag_of_Vietnam.svg/250px-Flag_of_Vietnam.svg.png",
+    market: "South Korea - VietNam",
     description:
       "Chuyên vận chuyển - đấu giá - mua hộ từ Hàn Quốc về Việt Nam.",
     specialties: [
-      "K-Beauty",
-      "Thời trang",
-      "Điện tử",
-      "Chăm sóc da",
-      "Thực phẩm chức năng",
-      "Công nghệ",
+      "Mua hộ",
+      "Vận chuyển",
+      "Đấu giá",
+      "Ký gửi kho",
+      "Thông quan hộ",
       "Fulfillment",
     ],
     estimatedTime: "6-9 ngày",
@@ -65,14 +65,16 @@ const services = [
     domain: "tiximax.us",
     country:
       "https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg",
-    market: "USA ",
+    vietnamFlag:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/Flag_of_Vietnam.svg/250px-Flag_of_Vietnam.svg.png",
+    market: "USA - VietNam",
     description: "Chuyên vận chuyển - đấu giá - mua hộ từ Mỹ về Việt Nam.",
     specialties: [
-      "Công nghệ",
-      "Thực phẩm chức năng",
-      "Chăm sóc da",
-      "Thời trang",
-      "Đấu giá đồ cũ",
+      "Mua hộ",
+      "Vận chuyển",
+      "Đấu giá",
+      "Ký gửi kho",
+      "Thông quan hộ",
       "Fulfillment",
     ],
     estimatedTime: "10-14 ngày",

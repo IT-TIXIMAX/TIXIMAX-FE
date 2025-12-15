@@ -24,14 +24,10 @@ const AnimatedSection = ({ children, delay = 0 }) => {
           }
         });
       },
-      {
-        threshold: 0.1,
-        rootMargin: "0px 0px -100px 0px",
-      }
+      { threshold: 0.1, rootMargin: "0px 0px -100px 0px" }
     );
 
     observer.observe(ref.current);
-
     return () => observer.disconnect();
   }, []);
 
@@ -80,50 +76,40 @@ const GuideList = () => {
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-white to-amber-50/40">
-      {/* ===================== HEADER ĐỒNG BỘ ===================== */}
-      <section className="relative overflow-hidden mb-12 lg:mb-16 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-        {/* Radial amber giống các trang khác */}
+      {/* HEADER */}
+      <section className="relative overflow-hidden mb-12 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-amber-500/25 via-transparent to-transparent" />
         <div className="relative max-w-5xl mx-auto px-6 py-16 lg:py-24">
           <div className="space-y-5 text-white">
-            <p className="text-xs md:text-sm font-semibold tracking-[0.25em] text-amber-300 uppercase">
+            <p className="text-xs font-semibold tracking-[0.25em] text-amber-300 uppercase">
               Hướng dẫn Tiximax
             </p>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black leading-tight">
+            <h1 className="text-3xl lg:text-5xl font-black">
               Hướng dẫn sử dụng Tiximax
             </h1>
-            <p className="text-sm md:text-base text-gray-200 max-w-2xl leading-relaxed">
-              Tất cả những gì bạn cần để bắt đầu: cách đặt hàng, theo dõi đơn và
-              sử dụng các tính năng của TIXIMAX LOGISTICS một cách hiệu quả.
+            <p className="text-gray-200 max-w-2xl">
+              Cách đặt hàng, theo dõi đơn và sử dụng hệ thống Tiximax hiệu quả.
             </p>
           </div>
         </div>
       </section>
-      {/* ============================================================ */}
 
-      <div className="max-w-7xl mx-auto px-6 pb-16 lg:pb-20">
-        {/* INTRO – NO ANIMATION */}
-        <div className="text-center mb-16 lg:mb-20">
-          <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 mb-4">
-            HƯỚNG DẪN CƠ BẢN – BẮT ĐẦU VỚI TIXIMAX
-          </h2>
-          <p className="text-base md:text-lg text-gray-700 max-w-3xl mx-auto leading-relaxed">
-            Hai hướng dẫn quan trọng nhất giúp bạn đặt hàng và theo dõi đơn hiệu
-            quả, phù hợp cho cả khách lẻ và chủ shop.
-          </p>
-        </div>
-
-        {/* Guides Grid */}
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16">
+      <div className="max-w-7xl mx-auto px-6 pb-20">
+        <div className="grid lg:grid-cols-2 gap-12">
           {guides.map((guide, index) => (
-            <AnimatedSection key={guide.title} delay={index * 100}>
-              <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-300">
-                {/* Image Section */}
+            <AnimatedSection key={guide.title} delay={index * 120}>
+              {/* 👉 TOÀN CARD CLICK ĐƯỢC */}
+              <a
+                href={guide.link}
+                className="block bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-300 group"
+                aria-label={guide.title}
+              >
+                {/* Image */}
                 <div className="relative h-72 md:h-80 overflow-hidden">
                   <img
                     src={guide.image}
                     alt={guide.title}
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/25 to-transparent" />
 
@@ -133,48 +119,39 @@ const GuideList = () => {
                     </div>
                   </div>
 
-                  <div className="absolute bottom-0 left-0 right-0 p-7 md:p-8">
-                    <h2 className="text-2xl md:text-3xl font-bold text-white leading-snug">
+                  <div className="absolute bottom-0 p-8">
+                    <h2 className="text-2xl md:text-3xl font-bold text-white">
                       {guide.title}
                     </h2>
                   </div>
                 </div>
 
-                {/* Text Section */}
+                {/* Content */}
                 <div className="p-8 md:p-10">
-                  <p className="text-base md:text-lg text-gray-700 leading-relaxed mb-8">
-                    {guide.desc}
-                  </p>
+                  <p className="text-gray-700 text-lg mb-8">{guide.desc}</p>
 
-                  {/* Steps */}
-                  <div className="mb-8 md:mb-10">
-                    <h3 className="text-base md:text-lg font-bold text-gray-900 mb-5 pb-3 border-b-2 border-yellow-400">
-                      Các bước thực hiện:
-                    </h3>
+                  <h3 className="font-bold mb-4 border-b-2 border-yellow-400 pb-2">
+                    Các bước thực hiện:
+                  </h3>
 
-                    <ol className="space-y-4 md:space-y-5">
-                      {guide.steps.map((step, stepIndex) => (
-                        <li key={stepIndex} className="flex gap-4">
-                          <span className="flex-shrink-0 w-8 h-8 rounded-full bg-yellow-100 text-yellow-700 font-semibold text-sm flex items-center justify-center mt-0.5">
-                            {stepIndex + 1}
-                          </span>
-                          <span className="text-base md:text-lg text-gray-700 leading-relaxed pt-0.5">
-                            {step}
-                          </span>
-                        </li>
-                      ))}
-                    </ol>
-                  </div>
+                  <ol className="space-y-4 mb-8">
+                    {guide.steps.map((step, i) => (
+                      <li key={i} className="flex gap-4">
+                        <span className="w-8 h-8 rounded-full bg-yellow-100 text-yellow-700 font-semibold flex items-center justify-center">
+                          {i + 1}
+                        </span>
+                        <span className="text-gray-700">{step}</span>
+                      </li>
+                    ))}
+                  </ol>
 
-                  <a
-                    href={guide.link}
-                    className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-400 to-yellow-300 hover:from-yellow-500 hover:to-yellow-400 text-gray-900 font-semibold text-sm md:text-base px-7 md:px-8 py-3.5 md:py-4 rounded-xl transition-all duration-300 group"
-                  >
+                  {/* 👉 NÚT GIỮ LẠI (chỉ là visual, vẫn link giống card) */}
+                  <span className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-400 to-yellow-300 text-gray-900 font-semibold px-7 py-3.5 rounded-xl">
                     Xem hướng dẫn chi tiết
-                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                  </a>
+                    <ArrowRight className="w-5 h-5" />
+                  </span>
                 </div>
-              </div>
+              </a>
             </AnimatedSection>
           ))}
         </div>

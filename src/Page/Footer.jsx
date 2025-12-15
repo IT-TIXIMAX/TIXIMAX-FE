@@ -298,25 +298,14 @@ const Footer = () => {
 
         {/* --- Phần dưới --- */}
         <div className="border-t border-yellow-400/30 pt-8 text-gray-300">
-          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <div className="text-center md:text-left text-sm">
+          <div className="flex justify-center">
+            <div className="text-center text-sm max-w-3xl">
               © {new Date().getFullYear()}{" "}
               <span className="text-yellow-400 font-semibold">
                 TixiLogistics
               </span>
               . All rights reserved. |{" "}
               <span className="ml-1">Công ty TNHH Logistics Tixi</span>
-            </div>
-            <div className="flex flex-wrap justify-center md:justify-end gap-4 text-xs">
-              <a href="#" className="hover:text-yellow-400 transition-colors">
-                Chính sách bảo mật
-              </a>
-              <a href="#" className="hover:text-yellow-400 transition-colors">
-                Điều khoản sử dụng
-              </a>
-              <a href="#" className="hover:text-yellow-400 transition-colors">
-                Sơ đồ trang web
-              </a>
             </div>
           </div>
         </div>
