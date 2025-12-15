@@ -1,9 +1,7 @@
-import React, { useEffect, useCallback, useState } from "react";
+import React, { useEffect, useCallback, useRef, useState } from "react";
 import { X, AlertTriangle, Loader2, CheckCircle2, Ban } from "lucide-react";
 import orderService from "../../Services/LeadSale/orderService";
 import toast from "react-hot-toast";
-
-// Component upload ảnh dùng chung
 import UploadImg from "../../common/UploadImg";
 
 const ConfirmRefundOrder = ({ open, order, onClose, onSuccess }) => {
@@ -11,13 +9,26 @@ const ConfirmRefundOrder = ({ open, order, onClose, onSuccess }) => {
   const [submitting, setSubmitting] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
 
-  // Đóng bằng phím ESC
+  const dialogRef = useRef(null);
+
+  // Reset mỗi lần mở modal
+  useEffect(() => {
+    if (!open) return;
+    setRefundToCustomer(true);
+    setSubmitting(false);
+    setImageUrl("");
+    setTimeout(() => dialogRef.current?.focus?.(), 0);
+  }, [open]);
+
+  // Đóng bằng ESC (không đóng khi đang submit)
   const handleKeyDown = useCallback(
     (e) => {
       if (!open) return;
-      if (e.key === "Escape") onClose?.();
+      if (e.key === "Escape") {
+        if (!submitting) onClose?.();
+      }
     },
-    [open, onClose]
+    [open, submitting, onClose]
   );
 
   useEffect(() => {
@@ -25,21 +36,18 @@ const ConfirmRefundOrder = ({ open, order, onClose, onSuccess }) => {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [handleKeyDown]);
 
-  // Reset state mỗi lần mở modal hoặc đổi order
-  useEffect(() => {
-    if (open) {
-      setRefundToCustomer(true);
-      setSubmitting(false);
-      setImageUrl("");
-    }
-  }, [open, order?.orderId]);
+  const safeClose = useCallback(() => {
+    if (submitting) return;
+    onClose?.();
+  }, [submitting, onClose]);
 
-  const submit = async () => {
+  const submit = useCallback(async () => {
+    if (submitting) return;
     if (!order?.orderId) return;
 
-    // Bắt buộc phải có ảnh
-    if (!imageUrl) {
-      toast.error("Vui lòng upload ảnh xác nhận hoàn tiền!");
+    // ✅ Chỉ bắt buộc ảnh khi HOÀN TIỀN VỀ KHÁCH
+    if (refundToCustomer && !imageUrl) {
+      toast.error("Vui lòng upload ảnh xác nhận hoàn tiền về khách!");
       return;
     }
 
@@ -49,7 +57,7 @@ const ConfirmRefundOrder = ({ open, order, onClose, onSuccess }) => {
       await orderService.confirmRefundOrder(
         order.orderId,
         refundToCustomer,
-        imageUrl // URL ảnh từ UploadImg
+        refundToCustomer ? imageUrl : null // ✅ không hoàn về khách -> không gửi ảnh
       );
 
       toast.success(
@@ -69,28 +77,40 @@ const ConfirmRefundOrder = ({ open, order, onClose, onSuccess }) => {
     } finally {
       setSubmitting(false);
     }
-  };
+  }, [
+    submitting,
+    order?.orderId,
+    refundToCustomer,
+    imageUrl,
+    onClose,
+    onSuccess,
+  ]);
 
   if (!open) return null;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center">
       {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/40"
-        onClick={() => !submitting && onClose?.()}
-      />
+      <div className="absolute inset-0 bg-black/40" onClick={safeClose} />
 
       {/* Dialog */}
-      <div className="relative w-full max-w-lg bg-white rounded-xl shadow-xl overflow-hidden">
+      <div
+        ref={dialogRef}
+        tabIndex={-1}
+        role="dialog"
+        aria-modal="true"
+        className="relative w-full max-w-lg bg-white rounded-xl shadow-xl overflow-hidden outline-none"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b">
           <div className="flex items-center gap-2">
             <AlertTriangle className="w-5 h-5 text-amber-500" />
             <h3 className="text-lg font-semibold">Xác nhận hoàn tiền</h3>
           </div>
+
           <button
-            onClick={onClose}
+            onClick={safeClose}
             disabled={submitting}
             className="p-2 rounded-md hover:bg-gray-100 disabled:opacity-50"
           >
@@ -108,15 +128,17 @@ const ConfirmRefundOrder = ({ open, order, onClose, onSuccess }) => {
             .
           </div>
 
-          {/* Upload ảnh */}
-          <UploadImg
-            label="Ảnh xác nhận hoàn tiền"
-            required
-            imageUrl={imageUrl}
-            onImageUpload={(url) => setImageUrl(url)}
-            onImageRemove={() => setImageUrl("")}
-            className="mt-2"
-          />
+          {/* ✅ Chỉ hiển thị upload khi Hoàn tiền về khách */}
+          {refundToCustomer && (
+            <UploadImg
+              label="Ảnh xác nhận hoàn tiền"
+              required
+              imageUrl={imageUrl}
+              onImageUpload={(url) => setImageUrl(url)}
+              onImageRemove={() => setImageUrl("")}
+              className="mt-2"
+            />
+          )}
 
           {/* Chọn hình thức hoàn tiền */}
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
@@ -128,12 +150,12 @@ const ConfirmRefundOrder = ({ open, order, onClose, onSuccess }) => {
               <button
                 type="button"
                 onClick={() => setRefundToCustomer(true)}
+                disabled={submitting}
                 className={`w-full flex items-center gap-2 rounded-lg border px-3 py-2 text-left transition ${
                   refundToCustomer
                     ? "border-green-500 bg-green-50"
                     : "border-gray-200 bg-white hover:bg-gray-50"
                 }`}
-                disabled={submitting}
               >
                 <CheckCircle2 className="w-5 h-5 text-green-600" />
                 <div>
@@ -148,13 +170,16 @@ const ConfirmRefundOrder = ({ open, order, onClose, onSuccess }) => {
 
               <button
                 type="button"
-                onClick={() => setRefundToCustomer(false)}
+                onClick={() => {
+                  setRefundToCustomer(false);
+                  setImageUrl(""); // ✅ chuyển qua "không hoàn" thì clear ảnh luôn
+                }}
+                disabled={submitting}
                 className={`w-full flex items-center gap-2 rounded-lg border px-3 py-2 text-left transition ${
                   !refundToCustomer
                     ? "border-amber-500 bg-amber-50"
                     : "border-gray-200 bg-white hover:bg-gray-50"
                 }`}
-                disabled={submitting}
               >
                 <Ban className="w-5 h-5 text-amber-600" />
                 <div>
@@ -177,7 +202,7 @@ const ConfirmRefundOrder = ({ open, order, onClose, onSuccess }) => {
         {/* Footer */}
         <div className="px-5 py-4 border-t flex items-center justify-end gap-2">
           <button
-            onClick={onClose}
+            onClick={safeClose}
             disabled={submitting}
             className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
           >
