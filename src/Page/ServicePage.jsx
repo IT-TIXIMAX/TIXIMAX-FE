@@ -46,7 +46,7 @@ const services = [
     domain: "tiximax.kr",
     country:
       "https://upload.wikimedia.org/wikipedia/commons/0/09/Flag_of_South_Korea.svg",
-    market: "South Korea - VietNam",
+    market: "South Korea ",
     description:
       "Chuyên vận chuyển - đấu giá - mua hộ từ Hàn Quốc về Việt Nam.",
     specialties: [
@@ -65,7 +65,7 @@ const services = [
     domain: "tiximax.us",
     country:
       "https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg",
-    market: "USA - VietNam",
+    market: "USA ",
     description: "Chuyên vận chuyển - đấu giá - mua hộ từ Mỹ về Việt Nam.",
     specialties: [
       "Công nghệ",

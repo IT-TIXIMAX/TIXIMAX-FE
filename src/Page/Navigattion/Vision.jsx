@@ -10,7 +10,7 @@ const fadeUp = {
 
 const Vision = () => {
   return (
-    <main className="bg-white py-20">
+    <main className="bg-gray-50 py-20">
       {/* TITLE */}
       <motion.h1
         variants={fadeUp}
