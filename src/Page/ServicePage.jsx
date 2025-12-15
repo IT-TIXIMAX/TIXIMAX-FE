@@ -81,26 +81,6 @@ const services = [
     ],
     estimatedTime: "10-14 ngày",
   },
-  // {
-  //   id: 5,
-  //   domain: "tiximax.hk",
-  //   country:
-  //     "https://upload.wikimedia.org/wikipedia/commons/5/5b/Flag_of_Hong_Kong.svg",
-  //   market: "Hong Kong",
-  //   description: "Chuyên tuyến vận chuyển và mua hàng từ Hong Kong",
-  //   specialties: ["Electronics", "Jewelry", "Fashion", "Skincare"],
-  //   estimatedTime: "4-7 ngày",
-  // },
-  // {
-  //   id: 6,
-  //   domain: "tiximax.net",
-  //   country:
-  //     "https://upload.wikimedia.org/wikipedia/commons/f/f3/Flag_of_Russia.svg",
-  //   market: "Global",
-  //   description: "Tổng quan tất cả dịch vụ vận chuyển và mua hàng quốc tế",
-  //   specialties: ["Multi-platform", "Consolidated", "Express", "Skincare"],
-  //   estimatedTime: "Varies",
-  // },
 ];
 
 const ServicesPage = () => {

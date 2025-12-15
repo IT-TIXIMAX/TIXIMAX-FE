@@ -745,7 +745,6 @@ const WarehouseShipment = () => {
                   {/* Destination - Big Box */}
                   <div className="md:col-span-2 bg-yellow-300 border-2 border-yellow-400 rounded-lg p-4 text-center">
                     <div className="flex items-center justify-center gap-2 mb-1">
-                      <MapPin className="w-5 h-5 text-gray-800" />
                       <p className="text-sm font-semibold text-gray-800 uppercase tracking-wide">
                         Destination
                       </p>
@@ -755,6 +754,17 @@ const WarehouseShipment = () => {
                     </p>
                   </div>
 
+                  {/* Price - Big Box */}
+                  <div className="md:col-span-2 bg-blue-200 border-2 border-blue-300 rounded-lg p-4 text-center">
+                    <div className="flex items-center justify-center gap-2 mb-1">
+                      <p className="text-sm font-semibold text-gray-800 uppercase tracking-wide">
+                        Price
+                      </p>
+                    </div>
+                    <p className="font-bold text-2xl text-gray-900">
+                      {orderInfo.price || "N/A"}
+                    </p>
+                  </div>
                   {/* Check Required - Big Box */}
                   <div
                     className={`md:col-span-2 rounded-lg p-4 text-center border-2 ${
