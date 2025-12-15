@@ -54,6 +54,25 @@ const Contact = () => {
     setForm((s) => ({ ...s, [key]: e.target.value }));
   };
 
+  // ✅ Social links (đổi lại đúng link nếu bạn có link khác)
+  const socials = [
+    {
+      Icon: Facebook,
+      href: "https://www.facebook.com/tiximaxlogistics",
+      label: "Facebook",
+    },
+    {
+      Icon: Instagram,
+      href: "https://www.instagram.com/tiximaxlogistics",
+      label: "Instagram",
+    },
+    {
+      Icon: Linkedin,
+      href: "https://www.linkedin.com/company/tiximax-joint-stock-company",
+      label: "LinkedIn",
+    },
+  ];
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-white to-amber-50/30 text-gray-900">
       {/* ========= HEADER – ĐỒNG BỘ VỚI CÁC PAGE KHÁC ========= */}
@@ -160,10 +179,14 @@ const Contact = () => {
               </p>
 
               <div className="mt-4 flex items-center gap-5">
-                {[Facebook, Instagram, Linkedin].map((Icon, i) => (
+                {socials.map(({ Icon, href, label }, i) => (
                   <a
                     key={i}
-                    href="#"
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={label}
+                    title={label}
                     className="w-10 h-10 flex items-center justify-center rounded-full bg-amber-900 text-white hover:bg-amber-500 hover:text-gray-900 transition-colors"
                   >
                     <Icon className="w-5 h-5" />
