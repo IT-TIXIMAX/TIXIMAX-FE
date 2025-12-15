@@ -72,14 +72,14 @@ const services = [
   {
     icon: <Truck className="w-7 h-7 text-amber-400" />,
     title: "DỊCH VỤ THÔNG QUAN HỘ",
-    desc: "Thông quan hộ từ nước ngoài về Việt Nam, dịch vụ nhanh chóng, thủ tục đơn giản.",
+    desc: "Thông quan hộ từ nước ngoài về Việt Nam, dịch vụ nhanh chóng, thủ tục đơn giản, minh bạch, giải pháp tối ưu nhất.",
     features: [
       "Hỗ trợ thủ tục nhập khẩu",
       "Giao nhận 63 tỉnh thành",
       "Minh bạch chi phí.",
     ],
     image:
-      "https://i.pinimg.com/736x/f3/9e/5d/f39e5d1a48ee85e87ffdf551e03919c1.jpg",
+      "https://i.pinimg.com/736x/74/28/e6/7428e6b80ecd09bb6590d7ae175d5400.jpg",
     link: "/services/customs",
   },
   {
