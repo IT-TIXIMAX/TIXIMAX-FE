@@ -20,7 +20,7 @@ const WarehouseList = () => {
   const [warehouses, setWarehouses] = useState([]);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
-  const [pageSize, setPageSize] = useState(50);
+  const [pageSize, setPageSize] = useState(20);
   const [totalPages, setTotalPages] = useState(0);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -137,6 +137,112 @@ const WarehouseList = () => {
     setPreviewImage(null);
   };
 
+  // Loading Skeleton Component
+  const TableSkeleton = () => (
+    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+      <div className="px-6 py-3 bg-blue-200 border-b border-blue-100">
+        <div className="flex items-center justify-between">
+          <div className="h-4 bg-blue-300 rounded w-32 animate-pulse"></div>
+          <div className="h-4 bg-blue-300 rounded w-24 animate-pulse"></div>
+        </div>
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="bg-blue-50">
+            <tr>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                No.
+              </th>
+              <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                Image
+              </th>
+              <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                Destination
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                Shipment Code
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                Order Code
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                Customer Code
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                Weight
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                Net Weight
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                Dimension
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                Created At
+              </th>
+              <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-100">
+            {[...Array(8)].map((_, index) => (
+              <tr key={index} className="animate-pulse">
+                <td className="px-4 py-3">
+                  <div className="h-4 bg-gray-200 rounded w-8"></div>
+                </td>
+                <td className="px-4 py-3">
+                  <div className="flex justify-center">
+                    <div className="w-14 h-14 bg-gray-200 rounded-lg"></div>
+                  </div>
+                </td>
+                <td className="px-4 py-3">
+                  <div className="h-4 bg-gray-200 rounded w-16 mx-auto"></div>
+                </td>
+                <td className="px-4 py-3">
+                  <div className="h-4 bg-gray-200 rounded w-28"></div>
+                </td>
+                <td className="px-4 py-3">
+                  <div className="h-4 bg-gray-200 rounded w-24"></div>
+                </td>
+                <td className="px-4 py-3">
+                  <div className="h-4 bg-gray-200 rounded w-20"></div>
+                </td>
+                <td className="px-4 py-3">
+                  <div className="h-4 bg-gray-200 rounded w-16"></div>
+                </td>
+                <td className="px-4 py-3">
+                  <div className="h-4 bg-gray-200 rounded w-16"></div>
+                </td>
+                <td className="px-4 py-3">
+                  <div className="h-4 bg-gray-200 rounded w-16"></div>
+                </td>
+                <td className="px-4 py-3">
+                  <div className="h-4 bg-gray-200 rounded w-20"></div>
+                </td>
+                <td className="px-4 py-3">
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="h-7 bg-gray-200 rounded-lg w-16"></div>
+                    <div className="h-7 bg-gray-200 rounded-lg w-16"></div>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="bg-white border-t border-gray-200 px-6 py-3">
+        <div className="flex items-center justify-between">
+          <div className="h-8 bg-gray-200 rounded w-24 animate-pulse"></div>
+          <div className="h-4 bg-gray-200 rounded w-24 animate-pulse"></div>
+          <div className="h-8 bg-gray-200 rounded w-24 animate-pulse"></div>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="p-6 min-h-screen">
       <div className="mx-auto">
@@ -198,25 +304,16 @@ const WarehouseList = () => {
               disabled={loading}
               className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
             >
-              <option value={10}>10 / page</option>
               <option value={20}>20 / page</option>
-              <option value={30}>30 / page</option>
               <option value={50}>50 / page</option>
               <option value={100}>100 / page</option>
+              <option value={200}>200 / page</option>
             </select>
           </div>
         </div>
 
-        {/* Loading */}
-        {loading && (
-          <div className="bg-white border border-gray-200 rounded-xl p-10 text-center">
-            <RefreshCw
-              size={32}
-              className="animate-spin text-blue-600 mx-auto mb-3"
-            />
-            <p className="text-gray-700 text-sm font-medium">Loading data...</p>
-          </div>
-        )}
+        {/* Loading Skeleton */}
+        {loading && <TableSkeleton />}
 
         {/* Empty State */}
         {!loading && !error && warehouses.length === 0 && (
@@ -242,7 +339,7 @@ const WarehouseList = () => {
         )}
 
         {/* Table */}
-        {warehouses.length > 0 && (
+        {!loading && warehouses.length > 0 && (
           <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
             <div className="px-6 py-3 bg-blue-200 border-b border-blue-100">
               <div className="flex items-center justify-between text-sm">

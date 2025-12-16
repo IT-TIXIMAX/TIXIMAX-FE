@@ -1,125 +1,177 @@
-import React, { useEffect, useMemo, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   Search,
-  RefreshCcw,
   PackageSearch,
   ChevronLeft,
   ChevronRight,
   Package,
   User,
-  FileText,
+  X,
   Image as ImageIcon,
+  RefreshCw,
 } from "lucide-react";
 import warehouseService from "../../Services/Warehouse/warehouseService";
 
 const STATUS_BADGES = {
   DA_MUA: {
-    label: "Đã mua",
+    label: "Purchased",
     className: "bg-blue-100 text-blue-800 border-blue-200",
   },
   KY_GUI: {
-    label: "Ký gửi",
+    label: "Consignment",
     className: "bg-indigo-100 text-indigo-800 border-indigo-200",
   },
   DEFAULT: {
-    label: "Khác",
+    label: "Other",
     className: "bg-gray-100 text-gray-800 border-gray-200",
   },
 };
 
 const PAGE_SIZE_OPTIONS = [20, 50, 100, 200];
 
-// Loading Skeleton Component
-const TableLoadingSkeleton = () => {
-  return (
-    <>
-      {Array.from({ length: 10 }).map((_, i) => (
-        <tr key={i} className="border-b border-gray-100">
-          <td className="px-4 py-3">
-            <div className="h-4 w-8 bg-gray-200 rounded animate-pulse"></div>
-          </td>
-          <td className="px-4 py-3">
-            <div className="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
-          </td>
-          <td className="px-4 py-3">
-            <div className="h-4 w-28 bg-gray-200 rounded animate-pulse"></div>
-          </td>
-          <td className="px-4 py-3">
-            <div className="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
-          </td>
-          <td className="px-4 py-3">
-            <div className="h-12 w-12 bg-gray-200 rounded-md animate-pulse"></div>
-          </td>
-          <td className="px-4 py-3">
-            <div className="h-4 w-28 bg-gray-200 rounded animate-pulse"></div>
-          </td>
-          <td className="px-4 py-3">
-            <div className="h-6 w-20 bg-gray-200 rounded-full animate-pulse"></div>
-          </td>
-        </tr>
-      ))}
-    </>
-  );
-};
+// Loading Skeleton Component - Giống WarehouseList
+const TableSkeleton = () => (
+  <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+    <div className="px-6 py-3 bg-blue-200 border-b border-blue-100">
+      <div className="flex items-center justify-between">
+        <div className="h-4 bg-blue-300 rounded w-32 animate-pulse"></div>
+        <div className="h-4 bg-blue-300 rounded w-24 animate-pulse"></div>
+      </div>
+    </div>
 
-// Table Row Component - Memoized
-const TableRow = React.memo(({ row, index, page, size }) => {
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead className="bg-blue-50">
+          <tr>
+            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+              No.
+            </th>
+            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+              Customer
+            </th>
+            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+              Order
+            </th>
+            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+              Product
+            </th>
+            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+              Image
+            </th>
+            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+              Shipment
+            </th>
+            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+              Status
+            </th>
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-100">
+          {[...Array(8)].map((_, index) => (
+            <tr key={index} className="animate-pulse">
+              <td className="px-4 py-3">
+                <div className="h-4 bg-gray-200 rounded w-8"></div>
+              </td>
+              <td className="px-4 py-3">
+                <div className="h-4 bg-gray-200 rounded w-20"></div>
+              </td>
+              <td className="px-4 py-3">
+                <div className="h-4 bg-gray-200 rounded w-24"></div>
+              </td>
+              <td className="px-4 py-3">
+                <div className="h-4 bg-gray-200 rounded w-32"></div>
+              </td>
+              <td className="px-4 py-3">
+                <div className="w-10 h-10 bg-gray-200 rounded"></div>
+              </td>
+              <td className="px-4 py-3">
+                <div className="h-4 bg-gray-200 rounded w-24"></div>
+              </td>
+              <td className="px-4 py-3">
+                <div className="h-5 bg-gray-200 rounded-full w-20"></div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+    <div className="bg-white border-t border-gray-200 px-6 py-3">
+      <div className="flex items-center justify-between">
+        <div className="h-8 bg-gray-200 rounded w-24 animate-pulse"></div>
+        <div className="h-4 bg-gray-200 rounded w-24 animate-pulse"></div>
+        <div className="h-8 bg-gray-200 rounded w-24 animate-pulse"></div>
+      </div>
+    </div>
+  </div>
+);
+
+// Table Row Component
+const TableRow = React.memo(({ row, index, page, size, onPreview }) => {
   const badge = STATUS_BADGES[row.status] || STATUS_BADGES.DEFAULT;
   const [imageError, setImageError] = useState(false);
 
+  const handlePreview = () => {
+    if (!row.image || imageError) return;
+    onPreview?.({
+      url: row.image,
+      title: row.productName,
+      sub: `${row.orderCode || ""} • ${row.customerCode || ""}`,
+    });
+  };
+
   return (
-    <tr className="border-b border-gray-100 last:border-b-0 hover:bg-blue-50/30 transition-colors">
-      <td className="px-4 py-3 text-gray-700 font-medium">
-        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600 text-xs font-bold">
-          {index + 1 + page * size}
-        </div>
-      </td>
+    <tr className="hover:bg-blue-50/60 transition-colors">
+      <td className="px-4 py-3 text-gray-900">{index + 1 + page * size}</td>
+
       <td className="px-4 py-3">
-        <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-gray-100 text-gray-800 font-mono text-xs font-semibold border border-gray-200">
+        <span className="inline-flex items-center px-2 py-0.5 rounded bg-gray-100 text-gray-800 font-mono text-xs font-semibold border border-gray-200">
           {row.customerCode}
         </span>
       </td>
+
       <td className="px-4 py-3">
-        <span className="font-mono text-sm font-semibold text-blue-600">
+        <span className="font-mono text-xs font-semibold text-blue-600">
           {row.orderCode}
         </span>
       </td>
+
       <td className="px-4 py-3">
-        <span className="text-gray-900 font-medium">{row.productName}</span>
+        <span className="text-xs text-gray-900 font-medium line-clamp-2">
+          {row.productName}
+        </span>
       </td>
 
       <td className="px-4 py-3">
         {row.image && !imageError ? (
-          <div className="relative group">
-            <img
-              src={row.image}
-              alt={row.productName}
-              className="w-14 h-14 object-cover rounded-lg border-2 border-gray-200 shadow-sm group-hover:border-blue-400 transition-all cursor-pointer"
-              loading="lazy"
-              onError={() => setImageError(true)}
-            />
-            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 rounded-lg transition-all"></div>
-          </div>
+          <img
+            src={row.image}
+            alt={row.productName}
+            className="w-14 h-14 object-cover rounded-lg border-2 border-gray-200 cursor-pointer hover:border-blue-500 hover:shadow-md transition-all"
+            loading="lazy"
+            onError={() => setImageError(true)}
+            onClick={handlePreview}
+          />
         ) : (
           <div className="w-14 h-14 bg-gray-100 rounded-lg flex items-center justify-center border-2 border-gray-200">
-            <ImageIcon className="w-6 h-6 text-gray-400" />
+            <ImageIcon size={22} className="text-gray-400" />
           </div>
         )}
       </td>
 
       <td className="px-4 py-3">
         {row.shipmentcode ? (
-          <span className="font-mono text-xs font-semibold text-gray-700 bg-gray-100 px-2 py-1 rounded border border-gray-200">
+          <span className="font-mono text-xs font-semibold text-gray-700">
             {row.shipmentcode}
           </span>
         ) : (
-          <span className="text-xs text-gray-400 italic">Chưa có</span>
+          <span className="text-xs text-gray-400 italic">-</span>
         )}
       </td>
 
       <td className="px-4 py-3">
         <span
-          className={`inline-flex px-3 py-1.5 rounded-full text-xs font-semibold border ${badge.className}`}
+          className={`inline-flex px-2 py-0.5 rounded-full text-xs font-semibold border ${badge.className}`}
         >
           {badge.label}
         </span>
@@ -132,10 +184,16 @@ TableRow.displayName = "TableRow";
 
 const PendingReceive = () => {
   const [rows, setRows] = useState([]);
+
   const [filters, setFilters] = useState({
     shipmentCode: "",
     customerCode: "",
   });
+  const [appliedFilters, setAppliedFilters] = useState({
+    shipmentCode: "",
+    customerCode: "",
+  });
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -145,8 +203,22 @@ const PendingReceive = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalElements, setTotalElements] = useState(0);
 
+  // Image preview modal state
+  const [preview, setPreview] = useState(null);
+
+  const closePreview = useCallback(() => setPreview(null), []);
+
+  // ESC to close preview
+  useEffect(() => {
+    const onKeyDown = (e) => {
+      if (e.key === "Escape") closePreview();
+    };
+    if (preview) document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [preview, closePreview]);
+
   const fetchData = useCallback(
-    async (pageIndex = 0, pageSize = size) => {
+    async (pageIndex = 0, pageSize = size, searchFilters = appliedFilters) => {
       try {
         setLoading(true);
         setError(null);
@@ -155,8 +227,8 @@ const PendingReceive = () => {
           pageIndex,
           pageSize,
           {
-            shipmentCode: filters.shipmentCode,
-            customerCode: filters.customerCode,
+            shipmentCode: searchFilters.shipmentCode,
+            customerCode: searchFilters.customerCode,
           }
         );
 
@@ -184,51 +256,59 @@ const PendingReceive = () => {
         setTotalElements(data?.totalElements || flattened.length);
       } catch (err) {
         console.error("Error fetching foreign warehouse links:", err);
-        setError("Không thể tải dữ liệu. Vui lòng thử lại.");
+        const errorMsg =
+          err.response?.data?.message ||
+          "Unable to load data. Please try again.";
+        setError(errorMsg);
         setRows([]);
+        setTotalPages(1);
+        setTotalElements(0);
       } finally {
         setLoading(false);
       }
     },
-    [filters.shipmentCode, filters.customerCode, size]
+    [size, appliedFilters]
   );
 
   useEffect(() => {
-    fetchData(0, size);
-  }, [size, fetchData]);
+    fetchData(0, size, appliedFilters);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [size]);
 
   const handleFilterChange = useCallback((field, value) => {
     setFilters((prev) => ({ ...prev, [field]: value }));
   }, []);
 
   const handleSearch = useCallback(() => {
-    fetchData(0, size);
-  }, [fetchData, size]);
+    setAppliedFilters(filters);
+    setPage(0);
+    fetchData(0, size, filters);
+  }, [filters, size, fetchData]);
 
-  const handleRefresh = useCallback(() => {
-    setFilters({ shipmentCode: "", customerCode: "" });
-    fetchData(0, size);
-  }, [fetchData, size]);
+  const handleClearFilter = useCallback((field) => {
+    setFilters((prev) => ({ ...prev, [field]: "" }));
+  }, []);
 
   const handleKeyPress = useCallback(
     (e) => {
-      if (e.key === "Enter") {
-        handleSearch();
-      }
+      if (e.key === "Enter") handleSearch();
     },
     [handleSearch]
   );
 
-  const handlePageChange = useCallback(
-    (direction) => {
-      if (direction === "next" && page < totalPages - 1) {
-        fetchData(page + 1, size);
-      } else if (direction === "prev" && page > 0) {
-        fetchData(page - 1, size);
-      }
-    },
-    [page, totalPages, size, fetchData]
-  );
+  const nextPage = useCallback(() => {
+    if (loading) return;
+    if (page < totalPages - 1) {
+      fetchData(page + 1, size);
+    }
+  }, [loading, page, totalPages, size, fetchData]);
+
+  const prevPage = useCallback(() => {
+    if (loading) return;
+    if (page > 0) {
+      fetchData(page - 1, size);
+    }
+  }, [loading, page, size, fetchData]);
 
   const handlePageSizeChange = useCallback((newSize) => {
     setSize(newSize);
@@ -236,257 +316,252 @@ const PendingReceive = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br">
-      <div className="p-4 md:p-6 max-w-[1600px] mx-auto">
+    <div className="p-6 min-h-screen">
+      <div className="mx-auto">
         {/* Header */}
-        <div className="mb-6">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="rounded-full bg-gradient-to-br from-blue-500 to-blue-600 p-2.5 shadow-md">
-              <PackageSearch className="w-6 h-6 text-white" />
+        <div className="bg-blue-600 rounded-xl shadow-sm p-5 mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
+              <PackageSearch size={22} className="text-white" />
             </div>
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-              Managing overseas shipments awaiting receipt.
+            <h1 className="text-xl font-semibold text-white">
+              Overseas Pending Receipt
             </h1>
           </div>
         </div>
 
-        {/* Main Card */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          {/* Filters Section */}
-          <div className="bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-3">
-            <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-              <Search className="w-5 h-5" />
-              Filter
-            </h2>
+        {/* Error */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+            <p className="text-red-700 text-sm">{error}</p>
           </div>
+        )}
 
-          <div className="p-6 border-b border-gray-200">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-              {/* Customer Code */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Mã khách hàng
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Nhập mã khách hàng..."
-                    value={filters.customerCode}
-                    onChange={(e) =>
-                      handleFilterChange("customerCode", e.target.value)
-                    }
-                    onKeyPress={handleKeyPress}
-                    className="w-full px-4 py-2.5 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all hover:border-blue-400"
-                  />
-                  <User className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
-                </div>
-              </div>
-
-              {/* Shipment Code */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Mã vận đơn
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Nhập mã vận đơn..."
-                    value={filters.shipmentCode}
-                    onChange={(e) =>
-                      handleFilterChange("shipmentCode", e.target.value)
-                    }
-                    onKeyPress={handleKeyPress}
-                    className="w-full px-4 py-2.5 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all hover:border-blue-400"
-                  />
-                  <Package className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
-                </div>
-              </div>
-
-              {/* Page Size Selector */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Số dòng hiển thị
-                </label>
-                <select
-                  value={size}
-                  onChange={(e) => handlePageSizeChange(Number(e.target.value))}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-sm transition-all hover:border-blue-400"
+        {/* Filters */}
+        <div className="bg-white border border-gray-200 rounded-xl p-5 mb-4">
+          <div className="flex flex-col sm:flex-row gap-3">
+            {/* Customer Code */}
+            <div className="flex-1 relative">
+              <User
+                className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400"
+                size={18}
+              />
+              <input
+                type="text"
+                placeholder="Customer Code..."
+                value={filters.customerCode}
+                onChange={(e) =>
+                  handleFilterChange("customerCode", e.target.value)
+                }
+                onKeyPress={handleKeyPress}
+                className="w-full pl-8 pr-10 py-2 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              />
+              {filters.customerCode && (
+                <button
+                  onClick={() => handleClearFilter("customerCode")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                 >
-                  {PAGE_SIZE_OPTIONS.map((opt) => (
-                    <option key={opt} value={opt}>
-                      {opt} dòng
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex flex-wrap gap-3">
-              <button
-                onClick={handleSearch}
-                disabled={loading}
-                className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all disabled:from-blue-300 disabled:to-blue-400 disabled:cursor-not-allowed font-medium text-sm flex items-center gap-2 shadow-md hover:shadow-lg"
-              >
-                <Search className="w-4 h-4" />
-                {loading ? "Đang tìm..." : "Tìm kiếm"}
-              </button>
-              <button
-                onClick={handleRefresh}
-                disabled={loading}
-                className="px-6 py-2.5 bg-white border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all disabled:bg-gray-100 disabled:cursor-not-allowed text-sm flex items-center gap-2 font-medium"
-              >
-                <RefreshCcw className="w-4 h-4" />
-                Làm mới
-              </button>
-            </div>
-          </div>
-
-          {/* Error Banner */}
-          {error && (
-            <div className="px-6 py-3 bg-red-50 border-b border-red-200 flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-red-500"></div>
-              <span className="text-sm text-red-700 font-medium">{error}</span>
-            </div>
-          )}
-
-          {/* Results Header */}
-          <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div>
-                <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-blue-600" />
-                  Danh sách gói hàng
-                </h3>
-                {totalElements > 0 && (
-                  <p className="text-sm text-gray-600 mt-1">
-                    Tổng cộng:{" "}
-                    <span className="font-bold text-blue-600">
-                      {totalElements}
-                    </span>{" "}
-                    gói hàng
-                    <span className="mx-2">•</span>
-                    Hiển thị:{" "}
-                    <span className="font-bold text-blue-600">
-                      {rows.length}
-                    </span>{" "}
-                    trên trang này
-                  </p>
-                )}
-              </div>
-              {totalPages > 1 && (
-                <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg border border-gray-200">
-                  <span className="text-sm text-gray-700">
-                    Trang{" "}
-                    <span className="font-bold text-blue-600">{page + 1}</span>{" "}
-                    / <span className="font-bold">{totalPages}</span>
-                  </span>
-                </div>
+                  <X className="w-4 h-4" />
+                </button>
               )}
             </div>
+
+            {/* Shipment Code */}
+            <div className="flex-1 relative">
+              <Package
+                className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400"
+                size={18}
+              />
+              <input
+                type="text"
+                placeholder="Shipment Code..."
+                value={filters.shipmentCode}
+                onChange={(e) =>
+                  handleFilterChange("shipmentCode", e.target.value)
+                }
+                onKeyPress={handleKeyPress}
+                className="w-full pl-8 pr-10 py-2 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              />
+              {filters.shipmentCode && (
+                <button
+                  onClick={() => handleClearFilter("shipmentCode")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
+            <button
+              onClick={handleSearch}
+              disabled={loading}
+              className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Search
+            </button>
+
+            <select
+              value={size}
+              onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+              disabled={loading}
+              className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
+            >
+              {PAGE_SIZE_OPTIONS.map((opt) => (
+                <option key={opt} value={opt}>
+                  {opt} / page
+                </option>
+              ))}
+            </select>
           </div>
+        </div>
 
-          {/* Table */}
-          <div className="overflow-x-auto">
-            <table className="min-w-full">
-              <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-gray-200">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                    STT
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                    Mã KH
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                    Mã đơn hàng
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                    Tên sản phẩm
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                    Hình ảnh
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                    Mã vận đơn
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                    Trạng thái
-                  </th>
-                </tr>
-              </thead>
+        {/* Loading Skeleton */}
+        {loading && <TableSkeleton />}
 
-              <tbody className="bg-white divide-y divide-gray-100">
-                {/* Loading Skeleton */}
-                {loading && <TableLoadingSkeleton />}
+        {/* Empty State */}
+        {!loading && !error && rows.length === 0 && (
+          <div className="bg-white border border-gray-200 rounded-xl p-10 text-center">
+            <PackageSearch size={40} className="text-gray-300 mx-auto mb-3" />
+            <h3 className="text-base font-semibold text-gray-800 mb-1">
+              No data
+            </h3>
+            <p className="text-gray-500 text-sm">
+              {appliedFilters.customerCode || appliedFilters.shipmentCode
+                ? "No results found with current filters"
+                : "There are no pending items to display."}
+            </p>
+          </div>
+        )}
 
-                {/* Empty State */}
-                {!loading && rows.length === 0 && (
+        {/* Table */}
+        {!loading && rows.length > 0 && (
+          <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+            <div className="px-6 py-3 bg-blue-200 border-b border-blue-100">
+              <div className="flex items-center justify-between text-sm">
+                <span className="font-medium text-black-900">
+                  Total: {rows.length} items
+                </span>
+                <span className="text-blue-700">
+                  Page {page + 1} / {totalPages}
+                </span>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-blue-50">
                   <tr>
-                    <td colSpan={7} className="px-4 py-12">
-                      <div className="flex flex-col items-center justify-center text-center">
-                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
-                          <PackageSearch className="w-8 h-8 text-gray-400" />
-                        </div>
-                        <p className="text-gray-600 text-base font-semibold">
-                          Không tìm thấy dữ liệu
-                        </p>
-                        <p className="text-gray-500 text-sm mt-1">
-                          Thử thay đổi bộ lọc tìm kiếm
-                        </p>
-                      </div>
-                    </td>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      No.
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Customer
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Order
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Product
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Image
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Shipment
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Status
+                    </th>
                   </tr>
-                )}
-
-                {/* Data Rows */}
-                {!loading &&
-                  rows.map((row, idx) => (
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-100">
+                  {rows.map((row, idx) => (
                     <TableRow
                       key={`${row.orderId}-${row.linkId}`}
                       row={row}
                       index={idx}
                       page={page}
                       size={size}
+                      onPreview={setPreview}
                     />
                   ))}
-              </tbody>
-            </table>
-          </div>
+                </tbody>
+              </table>
+            </div>
 
-          {/* Pagination */}
-          {!loading && rows.length > 0 && totalPages > 1 && (
-            <div className="px-6 py-4 border-t border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100">
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            {/* Pagination */}
+            <div className="bg-white border-t border-gray-200 px-6 py-3">
+              <div className="flex items-center justify-between text-sm">
                 <button
-                  onClick={() => handlePageChange("prev")}
+                  onClick={prevPage}
                   disabled={page === 0}
-                  className="w-full sm:w-auto px-6 py-2.5 border-2 border-gray-300 rounded-lg text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 hover:border-blue-400 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed disabled:border-gray-200 transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow"
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium transition-colors ${
+                    page === 0
+                      ? "text-gray-400 cursor-not-allowed"
+                      : "text-gray-700 hover:bg-blue-50"
+                  }`}
                 >
-                  <ChevronLeft className="w-4 h-4" />
-                  Trang trước
+                  <ChevronLeft size={18} />
+                  Previous
                 </button>
 
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-700 bg-white px-4 py-2 rounded-lg border-2 border-gray-200 font-medium">
-                    Trang{" "}
-                    <span className="font-bold text-blue-600">{page + 1}</span>{" "}
-                    / <span className="font-bold">{totalPages}</span>
-                  </span>
+                <div className="font-medium text-gray-700">
+                  Page {page + 1} / {totalPages}
                 </div>
 
                 <button
-                  onClick={() => handlePageChange("next")}
+                  onClick={nextPage}
                   disabled={page >= totalPages - 1}
-                  className="w-full sm:w-auto px-6 py-2.5 border-2 border-gray-300 rounded-lg text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 hover:border-blue-400 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed disabled:border-gray-200 transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow"
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium transition-colors ${
+                    page >= totalPages - 1
+                      ? "text-gray-400 cursor-not-allowed"
+                      : "text-gray-700 hover:bg-blue-50"
+                  }`}
                 >
-                  Trang sau
-                  <ChevronRight className="w-4 h-4" />
+                  Next
+                  <ChevronRight size={18} />
                 </button>
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
+
+      {/* Image Preview Modal - Giống WarehouseList */}
+      {preview?.url && (
+        <div
+          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+          onClick={closePreview}
+        >
+          <div className="relative max-w-4xl max-h-[90vh]">
+            <button
+              onClick={closePreview}
+              className="absolute -top-12 right-0 text-white hover:text-gray-300 transition-colors flex items-center gap-2 bg-black/50 px-3 py-2 rounded-lg"
+            >
+              <span className="text-sm font-medium">Close</span>
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+            <img
+              src={preview.url}
+              alt={preview.title || "Preview"}
+              className="max-w-full max-h-[85vh] rounded-lg shadow-2xl border-4 border-white"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

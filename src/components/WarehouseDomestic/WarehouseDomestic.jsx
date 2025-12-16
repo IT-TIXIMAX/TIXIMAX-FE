@@ -1,10 +1,8 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
-  Filter,
   Search,
   X,
   Package,
-  Phone,
   FileText,
   ChevronLeft,
   ChevronRight,
@@ -12,7 +10,6 @@ import {
   Link2,
   ZoomIn,
   List,
-  BookOpen,
 } from "lucide-react";
 import domesticService from "../../Services/Warehouse/domesticService";
 
@@ -26,10 +23,12 @@ const STATUS_OPTIONS = [
   { value: "DA_GIAO", label: "Đã giao" },
 ];
 
-// Loading Skeleton Component
+const PAGE_SIZE_OPTIONS = [20, 50, 100, 200];
+
+// Loading Skeleton Component - Giống WarehouseList style
 const LoadingSkeleton = () => {
   return (
-    <div className="divide-y divide-gray-200 animate-pulse">
+    <div className="divide-y divide-gray-100 animate-pulse">
       {[1, 2, 3].map((item) => (
         <div key={item} className="p-6">
           <div className="flex gap-4 mb-4">
@@ -72,141 +71,157 @@ const LoadingSkeleton = () => {
   );
 };
 
-// Image Modal Component - Memoized
+// Image Modal Component - Giống WarehouseList style
 const ImageModal = React.memo(({ isOpen, onClose, imageUrl, linkData }) => {
   if (!isOpen) return null;
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4"
+      className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
       onClick={onClose}
     >
-      <div
-        className="relative bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-auto"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Close button */}
+      <div className="relative max-w-4xl max-h-[90vh]">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-10 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-colors"
+          className="absolute -top-12 right-0 text-white hover:text-gray-300 transition-colors flex items-center gap-2 bg-black/50 px-3 py-2 rounded-lg"
         >
-          <X className="w-6 h-6 text-gray-600" />
+          <span className="text-sm font-medium">Close</span>
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
         </button>
-
-        {/* Image */}
-        <div className="p-6">
-          <img
-            src={imageUrl}
-            alt={linkData?.productName || "Product"}
-            className="w-full h-auto rounded-lg shadow-lg mb-6"
-            onError={(e) => {
-              e.target.src =
-                "https://via.placeholder.com/800x600?text=Image+Not+Available";
-            }}
-          />
+        <div className="bg-white rounded-xl shadow-2xl overflow-hidden max-h-[85vh] overflow-y-auto">
+          {/* Image */}
+          <div className="p-2 bg-black/5">
+            <img
+              src={imageUrl}
+              alt={linkData?.productName || "Product"}
+              className="w-full max-h-[50vh] object-contain rounded-lg bg-white"
+              onError={(e) => {
+                e.target.src =
+                  "https://via.placeholder.com/800x600?text=Image+Not+Available";
+              }}
+            />
+          </div>
 
           {/* Product Information */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <h3 className="text-xl font-bold text-gray-900 border-b pb-2">
-                Thông tin sản phẩm
-              </h3>
+          <div className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <h3 className="text-xl font-bold text-gray-900 border-b pb-2">
+                  Thông tin sản phẩm
+                </h3>
 
-              <div>
-                <label className="text-sm font-medium text-gray-500">
-                  Tên sản phẩm
-                </label>
-                <p className="text-base text-gray-900 font-medium mt-1">
-                  {linkData?.productName || "-"}
-                </p>
-              </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">
+                    Tên sản phẩm
+                  </label>
+                  <p className="text-base text-gray-900 font-medium mt-1">
+                    {linkData?.productName || "-"}
+                  </p>
+                </div>
 
-              <div>
-                <label className="text-sm font-medium text-gray-500">
-                  Mã lô hàng
-                </label>
-                <p className="text-base text-gray-900 font-mono mt-1">
-                  {linkData?.shipmentCode || "-"}
-                </p>
-              </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">
+                    Mã lô hàng
+                  </label>
+                  <p className="text-base text-gray-900 font-mono mt-1">
+                    {linkData?.shipmentCode || "-"}
+                  </p>
+                </div>
 
-              <div>
-                <label className="text-sm font-medium text-gray-500">
-                  Mã đóng gói
-                </label>
-                <p className="text-base text-gray-900 font-mono mt-1">
-                  {linkData?.packingCode || "-"}
-                </p>
-              </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">
+                    Mã đóng gói
+                  </label>
+                  <p className="text-base text-gray-900 font-mono mt-1">
+                    {linkData?.packingCode || "-"}
+                  </p>
+                </div>
 
-              <div>
-                <label className="text-sm font-medium text-gray-500">
-                  Trạng thái
-                </label>
-                <div className="mt-1">
-                  <span
-                    className={`inline-flex px-3 py-1 text-sm font-medium rounded-full ${
-                      linkData?.status === "DA_NHAP_KHO_VN"
-                        ? "bg-green-100 text-green-800"
-                        : linkData?.status === "CHO_TRUNG_CHUYEN"
-                        ? "bg-yellow-100 text-yellow-800"
-                        : linkData?.status === "CHO_GIAO"
-                        ? "bg-blue-100 text-blue-800"
-                        : linkData?.status === "DANG_GIAO"
-                        ? "bg-purple-100 text-purple-800"
-                        : "bg-gray-100 text-gray-800"
-                    }`}
-                  >
-                    {STATUS_OPTIONS.find((s) => s.value === linkData?.status)
-                      ?.label || linkData?.status}
-                  </span>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">
+                    Trạng thái
+                  </label>
+                  <div className="mt-1">
+                    <span
+                      className={`inline-flex px-3 py-1 text-sm font-medium rounded-full ${
+                        linkData?.status === "DA_NHAP_KHO_VN"
+                          ? "bg-green-100 text-green-800"
+                          : linkData?.status === "CHO_TRUNG_CHUYEN"
+                          ? "bg-yellow-100 text-yellow-800"
+                          : linkData?.status === "CHO_GIAO"
+                          ? "bg-blue-100 text-blue-800"
+                          : linkData?.status === "DANG_GIAO"
+                          ? "bg-purple-100 text-purple-800"
+                          : "bg-gray-100 text-gray-800"
+                      }`}
+                    >
+                      {STATUS_OPTIONS.find((s) => s.value === linkData?.status)
+                        ?.label || linkData?.status}
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="space-y-4">
-              <h3 className="text-xl font-bold text-gray-900 border-b pb-2">
-                Thông tin kích thước
-              </h3>
+              <div className="space-y-4">
+                <h3 className="text-xl font-bold text-gray-900 border-b pb-2">
+                  Thông tin kích thước
+                </h3>
 
-              <div>
-                <label className="text-sm font-medium text-gray-500">
-                  Kích thước (D × R × C)
-                </label>
-                <p className="text-base text-gray-900 font-medium mt-1">
-                  {linkData?.length && linkData?.width && linkData?.height
-                    ? `${linkData.length} × ${linkData.width} × ${linkData.height} cm`
-                    : "-"}
-                </p>
-              </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">
+                    Kích thước (D × R × C)
+                  </label>
+                  <p className="text-base text-gray-900 font-medium mt-1">
+                    {linkData?.length && linkData?.width && linkData?.height
+                      ? `${linkData.length} × ${linkData.width} × ${linkData.height} cm`
+                      : "-"}
+                  </p>
+                </div>
 
-              <div>
-                <label className="text-sm font-medium text-gray-500">
-                  Khối lượng thực tế
-                </label>
-                <p className="text-base text-gray-900 font-bold mt-1">
-                  {linkData?.weight ? `${linkData.weight.toFixed(3)} kg` : "-"}
-                </p>
-              </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">
+                    Khối lượng thực tế
+                  </label>
+                  <p className="text-base text-gray-900 font-bold mt-1">
+                    {linkData?.weight
+                      ? `${linkData.weight.toFixed(3)} kg`
+                      : "-"}
+                  </p>
+                </div>
 
-              <div>
-                <label className="text-sm font-medium text-gray-500">
-                  Khối lượng quy đổi (Dim)
-                </label>
-                <p className="text-base text-gray-900 font-bold mt-1">
-                  {linkData?.dim ? `${linkData.dim.toFixed(3)} kg` : "-"}
-                </p>
-              </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">
+                    Khối lượng quy đổi (Dim)
+                  </label>
+                  <p className="text-base text-gray-900 font-bold mt-1">
+                    {linkData?.dim ? `${linkData.dim.toFixed(3)} kg` : "-"}
+                  </p>
+                </div>
 
-              <div>
-                <label className="text-sm font-medium text-gray-500">
-                  Khối lượng tính phí
-                </label>
-                <p className="text-lg text-blue-600 font-bold mt-1">
-                  {linkData?.weight && linkData?.dim
-                    ? `${Math.max(linkData.weight, linkData.dim).toFixed(3)} kg`
-                    : "-"}
-                </p>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">
+                    Khối lượng tính phí
+                  </label>
+                  <p className="text-lg text-blue-600 font-bold mt-1">
+                    {linkData?.weight && linkData?.dim
+                      ? `${Math.max(linkData.weight, linkData.dim).toFixed(
+                          3
+                        )} kg`
+                      : "-"}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -218,7 +233,7 @@ const ImageModal = React.memo(({ isOpen, onClose, imageUrl, linkData }) => {
 
 ImageModal.displayName = "ImageModal";
 
-// Order Link Item Component - Memoized
+// Order Link Item Component
 const OrderLinkItem = React.memo(({ link, linkIndex, onImageClick }) => {
   const getStatusBadgeClass = (status) => {
     switch (status) {
@@ -242,7 +257,7 @@ const OrderLinkItem = React.memo(({ link, linkIndex, onImageClick }) => {
   };
 
   return (
-    <div className="bg-gradient-to-r from-white to-gray-50 p-4 rounded-lg border-2 border-gray-200 hover:border-blue-300 hover:shadow-md transition-all">
+    <div className="bg-white p-4 rounded-lg border-2 border-gray-200 hover:border-blue-300 hover:shadow-md transition-all">
       <div className="flex gap-4">
         {/* Image - Clickable */}
         <div className="flex-shrink-0">
@@ -334,7 +349,7 @@ const OrderLinkItem = React.memo(({ link, linkIndex, onImageClick }) => {
             </p>
           </div>
 
-          <div className="bg-gradient-to-r from-green-50 to-green-100 p-3 rounded-lg border-2 border-green-300">
+          <div className="bg-green-50 p-3 rounded-lg border-2 border-green-300">
             <p className="text-xs text-green-700 mb-1 font-medium">
               KL tính phí
             </p>
@@ -352,85 +367,81 @@ const OrderLinkItem = React.memo(({ link, linkIndex, onImageClick }) => {
 
 OrderLinkItem.displayName = "OrderLinkItem";
 
-// Order Card Component - Memoized
-const OrderCard = React.memo(({ order, index, currentPage, onImageClick }) => {
-  return (
-    <div className="hover:bg-blue-50/50 transition-colors">
-      <div className="p-6">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4">
-          <div className="flex items-start gap-4">
-            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-100 text-blue-600 font-bold text-sm flex-shrink-0">
-              {currentPage * 20 + index + 1}
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-3 flex-wrap mb-2">
-                <h3 className="text-lg font-bold text-gray-900">
-                  {order.customerName || "-"}
-                </h3>
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
-                  {order.customerCode || "-"}
-                </span>
-                {/* {order.customerPhone && (
-                  <span className="text-sm text-gray-600 flex items-center gap-1">
-                    <Phone className="w-4 h-4" />
-                    {order.customerPhone}
-                  </span>
-                )} */}
+// Order Card Component
+const OrderCard = React.memo(
+  ({ order, index, currentPage, pageSize, onImageClick }) => {
+    return (
+      <div className="hover:bg-blue-50/60 transition-colors">
+        <div className="p-6">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4">
+            <div className="flex items-start gap-4">
+              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-100 text-blue-600 font-bold text-sm flex-shrink-0">
+                {currentPage * pageSize + index + 1}
               </div>
-              <div className="flex items-center gap-4 flex-wrap text-sm">
-                <span className="text-gray-600">
-                  <span className="font-medium">Mã đơn:</span>{" "}
-                  <span className="font-mono text-blue-600 font-semibold">
-                    {order.orderCode || "-"}
+              <div className="flex-1">
+                <div className="flex items-center gap-3 flex-wrap mb-2">
+                  <h3 className="text-lg font-bold text-gray-900">
+                    {order.customerName || "-"}
+                  </h3>
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
+                    {order.customerCode || "-"}
                   </span>
-                </span>
-                <span className="text-gray-600">
-                  <span className="font-medium">Tên Nhân Viên:</span>{" "}
-                  <span className="text-gray-900">
-                    {order.staffName || "-"}
+                </div>
+                <div className="flex items-center gap-4 flex-wrap text-sm">
+                  <span className="text-gray-600">
+                    <span className="font-medium">Mã đơn:</span>{" "}
+                    <span className="font-mono text-blue-600 font-semibold">
+                      {order.orderCode || "-"}
+                    </span>
                   </span>
+                  <span className="text-gray-600">
+                    <span className="font-medium">Nhân viên:</span>{" "}
+                    <span className="text-gray-900">
+                      {order.staffName || "-"}
+                    </span>
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 lg:flex-col lg:items-end">
+              <div className="text-right">
+                <p className="text-xs text-gray-500 mb-1">Tổng trọng lượng</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {order.netWeight?.toFixed(2) || "0.00"}
+                </p>
+                <p className="text-xs text-gray-500">kg</p>
+              </div>
+              <div className="flex items-center gap-2 px-4 py-2 bg-blue-100 rounded-lg border border-blue-200">
+                <Link2 className="w-4 h-4 text-blue-600" />
+                <span className="text-sm font-bold text-blue-800">
+                  {order.orderLinks?.length || 0} links
                 </span>
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-3 lg:flex-col lg:items-end">
-            <div className="text-right">
-              <p className="text-xs text-gray-500 mb-1">Tổng trọng lượng</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {order.netWeight?.toFixed(2) || "0.00"}
-              </p>
-              <p className="text-xs text-gray-500">kg</p>
-            </div>
-            <div className="flex items-center gap-2 px-4 py-2 bg-blue-100 rounded-lg border border-blue-200">
-              <Link2 className="w-4 h-4 text-blue-600" />
-              <span className="text-sm font-bold text-blue-800">
-                {order.orderLinks?.length || 0} links
-              </span>
-            </div>
-          </div>
-        </div>
 
-        {/* Order Links */}
-        <div className="mt-6 space-y-3">
-          <h4 className="text-sm font-bold text-gray-700 flex items-center gap-2 mb-3">
-            <List className="w-4 h-4 text-gray-500" />
-            Chi tiết Order Links ({order.orderLinks?.length || 0})
-          </h4>
-          <div className="grid grid-cols-1 gap-3">
-            {order.orderLinks?.map((link, linkIndex) => (
-              <OrderLinkItem
-                key={link.linkId || linkIndex}
-                link={link}
-                linkIndex={linkIndex}
-                onImageClick={onImageClick}
-              />
-            ))}
+          {/* Order Links */}
+          <div className="mt-6 space-y-3">
+            <h4 className="text-sm font-bold text-gray-700 flex items-center gap-2 mb-3">
+              <List className="w-4 h-4 text-gray-500" />
+              Chi tiết Order Links ({order.orderLinks?.length || 0})
+            </h4>
+            <div className="grid grid-cols-1 gap-3">
+              {order.orderLinks?.map((link, linkIndex) => (
+                <OrderLinkItem
+                  key={link.linkId || linkIndex}
+                  link={link}
+                  linkIndex={linkIndex}
+                  onImageClick={onImageClick}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  );
-});
+    );
+  }
+);
 
 OrderCard.displayName = "OrderCard";
 
@@ -438,8 +449,10 @@ function WarehouseDomestic() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
+  const [pageSize, setPageSize] = useState(20);
   const [totalElements, setTotalElements] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+  const [error, setError] = useState(null);
 
   // Filters state
   const [filters, setFilters] = useState({
@@ -457,6 +470,7 @@ function WarehouseDomestic() {
 
   const loadOrders = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const apiFilters = {};
 
@@ -468,20 +482,28 @@ function WarehouseDomestic() {
 
       const response = await domesticService.getWarehouseLinkOrders(
         currentPage,
-        20,
+        pageSize,
         apiFilters
       );
 
       setOrders(response.content || []);
       setTotalElements(response.totalElements || 0);
       setTotalPages(response.totalPages || 0);
-    } catch (error) {
-      console.error("Error loading orders:", error);
+    } catch (err) {
+      console.error("Error loading orders:", err);
+      const errorMsg = err.response?.data?.message || "Error loading data!";
+      setError(errorMsg);
       setOrders([]);
     } finally {
       setLoading(false);
     }
-  }, [currentPage, filters.status, filters.shipmentCode, filters.customerCode]);
+  }, [
+    currentPage,
+    pageSize,
+    filters.status,
+    filters.shipmentCode,
+    filters.customerCode,
+  ]);
 
   useEffect(() => {
     loadOrders();
@@ -513,6 +535,11 @@ function WarehouseDomestic() {
     [handleSearch]
   );
 
+  const changePageSize = useCallback((e) => {
+    setPageSize(parseInt(e.target.value, 10));
+    setCurrentPage(0);
+  }, []);
+
   const openImageModal = useCallback((imageUrl, linkData) => {
     setImageModal({
       isOpen: true,
@@ -539,207 +566,221 @@ function WarehouseDomestic() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br">
-      <div className="p-4 md:p-6 max-w-[1600px] mx-auto">
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
-            Quản lý đơn hàng Nội địa
-          </h1>
+    <div className="p-6 min-h-screen">
+      <div className="mx-auto">
+        {/* Header - Giống WarehouseList */}
+        <div className="bg-blue-600 rounded-xl shadow-sm p-5 mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
+              <PackageOpen size={22} className="text-white" />
+            </div>
+            <h1 className="text-xl font-semibold text-white">
+              Quản lý đơn hàng Nội địa
+            </h1>
+          </div>
         </div>
 
-        {/* Filters Section */}
-        <div className="bg-white rounded-xl shadow-sm mb-6 border border-gray-200 overflow-hidden">
-          <div className="bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-3">
-            <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-              <Filter className="w-5 h-5" />
-              Bộ lọc tìm kiếm
-            </h2>
+        {/* Error - Giống WarehouseList */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+            <p className="text-red-700 text-sm">{error}</p>
           </div>
+        )}
 
-          <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-              {/* Status Select */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Trạng thái
-                </label>
-                <select
-                  value={filters.status}
-                  onChange={(e) => handleFilterChange("status", e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-sm transition-all hover:border-blue-400"
+        {/* Filters - Giống WarehouseList */}
+        <div className="bg-white border border-gray-200 rounded-xl p-5 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
+            {/* Status Select */}
+            <div>
+              <select
+                value={filters.status}
+                onChange={(e) => handleFilterChange("status", e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              >
+                {STATUS_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Shipment Code */}
+            <div className="relative">
+              <Package
+                className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400"
+                size={18}
+              />
+              <input
+                type="text"
+                value={filters.shipmentCode}
+                onChange={(e) =>
+                  handleFilterChange("shipmentCode", e.target.value)
+                }
+                onKeyPress={handleKeyPress}
+                placeholder="Mã vận đơn..."
+                className="w-full pl-8 pr-10 py-2 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              />
+              {filters.shipmentCode && (
+                <button
+                  onClick={() => handleFilterChange("shipmentCode", "")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                 >
-                  {STATUS_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Shipment Code Search */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Mã vận đơn
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={filters.shipmentCode}
-                    onChange={(e) =>
-                      handleFilterChange("shipmentCode", e.target.value)
-                    }
-                    onKeyPress={handleKeyPress}
-                    placeholder="Nhập mã vận đơn..."
-                    className="w-full px-4 py-2.5 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all hover:border-blue-400"
-                  />
-                  <Package className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
-                </div>
-              </div>
-
-              {/* Customer Code Search */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Mã khách hàng
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={filters.customerCode}
-                    onChange={(e) =>
-                      handleFilterChange("customerCode", e.target.value)
-                    }
-                    onKeyPress={handleKeyPress}
-                    placeholder="Nhập mã khách hàng..."
-                    className="w-full px-4 py-2.5 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all hover:border-blue-400"
-                  />
-                  <FileText className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
-                </div>
-              </div>
+                  <X className="w-4 h-4" />
+                </button>
+              )}
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex flex-wrap gap-3">
-              <button
-                onClick={handleSearch}
-                disabled={loading}
-                className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all disabled:from-blue-300 disabled:to-blue-400 disabled:cursor-not-allowed font-medium text-sm flex items-center gap-2 shadow-md hover:shadow-lg"
-              >
-                <Search className="w-4 h-4" />
-                {loading ? "Đang tìm..." : "Tìm kiếm"}
-              </button>
-              <button
-                onClick={handleClearFilters}
-                disabled={loading}
-                className="px-6 py-2.5 bg-white border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all disabled:bg-gray-100 disabled:cursor-not-allowed text-sm flex items-center gap-2 font-medium"
-              >
-                <X className="w-4 h-4" />
-                Xóa bộ lọc
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Results Section */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          {/* Header with count */}
-          <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div>
-                <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                  <PackageOpen className="w-5 h-5 text-blue-600" />
-                  Danh sách đơn hàng
-                </h3>
-                {totalElements > 0 && (
-                  <p className="text-sm text-gray-600 mt-1">
-                    Tổng cộng:{" "}
-                    <span className="font-bold text-blue-600">
-                      {totalElements}
-                    </span>{" "}
-                    đơn hàng
-                  </p>
-                )}
-              </div>
-              {orders.length > 0 && totalPages > 1 && (
-                <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg border border-gray-200">
-                  <BookOpen className="w-4 h-4 text-gray-500" />
-                  <span className="text-sm text-gray-700">
-                    Trang{" "}
-                    <span className="font-bold text-blue-600">
-                      {currentPage + 1}
-                    </span>{" "}
-                    / <span className="font-bold">{totalPages}</span>
-                  </span>
-                </div>
+            {/* Customer Code */}
+            <div className="relative">
+              <FileText
+                className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400"
+                size={18}
+              />
+              <input
+                type="text"
+                value={filters.customerCode}
+                onChange={(e) =>
+                  handleFilterChange("customerCode", e.target.value)
+                }
+                onKeyPress={handleKeyPress}
+                placeholder="Mã khách hàng..."
+                className="w-full pl-8 pr-10 py-2 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              />
+              {filters.customerCode && (
+                <button
+                  onClick={() => handleFilterChange("customerCode", "")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               )}
             </div>
           </div>
 
-          {/* Content */}
-          <div className="overflow-x-auto">
-            {loading ? (
-              <LoadingSkeleton />
-            ) : orders.length === 0 ? (
-              <div className="text-center py-20">
-                <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-100 mb-4">
-                  <PackageOpen className="w-10 h-10 text-gray-400" />
-                </div>
-                <p className="text-gray-600 text-lg font-semibold">
-                  Không tìm thấy đơn hàng
-                </p>
-                <p className="text-gray-500 text-sm mt-2">
-                  Thử thay đổi bộ lọc tìm kiếm hoặc tạo đơn hàng mới
-                </p>
-              </div>
-            ) : (
-              <div className="divide-y divide-gray-200">
-                {orders.map((order, index) => (
-                  <OrderCard
-                    key={order.orderId || index}
-                    order={order}
-                    index={index}
-                    currentPage={currentPage}
-                    onImageClick={openImageModal}
-                  />
-                ))}
-              </div>
-            )}
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <button
+              onClick={handleSearch}
+              disabled={loading}
+              className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Search
+            </button>
+            <button
+              onClick={handleClearFilters}
+              disabled={loading}
+              className="px-4 py-2 text-sm bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Clear
+            </button>
+
+            <select
+              value={pageSize}
+              onChange={changePageSize}
+              disabled={loading}
+              className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
+            >
+              {PAGE_SIZE_OPTIONS.map((opt) => (
+                <option key={opt} value={opt}>
+                  {opt} / page
+                </option>
+              ))}
+            </select>
           </div>
-          {/* Pagination */}
-          {!loading && orders.length > 0 && totalPages > 1 && (
-            <div className="px-6 py-4 border-t border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100">
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+        </div>
+
+        {/* Loading Skeleton */}
+        {loading && (
+          <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+            <div className="px-6 py-3 bg-blue-200 border-b border-blue-100">
+              <div className="flex items-center justify-between">
+                <div className="h-4 bg-blue-300 rounded w-32 animate-pulse"></div>
+                <div className="h-4 bg-blue-300 rounded w-24 animate-pulse"></div>
+              </div>
+            </div>
+            <LoadingSkeleton />
+          </div>
+        )}
+
+        {/* Empty State - Giống WarehouseList */}
+        {!loading && !error && orders.length === 0 && (
+          <div className="bg-white border border-gray-200 rounded-xl p-10 text-center">
+            <PackageOpen size={40} className="text-gray-300 mx-auto mb-3" />
+            <h3 className="text-base font-semibold text-gray-800 mb-1">
+              No data
+            </h3>
+            <p className="text-gray-500 text-sm">
+              There are no orders to display.
+            </p>
+          </div>
+        )}
+
+        {/* Results - Giống WarehouseList */}
+        {!loading && orders.length > 0 && (
+          <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+            {/* Header */}
+            <div className="px-6 py-3 bg-blue-200 border-b border-blue-100">
+              <div className="flex items-center justify-between text-sm">
+                <span className="font-medium text-black-900">
+                  Total: {orders.length} items
+                </span>
+                <span className="text-blue-700">
+                  Page {currentPage + 1} / {totalPages}
+                </span>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="divide-y divide-gray-100">
+              {orders.map((order, index) => (
+                <OrderCard
+                  key={order.orderId || index}
+                  order={order}
+                  index={index}
+                  currentPage={currentPage}
+                  pageSize={pageSize}
+                  onImageClick={openImageModal}
+                />
+              ))}
+            </div>
+
+            {/* Pagination - Giống WarehouseList */}
+            <div className="bg-white border-t border-gray-200 px-6 py-3">
+              <div className="flex items-center justify-between text-sm">
                 <button
                   onClick={() => handlePageChange("prev")}
                   disabled={currentPage === 0}
-                  className="w-full sm:w-auto px-6 py-2.5 border-2 border-gray-300 rounded-lg text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 hover:border-blue-400 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed disabled:border-gray-200 transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow"
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium transition-colors ${
+                    currentPage === 0
+                      ? "text-gray-400 cursor-not-allowed"
+                      : "text-gray-700 hover:bg-blue-50"
+                  }`}
                 >
-                  <ChevronLeft className="w-4 h-4" />
-                  Trang trước
+                  <ChevronLeft size={18} />
+                  Previous
                 </button>
 
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-700 bg-white px-4 py-2 rounded-lg border-2 border-gray-200 font-medium">
-                    Trang{" "}
-                    <span className="font-bold text-blue-600">
-                      {currentPage + 1}
-                    </span>{" "}
-                    / <span className="font-bold">{totalPages}</span>
-                  </span>
+                <div className="font-medium text-gray-700">
+                  Page {currentPage + 1} / {totalPages}
                 </div>
 
                 <button
                   onClick={() => handlePageChange("next")}
                   disabled={currentPage >= totalPages - 1}
-                  className="w-full sm:w-auto px-6 py-2.5 border-2 border-gray-300 rounded-lg text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 hover:border-blue-400 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed disabled:border-gray-200 transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow"
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium transition-colors ${
+                    currentPage >= totalPages - 1
+                      ? "text-gray-400 cursor-not-allowed"
+                      : "text-gray-700 hover:bg-blue-50"
+                  }`}
                 >
-                  Trang sau
-                  <ChevronRight className="w-4 h-4" />
+                  Next
+                  <ChevronRight size={18} />
                 </button>
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Image Modal */}
@@ -752,4 +793,5 @@ function WarehouseDomestic() {
     </div>
   );
 }
+
 export default WarehouseDomestic;
