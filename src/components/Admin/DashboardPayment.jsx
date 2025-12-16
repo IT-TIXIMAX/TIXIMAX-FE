@@ -116,14 +116,14 @@ const DashboardPayment = () => {
       labels: fullYearData.map((x) => monthName(x.month)),
       datasets: [
         {
-          label: "Doanh thu (VNĐ)",
+          label: "Tiền hàng",
           data: fullYearData.map((x) => x.totalRevenue),
           backgroundColor: "rgba(250, 204, 21, 0.6)",
           borderColor: "#facc15",
           borderWidth: 1,
         },
         {
-          label: "Sản lượng ship",
+          label: "Tiền vận chuyển",
           data: fullYearData.map((x) => x.totalShip),
           backgroundColor: "rgba(34, 197, 94, 0.6)",
           borderColor: "#22c55e",
@@ -207,7 +207,7 @@ const DashboardPayment = () => {
 
   return (
     <div className="min-h-screen p-4 sm:p-6">
-      <div className="mx-auto max-w-7xl">
+      <div className="mx-auto">
         {/* Header */}
         <header className="mb-10">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">

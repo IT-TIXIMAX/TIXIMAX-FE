@@ -42,7 +42,7 @@ const STATUS_CONFIG = {
     order: 2,
   },
   DAU_GIA_THANH_CONG: {
-    label: "Đấu giá OK",
+    label: "Đấu giá thành công",
     color: "bg-pink-600",
     desc: "Đấu giá thành công",
     icon: TrendingUp,

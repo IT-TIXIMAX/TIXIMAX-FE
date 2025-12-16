@@ -196,7 +196,7 @@ const DashboardOrder = () => {
 
   return (
     <div className="min-h-screen p-4 sm:p-6">
-      <div className="mx-auto max-w-7xl">
+      <div className="mx-auto ">
         {/* Header */}
         <header className="mb-10">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
