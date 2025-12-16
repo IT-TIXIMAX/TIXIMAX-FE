@@ -68,6 +68,30 @@ const OrderLinkList = () => {
   const [showPin, setShowPin] = useState(false);
   const [pinCtx, setPinCtx] = useState(null);
 
+  // Custom scrollbar style
+  const scrollbarStyle = {
+    scrollbarWidth: "thin",
+    scrollbarColor: "#CBD5E1 #F1F5F9",
+  };
+
+  // WebKit scrollbar styles
+  const webkitScrollbarClass = `
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 8px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #F1F5F9;
+      border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #94A3B8;
+    }
+  `;
+
   // Color palette for shop badges
   const shopColorPalette = [
     { bg: "bg-blue-500", text: "text-white", border: "border-blue-100" },
@@ -142,67 +166,65 @@ const OrderLinkList = () => {
     }, 0);
   };
 
-  const fetchOrders = useCallback(
-    async (page = 0, size = 10) => {
-      try {
-        setLoading(true);
-        setError(null);
+  const fetchOrders = useCallback(async (page = 0, size = 10, filters = {}) => {
+    try {
+      setLoading(true);
+      setError(null);
 
-        // Build filters object
-        const filters = {
-          orderType: "MUA_HO",
-        };
+      // Build filters object
+      const requestFilters = {
+        orderType: "MUA_HO",
+        ...filters,
+      };
 
-        if (orderCodeSearch.trim()) {
-          filters.orderCode = orderCodeSearch.trim();
-        }
+      const response = await orderlinkService.getOrdersWithLinks(
+        page,
+        size,
+        requestFilters
+      );
 
-        if (customerCodeSearch.trim()) {
-          filters.customerCode = customerCodeSearch.trim();
-        }
-
-        const response = await orderlinkService.getOrdersWithLinks(
-          page,
-          size,
-          filters
-        );
-
-        if (response?.content) {
-          setOrders(response.content);
-          setPagination({
-            pageNumber: response.number ?? page,
-            pageSize: response.size ?? size,
-            totalPages: response.totalPages ?? 0,
-            totalElements: response.totalElements ?? 0,
-            first: response.first ?? page === 0,
-            last: response.last ?? true,
-          });
-        } else {
-          setOrders([]);
-          setPagination((prev) => ({
-            ...prev,
-            totalElements: 0,
-            totalPages: 0,
-          }));
-        }
-      } catch (error) {
-        console.error("Error fetching orders:", error);
-        const errorMessage =
-          error?.response?.data?.message ||
-          error?.message ||
-          "Unable to load order list.";
-        setError(errorMessage);
+      if (response?.content) {
+        setOrders(response.content);
+        setPagination({
+          pageNumber: response.number ?? page,
+          pageSize: response.size ?? size,
+          totalPages: response.totalPages ?? 0,
+          totalElements: response.totalElements ?? 0,
+          first: response.first ?? page === 0,
+          last: response.last ?? true,
+        });
+      } else {
         setOrders([]);
-      } finally {
-        setLoading(false);
+        setPagination((prev) => ({
+          ...prev,
+          totalElements: 0,
+          totalPages: 0,
+        }));
       }
-    },
-    [orderCodeSearch, customerCodeSearch]
-  );
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+      const errorMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Unable to load order list.";
+      setError(errorMessage);
+      setOrders([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
+  // Load initial data
   useEffect(() => {
     fetchOrders();
   }, [fetchOrders]);
+
+  // Auto reload when both search fields are cleared
+  useEffect(() => {
+    if (!orderCodeSearch.trim() && !customerCodeSearch.trim()) {
+      fetchOrders(0, pagination.pageSize);
+    }
+  }, [orderCodeSearch, customerCodeSearch, fetchOrders, pagination.pageSize]);
 
   const handlePageChange = useCallback(
     (newPage) => {
@@ -211,7 +233,14 @@ const OrderLinkList = () => {
         newPage < pagination.totalPages &&
         newPage !== pagination.pageNumber
       ) {
-        fetchOrders(newPage, pagination.pageSize);
+        const filters = {};
+        if (orderCodeSearch.trim()) {
+          filters.orderCode = orderCodeSearch.trim();
+        }
+        if (customerCodeSearch.trim()) {
+          filters.customerCode = customerCodeSearch.trim();
+        }
+        fetchOrders(newPage, pagination.pageSize, filters);
       }
     },
     [
@@ -219,16 +248,32 @@ const OrderLinkList = () => {
       pagination.pageNumber,
       pagination.pageSize,
       pagination.totalPages,
+      orderCodeSearch,
+      customerCodeSearch,
     ]
   );
 
   const handleSearch = () => {
-    fetchOrders(0, pagination.pageSize);
+    if (!orderCodeSearch.trim() && !customerCodeSearch.trim()) {
+      toast.error("Please enter at least one search term");
+      return;
+    }
+
+    const filters = {};
+    if (orderCodeSearch.trim()) {
+      filters.orderCode = orderCodeSearch.trim();
+    }
+    if (customerCodeSearch.trim()) {
+      filters.customerCode = customerCodeSearch.trim();
+    }
+
+    fetchOrders(0, pagination.pageSize, filters);
   };
 
   const handleClearSearch = () => {
     setOrderCodeSearch("");
     setCustomerCodeSearch("");
+    // Data will auto reload via useEffect
   };
 
   const handleViewDetail = useCallback((linkId) => {
@@ -497,11 +542,21 @@ const OrderLinkList = () => {
   const handlePageSizeChange = (e) => {
     const newSize = parseInt(e.target.value);
     setPagination((prev) => ({ ...prev, pageSize: newSize }));
-    fetchOrders(0, newSize);
+
+    const filters = {};
+    if (orderCodeSearch.trim()) {
+      filters.orderCode = orderCodeSearch.trim();
+    }
+    if (customerCodeSearch.trim()) {
+      filters.customerCode = customerCodeSearch.trim();
+    }
+
+    fetchOrders(0, newSize, filters);
   };
 
   return (
     <div className="min-h-screen px-4 py-6">
+      <style>{webkitScrollbarClass}</style>
       <div className="mx-auto">
         {/* Header Section */}
         <div className="mb-4">
@@ -517,9 +572,20 @@ const OrderLinkList = () => {
               </div>
             </div>
             <button
-              onClick={() =>
-                fetchOrders(pagination.pageNumber, pagination.pageSize)
-              }
+              onClick={() => {
+                const filters = {};
+                if (orderCodeSearch.trim()) {
+                  filters.orderCode = orderCodeSearch.trim();
+                }
+                if (customerCodeSearch.trim()) {
+                  filters.customerCode = customerCodeSearch.trim();
+                }
+                fetchOrders(
+                  pagination.pageNumber,
+                  pagination.pageSize,
+                  filters
+                );
+              }}
               disabled={loading}
               className="inline-flex items-center gap-2 rounded-lg border border-white/40 bg-white/10 px-3 py-1.5 text-xs font-medium text-white hover:bg-white/20 disabled:opacity-60"
             >
@@ -539,7 +605,16 @@ const OrderLinkList = () => {
               <div>
                 <p className="text-red-700 text-sm">{error}</p>
                 <button
-                  onClick={() => fetchOrders()}
+                  onClick={() => {
+                    const filters = {};
+                    if (orderCodeSearch.trim()) {
+                      filters.orderCode = orderCodeSearch.trim();
+                    }
+                    if (customerCodeSearch.trim()) {
+                      filters.customerCode = customerCodeSearch.trim();
+                    }
+                    fetchOrders(0, pagination.pageSize, filters);
+                  }}
                   className="text-red-600 hover:text-red-800 text-xs underline mt-1"
                 >
                   Try again
@@ -587,17 +662,6 @@ const OrderLinkList = () => {
                 <Search className="w-4 h-4" />
                 Search
               </button>
-
-              {(orderCodeSearch || customerCodeSearch) && (
-                <button
-                  onClick={handleClearSearch}
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors"
-                >
-                  <XCircle className="w-4 h-4" />
-                  Clear
-                </button>
-              )}
-
               <select
                 value={pagination.pageSize}
                 onChange={handlePageSizeChange}
@@ -710,7 +774,7 @@ const OrderLinkList = () => {
                               {formatDate(order.createdAt)}
                             </span>
                             <span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
-                              Purchase service
+                              Purchase order
                             </span>
                           </div>
                         </div>
@@ -824,7 +888,10 @@ const OrderLinkList = () => {
                           </div>
                         </div>
 
-                        <div className="space-y-2">
+                        <div
+                          className="space-y-2 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar"
+                          style={scrollbarStyle}
+                        >
                           {(order.orderLinks.length <= 2 ||
                           expandedOrders[order.orderId]
                             ? order.orderLinks
