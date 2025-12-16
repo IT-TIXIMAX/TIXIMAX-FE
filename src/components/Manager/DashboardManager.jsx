@@ -1,6 +1,7 @@
 // DashboardManager.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import dashboardService from "../../Services/Dashboard/dashboardService";
+import { useWebSocket } from "../../hooks/useWebSocket";
 import {
   AlertCircle,
   Banknote,
@@ -12,6 +13,7 @@ import {
   Truck,
   UserPlus,
   Users,
+  Loader2,
 } from "lucide-react";
 
 const FILTER_OPTIONS = [
@@ -53,8 +55,14 @@ const DashboardManager = () => {
 
   const [loadingOverview, setLoadingOverview] = useState(false);
   const [loadingDetails, setLoadingDetails] = useState(false);
-  const [hasLoadedDetailsOnce, setHasLoadedDetailsOnce] = useState(false); // ✅ đánh dấu đã load chi tiết ít nhất 1 lần
+  const [hasLoadedDetailsOnce, setHasLoadedDetailsOnce] = useState(false);
   const [error, setError] = useState(null);
+
+  // ✅ WS silent refresh state
+  const [refreshingDetails, setRefreshingDetails] = useState(false);
+
+  // ✨ Connect WebSocket
+  const { messages, isConnected } = useWebSocket("/topic/Tiximax");
 
   const formatNumber = (value) => {
     if (value == null) return 0;
@@ -82,10 +90,16 @@ const DashboardManager = () => {
     }
   };
 
-  const fetchDetails = async (currentFilter) => {
-    setLoadingDetails(true);
-    setError(null);
+  // ✅ UPDATE: thêm silent để WS refresh không bật skeleton
+  const fetchDetails = async (currentFilter, silent = false) => {
     try {
+      if (!silent) {
+        setLoadingDetails(true);
+        setError(null);
+      } else {
+        setRefreshingDetails(true);
+      }
+
       const [weightsRes, paymentsRes, ordersRes, customersRes] =
         await Promise.all([
           dashboardService.getWeights({ filterType: currentFilter }),
@@ -108,6 +122,8 @@ const DashboardManager = () => {
         }
       );
       setCustomers(customersRes?.data || { newCustomers: 0 });
+
+      setHasLoadedDetailsOnce(true);
     } catch (err) {
       console.error(err);
       setError(
@@ -115,20 +131,63 @@ const DashboardManager = () => {
           err?.message ||
           "Đã xảy ra lỗi khi tải dữ liệu Chi tiết."
       );
-      setWeights({ totalNetWeight: 0 });
-      setPayments({ totalCollectedAmount: 0, totalShipAmount: 0 });
-      setOrders({ newOrderLinks: 0, newOrders: 0 });
-      setCustomers({ newCustomers: 0 });
+
+      // Nếu load thường thì reset về 0 như logic cũ
+      if (!silent) {
+        setWeights({ totalNetWeight: 0 });
+        setPayments({ totalCollectedAmount: 0, totalShipAmount: 0 });
+        setOrders({ newOrderLinks: 0, newOrders: 0 });
+        setCustomers({ newCustomers: 0 });
+      }
     } finally {
-      setLoadingDetails(false);
-      setHasLoadedDetailsOnce(true); // ✅ từ lần đầu trở đi sẽ không skeleton nữa
+      if (!silent) setLoadingDetails(false);
+      setRefreshingDetails(false);
     }
   };
 
+  // Load data theo filter
   useEffect(() => {
     fetchOverview(filterType);
-    fetchDetails(filterType);
+    fetchDetails(filterType, false);
   }, [filterType]);
+
+  // ✅ WebSocket: refresh Chi tiết theo từng nhóm (silent) + debounce chống spam
+  const wsTimerRef = useRef(null);
+
+  const latestMessage = useMemo(() => {
+    if (!messages || messages.length === 0) return null;
+    return messages[messages.length - 1];
+  }, [messages]);
+
+  useEffect(() => {
+    if (!latestMessage) return;
+    if (!isConnected) return;
+
+    // Nếu backend có event cụ thể thì lọc ở đây
+    const ev = String(latestMessage?.event ?? "").toUpperCase();
+
+    const shouldRefresh =
+      ev === "DASHBOARD" ||
+      ev === "UPDATE" ||
+      ev === "INSERT" ||
+      ev === "PAYMENT" ||
+      ev === "ORDER" ||
+      ev === "WEIGHT" ||
+      ev === "CUSTOMER" ||
+      ev === ""; // fallback: không có event vẫn refresh
+
+    if (!shouldRefresh) return;
+
+    if (wsTimerRef.current) clearTimeout(wsTimerRef.current);
+
+    wsTimerRef.current = setTimeout(() => {
+      fetchDetails(filterType, true); // ✅ silent refresh (không skeleton)
+    }, 400);
+
+    return () => {
+      if (wsTimerRef.current) clearTimeout(wsTimerRef.current);
+    };
+  }, [latestMessage, isConnected, filterType]);
 
   // Skeleton giống style PurchaserList
   const SkeletonCard = () => (
@@ -161,12 +220,11 @@ const DashboardManager = () => {
   return (
     <div className="min-h-screen px-4 py-6">
       <div className="mx-auto">
-        {/* Header mới – chuyên nghiệp + đồng bộ tone */}
+        {/* Header */}
         <div className="mb-6 rounded-2xl border border-gray-200 bg-sky-300 px-6 py-4 shadow-sm">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            {/* Left: Title + description */}
+            {/* Left */}
             <div>
-              {/* Breadcrumb nhỏ */}
               <div className="flex items-center gap-2 text-xs font-medium text-black mb-1">
                 <span>Dashboard</span>
                 <span className="h-1 w-1 rounded-full bg-black-300" />
@@ -185,7 +243,7 @@ const DashboardManager = () => {
               </div>
             </div>
 
-            {/* Right: Filter dạng segmented control */}
+            {/* Right: Filter */}
             <div className="flex flex-col items-start gap-2 md:items-end">
               <span className="text-xs font-medium uppercase tracking-wide text-black-500">
                 Khoảng thời gian
@@ -210,7 +268,7 @@ const DashboardManager = () => {
           </div>
         </div>
 
-        {/* Error Alert (đồng bộ style với PurchaserList) */}
+        {/* Error Alert */}
         {error && (
           <div className="mb-6 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
             <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0" />
@@ -362,9 +420,38 @@ const DashboardManager = () => {
 
         {/* Chi tiết theo nhóm */}
         <div>
-          <h3 className="text-sm font-bold text-gray-700 uppercase mb-3">
-            Chi tiết theo từng nhóm
-          </h3>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-bold text-gray-700 uppercase">
+              Chi tiết theo từng nhóm
+            </h3>
+
+            <div className="flex items-center gap-2">
+              {isConnected && (
+                <div
+                  className="flex items-center gap-1 px-2 py-1 rounded-full bg-green-50 border border-green-200"
+                  title="WebSocket đã kết nối - Tự động cập nhật chi tiết"
+                >
+                  <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                  <span className="text-xs text-green-700 font-medium">
+                    Live
+                  </span>
+                </div>
+              )}
+
+              {refreshingDetails && (
+                <div
+                  className="flex items-center gap-1 px-2 py-1 rounded-full bg-blue-50 border border-blue-200"
+                  title="Đang cập nhật dữ liệu chi tiết..."
+                >
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-600" />
+                  <span className="text-xs text-blue-700 font-medium">
+                    Updating
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             {/* ✅ Chỉ skeleton nếu CHƯA load lần nào + đang loading */}
             {!hasLoadedDetailsOnce && loadingDetails ? (
