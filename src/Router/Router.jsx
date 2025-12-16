@@ -135,6 +135,9 @@ import RelateOrder from "../components/Order/RelateOrder";
 import WarehouseDomestic from "../components/WarehouseDomestic/WarehouseDomestic";
 import OrderListCancel from "../components/Manager/OrderListCancel";
 import PendingReceive from "../components/WarehouseForeign/PendingReceive";
+import DashboardOrder from "../components/Admin/DashboardOrder";
+import DashboardWarehouseA from "../components/Admin/DashboardWarehouseA";
+import DashboardPayment from "../components/Admin/DashboardPayment";
 const Router = createBrowserRouter([
   {
     path: "/",
@@ -195,6 +198,9 @@ const Router = createBrowserRouter([
       { index: true, element: <AdminPage /> },
       { path: "dashboard", element: <AdminDashboard /> },
       { path: "orders", element: <NotFound /> },
+      { path: "order-analytics", element: <DashboardOrder /> },
+      { path: "payment-analytics", element: <DashboardPayment /> },
+      { path: "warehouse-analytics", element: <DashboardWarehouseA /> },
       { path: "products", element: <NotFound /> },
       { path: "staff", element: <Permission /> },
       { path: "customers", element: <NotFound /> },

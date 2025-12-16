@@ -48,6 +48,21 @@ const menuConfig = [
     items: [
       { text: "Dashboard", icon: <FaChartLine />, path: "/admin/dashboard" },
       {
+        text: "Thống kê đơn hàng",
+        icon: <FaListAlt />,
+        path: "/admin/order-analytics",
+      },
+      {
+        text: "Thống kê thanh toán",
+        icon: <FaMoneyCheckAlt />,
+        path: "/admin/payment-analytics",
+      },
+      {
+        text: "Thống kê kho",
+        icon: <FaWarehouse />,
+        path: "/admin/warehouse-analytics",
+      },
+      {
         text: "Doanh thu theo thời gian",
         icon: <FaMoneyBillWave />,
         path: "/admin/revenue-analytics",

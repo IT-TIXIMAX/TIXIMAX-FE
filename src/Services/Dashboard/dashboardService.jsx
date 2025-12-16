@@ -22,11 +22,21 @@ const dashboardService = {
     return api.get("/dashboard/admin/customers", { params });
   },
 
-  // 5. GET Dashboard Filter (DAY, MONTH, QUARTER, HALF_YEAR)
+  // 5. GET Dashboard Filter
   getDashboardFilter: (filterType) => {
     return api.get("/dashboard", {
       params: { filterType },
     });
+  },
+
+  getYearlyOrders: (year) => {
+    return api.get(`/dashboard/yearly-order/${year}`);
+  },
+  getYearlyPayments: (year) => {
+    return api.get(`/dashboard/yearly-payment/${year}`);
+  },
+  getYearlyWarehouse: (year) => {
+    return api.get(`/dashboard/yearly-warehouse/${year}`);
   },
 };
 
