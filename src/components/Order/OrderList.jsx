@@ -5,11 +5,9 @@ import {
   FileText,
   Eye,
   Search,
-  Filter,
-  Download,
+  X,
 } from "lucide-react";
 import managerOrderService from "../../Services/Manager/managerOrderService";
-// import DetailOrder from "../Manager/DetailOrder";
 import DetailOrderSale from "../Manager/DetailForSale/DetailOrderSale";
 
 const OrderList = () => {
@@ -18,17 +16,21 @@ const OrderList = () => {
   const [totalElements, setTotalElements] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [currentPage, setCurrentPage] = useState(0);
-  const [pageSize, setPageSize] = useState(100);
+  const [pageSize, setPageSize] = useState(20);
 
   // UI states
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Filter states
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState("ALL");
-  const [selectedOrderType, setSelectedOrderType] = useState("ALL");
-  const [dateFilter, setDateFilter] = useState({ from: "", to: "" });
+  // Search input states
+  const [searchOrderCode, setSearchOrderCode] = useState("");
+  const [searchCustomerCode, setSearchCustomerCode] = useState("");
+  const [searchShipmentCode, setSearchShipmentCode] = useState("");
+
+  // Applied search states
+  const [appliedOrderCode, setAppliedOrderCode] = useState("");
+  const [appliedCustomerCode, setAppliedCustomerCode] = useState("");
+  const [appliedShipmentCode, setAppliedShipmentCode] = useState("");
 
   // Detail modal states
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -40,17 +42,81 @@ const OrderList = () => {
     () => managerOrderService.getAvailableStatuses(),
     []
   );
-  const pageSizeOptions = useMemo(() => [10, 20, 30, 50, 100], []);
+
+  // Override status labels - TÙY CHỈNH Ở ĐÂY
+  const statusLabelOverrides = useMemo(
+    () => ({
+      // Các trạng thái cơ bản
+      CHO_XAC_NHAN: "Chờ xác nhận",
+      DA_XAC_NHAN: "Đã xác nhận",
+      DANG_XU_LY: "Đang xử lý",
+
+      // Trạng thái mua hàng
+      DANG_MUA_HANG: "Đang mua hàng",
+      DA_MUA_HANG: "Đã mua hàng",
+      MUA_HANG_THAT_BAI: "Mua hàng thất bại",
+
+      // Trạng thái đấu giá
+      CHO_DAU_GIA: "Chờ đấu giá",
+      DANG_DAU_GIA: "Đang đấu giá",
+      DAU_GIA_THANH_CONG: "Thắng đấu giá",
+      DAU_GIA_THAT_BAI: "Thua đấu giá",
+
+      // Trạng thái vận chuyển
+      CHO_VAN_CHUYEN: "Chờ vận chuyển",
+      DANG_VAN_CHUYEN: "Đang vận chuyển",
+      DA_VE_KHO_NUOC_NGOAI: "Đã về kho nước ngoài",
+      DANG_VAN_CHUYEN_QUOC_TE: "Đang vận chuyển quốc tế",
+      DA_VE_KHO_VN: "Đã về kho VN",
+      DA_VE_KHO: "Đã về kho",
+
+      // Trạng thái giao hàng
+      CHO_GIAO_HANG: "Chờ giao hàng",
+      DANG_GIAO_HANG: "Đang giao hàng",
+      GIAO_HANG_THAT_BAI: "Giao hàng thất bại",
+      DA_GIAO_HANG: "Đã giao hàng",
+
+      // Trạng thái thanh toán
+      CHO_THANH_TOAN: "Chờ thanh toán",
+      DA_THANH_TOAN: "Đã thanh toán",
+      THANH_TOAN_MOT_PHAN: "Thanh toán một phần",
+
+      // Trạng thái hoàn thành/hủy
+      HOAN_THANH: "Hoàn thành",
+      HUY: "Đã hủy",
+      TRA_HANG: "Trả hàng",
+      HOAN_TIEN: "Hoàn tiền",
+
+      // Trạng thái ký gửi
+      CHO_KY_GUI: "Chờ ký gửi",
+      DANG_KY_GUI: "Đang ký gửi",
+      DA_BAN: "Đã bán",
+      CHUA_BAN: "Chưa bán",
+    }),
+    []
+  );
+
+  const pageSizeOptions = useMemo(() => [20, 50, 100, 200], []);
 
   // Fetch orders from API
   const fetchOrders = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
+      const searchParams = {};
+      if (appliedOrderCode.trim())
+        searchParams.orderCode = appliedOrderCode.trim();
+      if (appliedCustomerCode.trim())
+        searchParams.customerCode = appliedCustomerCode.trim();
+      if (appliedShipmentCode.trim())
+        searchParams.shipmentCode = appliedShipmentCode.trim();
+
       const result = await managerOrderService.getOrdersPaginated(
         currentPage,
-        pageSize
+        pageSize,
+        searchParams
       );
+
       setOrders(result.content || []);
       setTotalPages(result.totalPages || 1);
       setTotalElements(result.totalElements || 0);
@@ -62,59 +128,51 @@ const OrderList = () => {
     } finally {
       setLoading(false);
     }
-  }, [currentPage, pageSize]);
+  }, [
+    currentPage,
+    pageSize,
+    appliedOrderCode,
+    appliedCustomerCode,
+    appliedShipmentCode,
+  ]);
 
   useEffect(() => {
     fetchOrders();
   }, [fetchOrders]);
 
-  // Apply frontend filters
-  const filteredOrders = useMemo(() => {
-    let filtered = [...orders];
+  // Handle Search Button Click
+  const handleSearch = useCallback(() => {
+    setAppliedOrderCode(searchOrderCode);
+    setAppliedCustomerCode(searchCustomerCode);
+    setAppliedShipmentCode(searchShipmentCode);
+    setCurrentPage(0);
+  }, [searchOrderCode, searchCustomerCode, searchShipmentCode]);
 
-    // Search filter - Tìm theo mã đơn, mã khách hàng, tên khách hàng
-    if (searchTerm) {
-      const search = searchTerm.toLowerCase().trim();
-      filtered = filtered.filter(
-        (order) =>
-          order.orderCode?.toLowerCase().includes(search) ||
-          order.customer?.customerCode?.toLowerCase().includes(search) ||
-          order.customer?.name?.toLowerCase().includes(search) ||
-          order.orderId?.toString().includes(search)
-      );
-    }
+  // Handle Clear Button Click
+  const handleClearSearch = useCallback(() => {
+    setSearchOrderCode("");
+    setSearchCustomerCode("");
+    setSearchShipmentCode("");
+    setAppliedOrderCode("");
+    setAppliedCustomerCode("");
+    setAppliedShipmentCode("");
+    setCurrentPage(0);
+  }, []);
 
-    // Status filter
-    if (selectedStatus !== "ALL") {
-      filtered = filtered.filter((order) => order.status === selectedStatus);
-    }
+  // Check if any search is active
+  const hasActiveSearch = useMemo(() => {
+    return appliedOrderCode || appliedCustomerCode || appliedShipmentCode;
+  }, [appliedOrderCode, appliedCustomerCode, appliedShipmentCode]);
 
-    // Order type filter
-    if (selectedOrderType !== "ALL") {
-      filtered = filtered.filter(
-        (order) => order.orderType === selectedOrderType
-      );
-    }
-
-    // Date range filter
-    if (dateFilter.from) {
-      const fromDate = new Date(dateFilter.from);
-      fromDate.setHours(0, 0, 0, 0);
-      filtered = filtered.filter(
-        (order) => new Date(order.createdAt) >= fromDate
-      );
-    }
-
-    if (dateFilter.to) {
-      const toDate = new Date(dateFilter.to);
-      toDate.setHours(23, 59, 59, 999);
-      filtered = filtered.filter(
-        (order) => new Date(order.createdAt) <= toDate
-      );
-    }
-
-    return filtered;
-  }, [orders, searchTerm, selectedStatus, selectedOrderType, dateFilter]);
+  // Handle Enter key press
+  const handleKeyPress = useCallback(
+    (e) => {
+      if (e.key === "Enter") {
+        handleSearch();
+      }
+    },
+    [handleSearch]
+  );
 
   // Pagination handlers
   const handlePageChange = useCallback(
@@ -131,55 +189,6 @@ const OrderList = () => {
     setPageSize(Number(newSize));
     setCurrentPage(0);
   }, []);
-
-  // Export to CSV
-  const handleExport = useCallback(() => {
-    if (filteredOrders.length === 0) {
-      alert("Không có dữ liệu để xuất");
-      return;
-    }
-
-    const headers = [
-      "Mã đơn",
-      "Loại đơn",
-      "Trạng thái",
-      "Tỷ giá",
-      "Tổng tiền",
-      "Ngày tạo",
-      "Mã khách hàng",
-      "Tên khách hàng",
-    ];
-
-    const rows = filteredOrders.map((order) => [
-      order.orderCode || "",
-      getOrderTypeText(order.orderType),
-      availableStatuses.find((s) => s.key === order.status)?.label ||
-        order.status,
-      order.exchangeRate
-        ? `${order.exchangeRate.toLocaleString("vi-VN")} VNĐ`
-        : "",
-      order.finalPriceOrder
-        ? order.finalPriceOrder.toLocaleString("vi-VN")
-        : "",
-      new Date(order.createdAt).toLocaleDateString("vi-VN"),
-      order.customer?.customerCode || "",
-      order.customer?.name || "",
-    ]);
-
-    const csv = [headers.join(","), ...rows.map((row) => row.join(","))].join(
-      "\n"
-    );
-
-    const blob = new Blob(["\uFEFF" + csv], {
-      type: "text/csv;charset=utf-8;",
-    });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `orders_page${currentPage + 1}_${
-      new Date().toISOString().split("T")[0]
-    }.csv`;
-    link.click();
-  }, [filteredOrders, currentPage, availableStatuses]);
 
   // Detail order handlers
   const fetchOrderDetail = useCallback(async (orderId) => {
@@ -218,10 +227,8 @@ const OrderList = () => {
 
   const formatPrice = useCallback((price) => {
     if (price === null || price === undefined || price === "") return "-";
-
     const number = Number(price);
     if (isNaN(number)) return "-";
-
     return number.toLocaleString("vi-VN");
   }, []);
 
@@ -254,25 +261,6 @@ const OrderList = () => {
     return orderTypes[type] || type;
   }, []);
 
-  // Reset filters
-  const handleResetFilters = useCallback(() => {
-    setSearchTerm("");
-    setSelectedStatus("ALL");
-    setSelectedOrderType("ALL");
-    setDateFilter({ from: "", to: "" });
-  }, []);
-
-  // Check if filters are active
-  const hasActiveFilters = useMemo(() => {
-    return (
-      searchTerm ||
-      selectedStatus !== "ALL" ||
-      selectedOrderType !== "ALL" ||
-      dateFilter.from ||
-      dateFilter.to
-    );
-  }, [searchTerm, selectedStatus, selectedOrderType, dateFilter]);
-
   return (
     <div className="p-6 min-h-screen">
       {/* Header */}
@@ -280,107 +268,91 @@ const OrderList = () => {
         <h1 className="text-2xl font-bold text-gray-900">Danh sách đơn hàng</h1>
       </div>
 
-      {/* Filters Section */}
+      {/* Search Section */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <Filter className="w-5 h-5 text-gray-700" />
-            <h2 className="text-lg font-semibold text-gray-900">Bộ lọc</h2>
+            <Search className="w-5 h-5 text-gray-700" />
+            <h2 className="text-lg font-semibold text-gray-900">Tìm kiếm</h2>
           </div>
-          {hasActiveFilters && (
-            <button
-              onClick={handleResetFilters}
-              className="text-sm text-blue-600 hover:text-blue-700 font-medium"
-            >
-              Xóa bộ lọc
-            </button>
+          {hasActiveSearch && (
+            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
+              Đang lọc
+            </span>
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Search - Updated placeholder */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Search Order Code */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
-              placeholder="Tìm mã đơn, mã KH, tên KH..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Mã đơn hàng..."
+              value={searchOrderCode}
+              onChange={(e) => setSearchOrderCode(e.target.value)}
+              onKeyPress={handleKeyPress}
               className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
 
-          {/* Status Filter */}
-          <select
-            value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="ALL">Tất cả trạng thái</option>
-            {availableStatuses.map((status) => (
-              <option key={status.key} value={status.key}>
-                {status.label}
-              </option>
-            ))}
-          </select>
+          {/* Search Customer Code */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Mã khách hàng..."
+              value={searchCustomerCode}
+              onChange={(e) => setSearchCustomerCode(e.target.value)}
+              onKeyPress={handleKeyPress}
+              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
 
-          {/* Order Type Filter */}
-          <select
-            value={selectedOrderType}
-            onChange={(e) => setSelectedOrderType(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="ALL">Tất cả loại đơn</option>
-            <option value="MUA_HO">Mua hộ</option>
-            <option value="VAN_CHUYEN">Vận chuyển</option>
-            <option value="DAU_GIA">Đấu giá</option>
-            <option value="KY_GUI">Ký gửi</option>
-          </select>
-
-          {/* From Date */}
-          <input
-            type="date"
-            value={dateFilter.from}
-            onChange={(e) =>
-              setDateFilter({ ...dateFilter, from: e.target.value })
-            }
-            placeholder="Từ ngày"
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
+          {/* Search Shipment Code */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Mã vận đơn..."
+              value={searchShipmentCode}
+              onChange={(e) => setSearchShipmentCode(e.target.value)}
+              onKeyPress={handleKeyPress}
+              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
-          {/* To Date */}
-          <input
-            type="date"
-            value={dateFilter.to}
-            onChange={(e) =>
-              setDateFilter({ ...dateFilter, to: e.target.value })
-            }
-            placeholder="Đến ngày"
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-
-          {/* Export Button */}
+        {/* Action Buttons */}
+        <div className="flex items-center gap-3 mt-4">
           <button
-            onClick={handleExport}
-            disabled={loading || filteredOrders.length === 0}
-            className="flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={handleSearch}
+            disabled={loading}
+            className="flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Download className="w-4 h-4" />
-            Xuất CSV
+            <Search className="w-4 h-4" />
+            Tìm kiếm
+          </button>
+
+          <button
+            onClick={handleClearSearch}
+            disabled={loading}
+            className="flex items-center gap-2 px-5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <X className="w-4 h-4" />
+            Xóa
           </button>
         </div>
 
-        {/* Filter Summary */}
+        {/* Summary */}
         <div className="mt-4 pt-4 border-t border-gray-200 flex items-center justify-between">
           <div className="text-sm text-gray-600">
             Hiển thị{" "}
             <span className="font-semibold text-blue-600">
-              {loading ? "..." : filteredOrders.length}
+              {loading ? "..." : orders.length}
             </span>{" "}
             / <span className="font-semibold">{totalElements}</span> đơn hàng
-            {hasActiveFilters && (
+            {hasActiveSearch && (
               <span className="ml-2 text-gray-500">(đã lọc)</span>
             )}
           </div>
@@ -508,9 +480,9 @@ const OrderList = () => {
                       </td>
                     </tr>
                   ))
-                : filteredOrders.length > 0
+                : orders.length > 0
                 ? // Data rows
-                  filteredOrders.map((order) => {
+                  orders.map((order) => {
                     const orderStatus = availableStatuses.find(
                       (s) => s.key === order.status
                     );
@@ -535,7 +507,12 @@ const OrderList = () => {
                                 : getStatusColor("gray")
                             }`}
                           >
-                            {orderStatus ? orderStatus.label : order.status}
+                            {/* Check override trước, ưu tiên cao nhất */}
+                            {statusLabelOverrides[order.status]
+                              ? statusLabelOverrides[order.status]
+                              : orderStatus
+                              ? orderStatus.label
+                              : order.status}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -580,7 +557,7 @@ const OrderList = () => {
       </div>
 
       {/* Empty State */}
-      {!loading && filteredOrders.length === 0 && !error && (
+      {!loading && orders.length === 0 && !error && (
         <div className="text-center py-12 bg-white rounded-lg border border-gray-200 mt-6">
           <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
           <p className="text-lg font-medium text-gray-900 mb-2">
@@ -589,7 +566,7 @@ const OrderList = () => {
           <p className="text-sm text-gray-500">
             {totalElements === 0
               ? "Chưa có đơn hàng nào trong hệ thống"
-              : "Thử thay đổi điều kiện lọc hoặc tìm kiếm"}
+              : "Thử thay đổi từ khóa tìm kiếm"}
           </p>
         </div>
       )}

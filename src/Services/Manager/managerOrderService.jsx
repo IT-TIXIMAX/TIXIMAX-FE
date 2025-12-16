@@ -50,54 +50,33 @@ const managerOrderService = {
       throw error;
     }
   },
+  getOrdersPaginated: async (page = 0, size = 10, searchParams = {}) => {
+    const params = new URLSearchParams();
 
-  // Get order detail by ID
-  // getOrderDetail: async (orderId) => {
-  //   try {
-  //     // Validate order ID
-  //     if (!orderId || isNaN(orderId) || orderId <= 0) {
-  //       throw new Error("Invalid order ID");
-  //     }
-
-  //     const response = await api.get(`/orders/detail/${orderId}`);
-  //     return response.data;
-  //   } catch (error) {
-  //     console.error(`Error fetching order detail for ID ${orderId}:`, error);
-
-  //     if (error.response?.status === 404) {
-  //       throw new Error("Order not found");
-  //     } else if (error.response?.status === 400) {
-  //       throw new Error("Invalid order ID");
-  //     } else if (error.response?.status === 403) {
-  //       throw new Error("Access denied");
-  //     } else if (error.response?.status === 500) {
-  //       throw new Error("Server error");
-  //     }
-
-  //     throw error;
-  //   }
-  // },
-  // Get all orders without pagination
-  getOrdersPaginated: async (page = 0, size = 10) => {
-    try {
-      const response = await api.get(`/orders/${page}/${size}`);
-      return {
-        content: response.data.content || [],
-        totalPages: response.data.totalPages || 1,
-        totalElements: response.data.totalElements || 0,
-        number: response.data.number || 0,
-        size: response.data.size || size,
-      };
-    } catch (error) {
-      console.error(`Error fetching orders page ${page}, size ${size}:`, error);
-      if (error.response?.status === 404)
-        throw new Error("API endpoint not found");
-      if (error.response?.status === 403) throw new Error("Access denied");
-      if (error.response?.status === 500) throw new Error("Server error");
-      throw error;
+    if (searchParams.shipmentCode) {
+      params.append("shipmentCode", searchParams.shipmentCode);
     }
-  },
+    if (searchParams.customerCode) {
+      params.append("customerCode", searchParams.customerCode);
+    }
+    if (searchParams.orderCode) {
+      params.append("orderCode", searchParams.orderCode);
+    }
 
+    const queryString = params.toString();
+    const url = `/orders/${page}/${size}${
+      queryString ? `?${queryString}` : ""
+    }`;
+
+    const response = await api.get(url);
+    return {
+      content: response.data.content || [],
+      totalPages: response.data.totalPages || 1,
+      totalElements: response.data.totalElements || 0,
+      number: response.data.number || 0,
+      size: response.data.size || size,
+    };
+  },
   // Get orders by specific status
   getOrdersByStatus: async (status, page = 0, size = 20) => {
     return await managerOrderService.getOrdersPaging(page, size, status);

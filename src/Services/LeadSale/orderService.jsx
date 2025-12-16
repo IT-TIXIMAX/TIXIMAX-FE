@@ -39,12 +39,6 @@ const orderService = {
     return response.data;
   },
 
-  // confirmRefundOrder: async (orderId, refundToCustomer) => {
-  //   const response = await api.put(
-  //     `/orders/refund-confirm/${orderId}?refundToCustomer=${refundToCustomer}`
-  //   );
-  //   return response.data;
-  // },
   confirmRefundOrder: async (orderId, refundToCustomer, imageString) => {
     // Encode URL đúng cách
     const imageParam = imageString ? encodeURIComponent(imageString) : "string";

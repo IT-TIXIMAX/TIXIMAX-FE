@@ -15,11 +15,18 @@ const RefundOrder = () => {
   const [refundOrders, setRefundOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  /**
+   * ✅ Theo logic bạn muốn:
+   * - offset = pageIndex (0,1,2,...)
+   * - limit = pageSize
+   * - currentPage = page number UI (1,2,3,...)
+   */
   const [pagination, setPagination] = useState({
-    offset: 0,
-    limit: 10,
+    offset: 0, // pageIndex (0-based)
+    limit: 10, // pageSize
     total: 0,
-    currentPage: 1,
+    currentPage: 1, // UI page (1-based)
   });
 
   // modal state: confirm refund
@@ -30,18 +37,22 @@ const RefundOrder = () => {
   const [openDetailModal, setOpenDetailModal] = useState(false);
   const [detailOrder, setDetailOrder] = useState(null);
 
-  // fetch list
+  // fetch list (offset = pageIndex)
   const fetchRefundOrders = async (offset = 0, limit = 10) => {
     try {
       setLoading(true);
       setError(null);
+
+      // ✅ offset ở đây là pageIndex theo yêu cầu của bạn
       const response = await orderService.getRefundOrders(offset, limit);
-      setRefundOrders(response.content || []);
+
+      setRefundOrders(response?.content || []);
       setPagination((prev) => ({
         ...prev,
         offset,
         limit,
-        total: response.totalElements || response.content?.length || 0,
+        // ✅ dùng ?? để totalElements=0 không bị fallback sai
+        total: response?.totalElements ?? response?.content?.length ?? 0,
       }));
     } catch (err) {
       setError("Không thể tải danh sách hoàn tiền. Vui lòng thử lại.");
@@ -52,7 +63,9 @@ const RefundOrder = () => {
   };
 
   useEffect(() => {
-    fetchRefundOrders();
+    // ✅ trang đầu: offset=0, limit=10
+    fetchRefundOrders(0, pagination.limit);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // helpers
@@ -119,28 +132,30 @@ const RefundOrder = () => {
     );
   };
 
-  // pagination logic
+  // ✅ totalPages luôn >= 1 để clamp dễ, nhưng UI chỉ hiện pagination khi total>0
+  const totalPages = Math.max(
+    1,
+    Math.ceil((pagination.total || 0) / (pagination.limit || 10))
+  );
+
+  // ✅ PAGE logic theo yêu cầu:
+  // - currentPage: 1..N
+  // - offset: pageIndex = currentPage - 1
   const handlePageChange = (page) => {
-    const totalPages = Math.max(
-      1,
-      Math.ceil(pagination.total / pagination.limit || 0)
-    );
-    const clamped = Math.min(Math.max(page, 1), totalPages);
-    const newOffset = (clamped - 1) * pagination.limit;
+    const safePage = Math.min(Math.max(page, 1), totalPages);
+    const pageIndex = safePage - 1; // 👈 offset kiểu bạn muốn
+
     setPagination((prev) => ({
       ...prev,
-      currentPage: clamped,
-      offset: newOffset,
+      currentPage: safePage,
+      offset: pageIndex,
     }));
-    fetchRefundOrders(newOffset, pagination.limit ?? 10);
+
+    fetchRefundOrders(pageIndex, pagination.limit || 10);
   };
 
   const handleRefresh = () =>
     fetchRefundOrders(pagination.offset, pagination.limit);
-
-  const totalPages = pagination.total
-    ? Math.ceil(pagination.total / pagination.limit)
-    : 0;
 
   // modal control: confirm refund
   const openRefundDialog = (order) => {
@@ -162,46 +177,36 @@ const RefundOrder = () => {
     setOpenDetailModal(false);
   };
 
-  // ===== Loading Skeleton Row (10 cột, đã bỏ "Kiểm tra") =====
+  // ===== Loading Skeleton Row (10 cột) =====
   const SkeletonRow = () => (
     <tr className="animate-pulse">
-      {/* Mã đơn */}
       <td className="px-6 py-4">
         <div className="h-5 w-24 bg-gray-200 rounded-md" />
       </td>
-      {/* Loại đơn */}
       <td className="px-6 py-4">
         <div className="h-4 w-20 bg-gray-200 rounded" />
       </td>
-      {/* Trạng thái */}
       <td className="px-6 py-4">
         <div className="h-6 w-24 bg-gray-200 rounded-full" />
       </td>
-      {/* Ngày tạo */}
       <td className="px-6 py-4">
         <div className="h-4 w-24 bg-gray-200 rounded" />
       </td>
-      {/* Tỷ giá */}
       <td className="px-6 py-4 text-right">
         <div className="h-4 w-16 bg-gray-200 rounded ml-auto" />
       </td>
-      {/* Giá trước phí */}
       <td className="px-6 py-4 text-right">
         <div className="h-4 w-24 bg-gray-200 rounded ml-auto" />
       </td>
-      {/* Tổng tiền */}
       <td className="px-6 py-4 text-right">
         <div className="h-4 w-24 bg-gray-200 rounded ml-auto" />
       </td>
-      {/* Tiền dư */}
       <td className="px-6 py-4 text-right">
         <div className="h-4 w-20 bg-gray-200 rounded ml-auto" />
       </td>
-      {/* Links hủy */}
       <td className="px-6 py-4">
         <div className="h-4 w-32 bg-gray-200 rounded" />
       </td>
-      {/* Hành động */}
       <td className="px-6 py-4 text-center">
         <div className="h-8 w-20 bg-gray-200 rounded mx-auto" />
       </td>
@@ -217,7 +222,6 @@ const RefundOrder = () => {
     return (
       <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40">
         <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl max-h-[80vh] flex flex-col">
-          {/* Header */}
           <div className="px-5 py-4 border-b flex items-center justify-between">
             <div>
               <h3 className="text-lg font-semibold text-gray-800">
@@ -239,7 +243,6 @@ const RefundOrder = () => {
             </button>
           </div>
 
-          {/* Body */}
           <div className="px-5 py-4 space-y-3 overflow-y-auto">
             {cancelledLinks.length === 0 && (
               <p className="text-sm text-gray-500">
@@ -318,7 +321,6 @@ const RefundOrder = () => {
             ))}
           </div>
 
-          {/* Footer */}
           <div className="px-5 py-3 border-t flex justify-end">
             <button
               onClick={onClose}
@@ -392,13 +394,11 @@ const RefundOrder = () => {
             </thead>
 
             <tbody className="divide-y divide-gray-200">
-              {/* Loading skeleton rows */}
               {loading &&
                 Array.from({ length: Math.min(pagination.limit, 10) }).map(
                   (_, i) => <SkeletonRow key={`skeleton-${i}`} />
                 )}
 
-              {/* Data rows */}
               {!loading &&
                 refundOrders.length > 0 &&
                 refundOrders.map((item) => {
@@ -451,7 +451,6 @@ const RefundOrder = () => {
                         {formatCurrency(order.leftoverMoney)}
                       </td>
 
-                      {/* Links hủy (ẩn bớt) */}
                       <td className="px-6 py-4 text-sm text-gray-700">
                         {links.length === 0 && (
                           <span className="text-gray-400">–</span>
@@ -485,7 +484,6 @@ const RefundOrder = () => {
                             <p className="text-xs text-gray-500 italic">
                               + {links.length - 1} link khác
                             </p>
-                            {/* Nút Xem chi tiết to hơn */}
                             <button
                               onClick={() => openDetailDialog(item)}
                               className="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 hover:text-blue-800 transition-colors"
@@ -496,7 +494,6 @@ const RefundOrder = () => {
                         )}
                       </td>
 
-                      {/* Hành động */}
                       <td className="px-6 py-4 text-center">
                         <div className="flex justify-center gap-2">
                           <button
@@ -551,6 +548,7 @@ const RefundOrder = () => {
               )}{" "}
               trong tổng số {pagination.total} đơn
             </div>
+
             <div className="flex items-center gap-1">
               <button
                 onClick={() => handlePageChange(pagination.currentPage - 1)}
