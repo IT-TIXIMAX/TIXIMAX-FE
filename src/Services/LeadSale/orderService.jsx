@@ -39,19 +39,14 @@ const orderService = {
     return response.data;
   },
 
-  confirmRefundOrder: async (orderId, refundToCustomer, imageString) => {
-    // Encode URL đúng cách
-    const imageParam = imageString ? encodeURIComponent(imageString) : "string";
-
-    const response = await api.put(
-      `/orders/refund-confirm/${orderId}/${imageParam}?refundToCustomer=${refundToCustomer}`,
-      null, // body
-      {
-        headers: {
-          accept: "*/*",
-        },
-      }
-    );
+  confirmRefundOrder: async (orderId, refundToCustomer, imageUrl) => {
+    const response = await api.put(`/orders/refund-confirm/${orderId}`, null, {
+      params: {
+        refundToCustomer,
+        image: refundToCustomer ? imageUrl : "x", // ✅ false -> gửi "x"
+      },
+      headers: { accept: "*/*" },
+    });
     return response.data;
   },
 };

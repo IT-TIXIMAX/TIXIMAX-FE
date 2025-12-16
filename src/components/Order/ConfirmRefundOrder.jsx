@@ -45,7 +45,7 @@ const ConfirmRefundOrder = ({ open, order, onClose, onSuccess }) => {
     if (submitting) return;
     if (!order?.orderId) return;
 
-    // ✅ Chỉ bắt buộc ảnh khi HOÀN TIỀN VỀ KHÁCH
+    // ✅ chỉ bắt buộc ảnh khi HOÀN TIỀN VỀ KHÁCH
     if (refundToCustomer && !imageUrl) {
       toast.error("Vui lòng upload ảnh xác nhận hoàn tiền về khách!");
       return;
@@ -54,10 +54,12 @@ const ConfirmRefundOrder = ({ open, order, onClose, onSuccess }) => {
     try {
       setSubmitting(true);
 
+      // ✅ true -> gửi imageUrl
+      // ✅ false -> orderService sẽ tự gửi image = "x"
       await orderService.confirmRefundOrder(
         order.orderId,
         refundToCustomer,
-        refundToCustomer ? imageUrl : null // ✅ không hoàn về khách -> không gửi ảnh
+        imageUrl
       );
 
       toast.success(
@@ -172,7 +174,7 @@ const ConfirmRefundOrder = ({ open, order, onClose, onSuccess }) => {
                 type="button"
                 onClick={() => {
                   setRefundToCustomer(false);
-                  setImageUrl(""); // ✅ chuyển qua "không hoàn" thì clear ảnh luôn
+                  setImageUrl(""); // ✅ không show upload nữa, clear ảnh
                 }}
                 disabled={submitting}
                 className={`w-full flex items-center gap-2 rounded-lg border px-3 py-2 text-left transition ${

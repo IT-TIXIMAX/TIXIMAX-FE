@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import managerOrderService from "../../Services/Manager/managerOrderService";
 import DetailOrderSale from "../Manager/DetailForSale/DetailOrderSale";
+import AccountSearch from "../Order/AccountSearch";
 
 const OrderList = () => {
   // Pagination & Data states
@@ -24,7 +25,7 @@ const OrderList = () => {
 
   // Search input states
   const [searchOrderCode, setSearchOrderCode] = useState("");
-  const [searchCustomerCode, setSearchCustomerCode] = useState("");
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [searchShipmentCode, setSearchShipmentCode] = useState("");
 
   // Applied search states
@@ -43,51 +44,35 @@ const OrderList = () => {
     []
   );
 
-  // Override status labels - TÙY CHỈNH Ở ĐÂY
   const statusLabelOverrides = useMemo(
     () => ({
-      // Các trạng thái cơ bản
       CHO_XAC_NHAN: "Chờ xác nhận",
       DA_XAC_NHAN: "Đã xác nhận",
       DANG_XU_LY: "Đang xử lý",
-
-      // Trạng thái mua hàng
       DANG_MUA_HANG: "Đang mua hàng",
       DA_MUA_HANG: "Đã mua hàng",
       MUA_HANG_THAT_BAI: "Mua hàng thất bại",
-
-      // Trạng thái đấu giá
       CHO_DAU_GIA: "Chờ đấu giá",
       DANG_DAU_GIA: "Đang đấu giá",
       DAU_GIA_THANH_CONG: "Thắng đấu giá",
       DAU_GIA_THAT_BAI: "Thua đấu giá",
-
-      // Trạng thái vận chuyển
       CHO_VAN_CHUYEN: "Chờ vận chuyển",
       DANG_VAN_CHUYEN: "Đang vận chuyển",
       DA_VE_KHO_NUOC_NGOAI: "Đã về kho nước ngoài",
       DANG_VAN_CHUYEN_QUOC_TE: "Đang vận chuyển quốc tế",
       DA_VE_KHO_VN: "Đã về kho VN",
       DA_VE_KHO: "Đã về kho",
-
-      // Trạng thái giao hàng
       CHO_GIAO_HANG: "Chờ giao hàng",
       DANG_GIAO_HANG: "Đang giao hàng",
       GIAO_HANG_THAT_BAI: "Giao hàng thất bại",
       DA_GIAO_HANG: "Đã giao hàng",
-
-      // Trạng thái thanh toán
       CHO_THANH_TOAN: "Chờ thanh toán",
       DA_THANH_TOAN: "Đã thanh toán",
       THANH_TOAN_MOT_PHAN: "Thanh toán một phần",
-
-      // Trạng thái hoàn thành/hủy
       HOAN_THANH: "Hoàn thành",
       HUY: "Đã hủy",
       TRA_HANG: "Trả hàng",
       HOAN_TIEN: "Hoàn tiền",
-
-      // Trạng thái ký gửi
       CHO_KY_GUI: "Chờ ký gửi",
       DANG_KY_GUI: "Đang ký gửi",
       DA_BAN: "Đã bán",
@@ -140,18 +125,54 @@ const OrderList = () => {
     fetchOrders();
   }, [fetchOrders]);
 
+  // ⭐ AUTO CLEAR AND RELOAD when all search fields are empty
+  useEffect(() => {
+    const allFieldsEmpty =
+      !searchOrderCode.trim() &&
+      !selectedCustomer &&
+      !searchShipmentCode.trim();
+    const hasAppliedFilters =
+      appliedOrderCode || appliedCustomerCode || appliedShipmentCode;
+
+    if (allFieldsEmpty && hasAppliedFilters) {
+      // Tự động clear applied filters khi tất cả search fields rỗng
+      setAppliedOrderCode("");
+      setAppliedCustomerCode("");
+      setAppliedShipmentCode("");
+      setCurrentPage(0);
+      // fetchOrders sẽ tự động chạy do appliedXxx thay đổi
+    }
+  }, [
+    searchOrderCode,
+    selectedCustomer,
+    searchShipmentCode,
+    appliedOrderCode,
+    appliedCustomerCode,
+    appliedShipmentCode,
+  ]);
+
+  // Handle account selection from AccountSearch
+  const handleSelectAccount = useCallback((account) => {
+    setSelectedCustomer(account);
+  }, []);
+
+  // Handle clear account
+  const handleClearAccount = useCallback(() => {
+    setSelectedCustomer(null);
+  }, []);
+
   // Handle Search Button Click
   const handleSearch = useCallback(() => {
     setAppliedOrderCode(searchOrderCode);
-    setAppliedCustomerCode(searchCustomerCode);
+    setAppliedCustomerCode(selectedCustomer?.customerCode || "");
     setAppliedShipmentCode(searchShipmentCode);
     setCurrentPage(0);
-  }, [searchOrderCode, searchCustomerCode, searchShipmentCode]);
+  }, [searchOrderCode, selectedCustomer, searchShipmentCode]);
 
   // Handle Clear Button Click
   const handleClearSearch = useCallback(() => {
     setSearchOrderCode("");
-    setSearchCustomerCode("");
+    setSelectedCustomer(null);
     setSearchShipmentCode("");
     setAppliedOrderCode("");
     setAppliedCustomerCode("");
@@ -268,23 +289,31 @@ const OrderList = () => {
         <h1 className="text-2xl font-bold text-gray-900">Danh sách đơn hàng</h1>
       </div>
 
-      {/* Search Section */}
+      {/* Search Section - Compact Layout */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Search className="w-5 h-5 text-gray-700" />
             <h2 className="text-lg font-semibold text-gray-900">Tìm kiếm</h2>
           </div>
-          {hasActiveSearch && (
-            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
-              Đang lọc
-            </span>
-          )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Search Fields + Action Buttons - Cùng 1 hàng */}
+        <div className="flex items-center gap-3">
+          {/* Account Search - Customer Code */}
+          <div className="flex-1">
+            <AccountSearch
+              onSelectAccount={handleSelectAccount}
+              value={
+                selectedCustomer
+                  ? `${selectedCustomer.customerCode} - ${selectedCustomer.name}`
+                  : ""
+              }
+              onClear={handleClearAccount}
+            />
+          </div>
           {/* Search Order Code */}
-          <div className="relative">
+          <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
@@ -292,25 +321,11 @@ const OrderList = () => {
               value={searchOrderCode}
               onChange={(e) => setSearchOrderCode(e.target.value)}
               onKeyPress={handleKeyPress}
-              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
-
-          {/* Search Customer Code */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Mã khách hàng..."
-              value={searchCustomerCode}
-              onChange={(e) => setSearchCustomerCode(e.target.value)}
-              onKeyPress={handleKeyPress}
-              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-
           {/* Search Shipment Code */}
-          <div className="relative">
+          <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
@@ -318,17 +333,15 @@ const OrderList = () => {
               value={searchShipmentCode}
               onChange={(e) => setSearchShipmentCode(e.target.value)}
               onKeyPress={handleKeyPress}
-              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
-        </div>
 
-        {/* Action Buttons */}
-        <div className="flex items-center gap-3 mt-4">
+          {/* Action Buttons */}
           <button
             onClick={handleSearch}
             disabled={loading}
-            className="flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
           >
             <Search className="w-4 h-4" />
             Tìm kiếm
@@ -337,7 +350,7 @@ const OrderList = () => {
           <button
             onClick={handleClearSearch}
             disabled={loading}
-            className="flex items-center gap-2 px-5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
           >
             <X className="w-4 h-4" />
             Xóa
@@ -448,8 +461,7 @@ const OrderList = () => {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {loading
-                ? // Loading skeleton
-                  [...Array(8)].map((_, idx) => (
+                ? [...Array(8)].map((_, idx) => (
                     <tr key={idx} className="animate-pulse">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="h-4 w-28 bg-gray-200 rounded" />
@@ -481,8 +493,7 @@ const OrderList = () => {
                     </tr>
                   ))
                 : orders.length > 0
-                ? // Data rows
-                  orders.map((order) => {
+                ? orders.map((order) => {
                     const orderStatus = availableStatuses.find(
                       (s) => s.key === order.status
                     );
@@ -507,7 +518,6 @@ const OrderList = () => {
                                 : getStatusColor("gray")
                             }`}
                           >
-                            {/* Check override trước, ưu tiên cao nhất */}
                             {statusLabelOverrides[order.status]
                               ? statusLabelOverrides[order.status]
                               : orderStatus
