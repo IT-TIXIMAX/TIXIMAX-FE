@@ -264,7 +264,7 @@ const QuestionPage = () => {
                 </div>
 
                 {/* Submit Button */}
-                <div>
+                <div className="mt-12 text-center">
                   <p className="text-gray-700 mb-4 leading-relaxed px-4">
                     Để được báo giá cụ thể nhất, hãy điền đầy đủ thông tin yêu
                     cầu
@@ -354,7 +354,7 @@ const QuestionPage = () => {
                   <div className="w-8 h-0.5 bg-yellow-400"></div>
                 </div>
                 <Link
-                  to="/service"
+                  to="/services"
                   className="inline-block px-10 py-3 bg-yellow-400 text-gray-900 font-bold uppercase rounded-lg hover:bg-yellow-500 transition-colors duration-300 shadow-lg"
                 >
                   Liên hệ ngay

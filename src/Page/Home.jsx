@@ -26,6 +26,7 @@ const Home = () => {
 
       {/* About section */}
       <Vision />
+
       {/* Sẻvice Page section - Quy trình 5 bước */}
       <Service />
 

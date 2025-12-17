@@ -538,15 +538,11 @@ const AboutUs = () => {
               viewport={{ once: true }}
               className="rounded-3xl bg-white border border-gray-100 shadow-xl overflow-hidden"
             >
-              <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-8 text-white">
+              <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-4 text-white">
                 <div className="flex items-center gap-3 mb-3">
                   <Users2 className="w-10 h-10" />
                   <h3 className="text-2xl font-bold">Đối với Khách hàng</h3>
                 </div>
-                <p className="text-blue-100">
-                  Chúng tôi cam kết mang đến trải nghiệm vượt trội và giá trị
-                  bền vững
-                </p>
               </div>
               <div className="p-8">
                 <div className="space-y-6">
@@ -580,14 +576,11 @@ const AboutUs = () => {
               viewport={{ once: true }}
               className="rounded-3xl bg-white border border-gray-100 shadow-xl overflow-hidden"
             >
-              <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-8 text-white">
+              <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-4 text-white">
                 <div className="flex items-center gap-3 mb-3">
                   <Heart className="w-10 h-10" />
                   <h3 className="text-2xl font-bold">Đối với Nhân viên</h3>
                 </div>
-                <p className="text-green-100">
-                  Xây dựng môi trường làm việc tử tế, phát triển và hạnh phúc
-                </p>
               </div>
               <div className="p-8">
                 <div className="space-y-6">
