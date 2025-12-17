@@ -27,7 +27,7 @@ function Layout() {
       )}
 
       <main
-        className={`min-h-screen pb-12 m-0 ${!hideHeaderFooter ? "pt-28" : ""}`}
+        className={`min-h-screen pb-12 m-0 ${!hideHeaderFooter ? "pt-32" : ""}`}
       >
         <Outlet />
       </main>

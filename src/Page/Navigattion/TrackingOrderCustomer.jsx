@@ -359,12 +359,7 @@ const TrackingOrderCustomer = () => {
               <button
                 onClick={onSearch}
                 disabled={loading}
-                className="px-6 py-3 rounded-lg text-white font-semibold text-base
-bg-yellow-400 hover:bg-yellow-500
-shadow-md hover:shadow-lg
-transition-colors
-disabled:opacity-50 disabled:cursor-not-allowed
-flex items-center justify-center gap-2 min-w-[110px]"
+                className="px-6 py-3 rounded-lg text-white font-semibold text-base bg-yellow-400 hover:bg-yellow-500 shadow-md hover:shadow-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 min-w-[110px]"
               >
                 {loading ? (
                   <>
