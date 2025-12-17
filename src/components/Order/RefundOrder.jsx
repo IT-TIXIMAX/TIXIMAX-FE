@@ -24,7 +24,7 @@ const RefundOrder = () => {
    */
   const [pagination, setPagination] = useState({
     offset: 0, // pageIndex (0-based)
-    limit: 10, // pageSize
+    limit: 100, // pageSize
     total: 0,
     currentPage: 1, // UI page (1-based)
   });
@@ -38,7 +38,7 @@ const RefundOrder = () => {
   const [detailOrder, setDetailOrder] = useState(null);
 
   // fetch list (offset = pageIndex)
-  const fetchRefundOrders = async (offset = 0, limit = 10) => {
+  const fetchRefundOrders = async (offset = 0, limit = 100) => {
     try {
       setLoading(true);
       setError(null);
@@ -135,7 +135,7 @@ const RefundOrder = () => {
   // ✅ totalPages luôn >= 1 để clamp dễ, nhưng UI chỉ hiện pagination khi total>0
   const totalPages = Math.max(
     1,
-    Math.ceil((pagination.total || 0) / (pagination.limit || 10))
+    Math.ceil((pagination.total || 0) / (pagination.limit || 100))
   );
 
   // ✅ PAGE logic theo yêu cầu:
@@ -151,7 +151,7 @@ const RefundOrder = () => {
       offset: pageIndex,
     }));
 
-    fetchRefundOrders(pageIndex, pagination.limit || 10);
+    fetchRefundOrders(pageIndex, pagination.limit || 100);
   };
 
   const handleRefresh = () =>

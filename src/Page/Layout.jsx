@@ -20,14 +20,15 @@ function Layout() {
   return (
     <>
       {!hideHeaderFooter && (
-        <>
+        <div className="fixed top-0 left-0 right-0 z-50 bg-white m-0 p-0">
           <Banner />
           <Header />
-        </>
+        </div>
       )}
 
-      {/* {/* <main className="min-h-screen"> */}
-      <main className="min-h-screen pb-12">
+      <main
+        className={`min-h-screen pb-12 m-0 ${!hideHeaderFooter ? "pt-28" : ""}`}
+      >
         <Outlet />
       </main>
 
