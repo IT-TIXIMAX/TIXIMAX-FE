@@ -31,31 +31,27 @@ const STATUS_CONFIG = {
     label: "Chờ mua",
     color: "bg-amber-500",
     gradient: "from-amber-300 to-amber-500",
-    // desc: "Đơn hàng đang chờ được mua hoặc đấu giá",
     icon: Clock,
     order: 1,
   },
   DA_MUA: {
     label: "Đã mua",
     color: "bg-purple-500",
-    gradient: "from-purple-400 to-purple-600",
-    // desc: "Đã mua hàng từ shop",
+    gradient: "from-purple-500 to-purple-600",
     icon: ShoppingCart,
     order: 2,
   },
   DAU_GIA_THANH_CONG: {
     label: "Đấu giá thành công",
     color: "bg-purple-500",
-    gradient: "from-purple-400 to-purple-600",
-    // desc: "Đấu giá thành công",
+    gradient: "from-purple-500 to-purple-600",
     icon: ShoppingCart,
     order: 2,
   },
   DA_NHAP_KHO_NN: {
     label: "Đã về kho NN",
     color: "bg-indigo-500",
-    gradient: "from-indigo-400 to-indigo-600",
-    // desc: "Hàng đã về kho nước ngoài",
+    gradient: "from-indigo-500 to-indigo-600",
     icon: Warehouse,
     order: 3,
   },
@@ -63,7 +59,6 @@ const STATUS_CONFIG = {
     label: "Đang về VN",
     color: "bg-blue-500",
     gradient: "from-blue-400 to-blue-600",
-    // desc: "Đang vận chuyển về Việt Nam",
     icon: Ship,
     order: 4,
   },
@@ -71,7 +66,6 @@ const STATUS_CONFIG = {
     label: "Đã về kho VN",
     color: "bg-cyan-500",
     gradient: "from-cyan-400 to-cyan-600",
-    // desc: "Hàng đã về kho Việt Nam",
     icon: PackageCheck,
     order: 5,
   },
@@ -79,7 +73,6 @@ const STATUS_CONFIG = {
     label: "Đang giao nội địa",
     color: "bg-orange-500",
     gradient: "from-orange-400 to-orange-600",
-    // desc: "Đang giao hàng đến địa chỉ của bạn",
     icon: Truck,
     order: 6,
   },
@@ -87,7 +80,6 @@ const STATUS_CONFIG = {
     label: "Đã giao",
     color: "bg-green-500",
     gradient: "from-green-400 to-green-600",
-    // desc: "Giao hàng thành công",
     icon: CheckCircle2,
     order: 7,
   },
@@ -95,7 +87,6 @@ const STATUS_CONFIG = {
     label: "Đã hủy",
     color: "bg-red-500",
     gradient: "from-red-400 to-red-600",
-    // desc: "Đơn hàng đã bị hủy",
     icon: XCircle,
     order: 0,
   },
@@ -368,7 +359,12 @@ const TrackingOrderCustomer = () => {
               <button
                 onClick={onSearch}
                 disabled={loading}
-                className="px-6 py-3 rounded-lg text-white font-semibold text-base bg-gradient-to-r from-yellow-300 to-amber-500 hover:from-amber-400 to-amber-600 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2 min-w-[110px]"
+                className="px-6 py-3 rounded-lg text-white font-semibold text-base
+bg-yellow-400 hover:bg-yellow-500
+shadow-md hover:shadow-lg
+transition-colors
+disabled:opacity-50 disabled:cursor-not-allowed
+flex items-center justify-center gap-2 min-w-[110px]"
               >
                 {loading ? (
                   <>
@@ -562,48 +558,79 @@ const TrackingOrderCustomer = () => {
                 </div>
               </div>
 
-              {/* Mobile Timeline */}
-              <div className="lg:hidden space-y-3">
-                {activeGroups.map((groupKey) => {
-                  const groupConfig = STATUS_GROUPS[groupKey];
-                  const Icon = groupConfig.icon;
-                  const count = groupCounts[groupKey];
-                  const isSelected = selectedStatusGroup === groupKey;
+              {/* Mobile Timeline - Horizontal Scroll */}
+              <div className="lg:hidden">
+                <div className="relative -mx-6 px-6 overflow-x-auto scrollbar-hide">
+                  <div className="flex gap-3 pb-2 min-w-max">
+                    {GROUP_ORDER.map((groupKey, index) => {
+                      const groupConfig = STATUS_GROUPS[groupKey];
+                      const Icon = groupConfig.icon;
+                      const count = groupCounts[groupKey] || 0;
+                      const isActive = count > 0;
+                      const isSelected = selectedStatusGroup === groupKey;
 
-                  return (
-                    <button
-                      key={groupKey}
-                      onClick={() =>
-                        setSelectedStatusGroup(isSelected ? null : groupKey)
-                      }
-                      className={`w-full flex items-center gap-4 p-4 rounded-lg transition-all ${
-                        isSelected
-                          ? "bg-amber-50 ring-2 ring-amber-400 shadow-sm"
-                          : "bg-gray-50 hover:bg-gray-100"
-                      }`}
-                    >
-                      <div
-                        className={`w-10 h-10 rounded-lg bg-gradient-to-br ${groupConfig.gradient} flex items-center justify-center flex-shrink-0 shadow-sm`}
-                      >
-                        <Icon className="w-5 h-5 text-white" />
-                      </div>
-                      <div className="flex-1 text-left">
-                        <p className="text-sm font-semibold text-gray-900">
-                          {groupConfig.displayLabel}
-                        </p>
-                        <p className="text-xs text-gray-600">
-                          {groupConfig.statuses.length > 1
-                            ? `${groupConfig.statuses.length} trạng thái`
-                            : STATUS_CONFIG[groupConfig.statuses[0]]?.desc ||
-                              ""}
-                        </p>
-                      </div>
-                      <div className="min-w-[32px] h-8 px-3 bg-amber-500 text-white text-sm font-bold rounded-full flex items-center justify-center shadow-sm">
-                        {count}
-                      </div>
-                    </button>
-                  );
-                })}
+                      return (
+                        <div
+                          key={groupKey}
+                          className="relative flex items-center"
+                        >
+                          <button
+                            onClick={() =>
+                              isActive &&
+                              setSelectedStatusGroup(
+                                isSelected ? null : groupKey
+                              )
+                            }
+                            disabled={!isActive}
+                            className={`flex flex-col items-center transition-all ${
+                              isActive
+                                ? "cursor-pointer"
+                                : "opacity-30 cursor-not-allowed"
+                            }`}
+                          >
+                            <div
+                              className={`relative w-14 h-14 rounded-lg bg-gradient-to-br ${
+                                groupConfig.gradient
+                              } flex items-center justify-center shadow-md transform transition-all ${
+                                isActive && "active:scale-95"
+                              } ${
+                                isSelected
+                                  ? "ring-2 ring-amber-400 scale-105"
+                                  : ""
+                              }`}
+                            >
+                              <Icon className="w-6 h-6 text-white" />
+                            </div>
+
+                            <p className="mt-2 text-xs font-semibold text-gray-900 text-center leading-tight max-w-[64px]">
+                              {groupConfig.displayLabel}
+                            </p>
+
+                            {count > 0 && (
+                              <div className="mt-1.5 min-w-[24px] h-5 px-2 bg-amber-500 text-white text-xs font-bold rounded-full flex items-center justify-center shadow-sm">
+                                {count}
+                              </div>
+                            )}
+                          </button>
+
+                          {index < GROUP_ORDER.length - 1 && (
+                            <div className="mx-1 flex-shrink-0">
+                              <ArrowRight className="w-4 h-4 text-gray-400" />
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Mobile Scroll Hint */}
+                <div className="mt-3 text-center">
+                  <p className="text-xs text-gray-500 flex items-center justify-center gap-1">
+                    <span className="inline-block w-1 h-1 bg-amber-500 rounded-full animate-pulse"></span>
+                    Vuốt ngang để xem thêm
+                  </p>
+                </div>
               </div>
 
               {/* Cancelled Orders */}
