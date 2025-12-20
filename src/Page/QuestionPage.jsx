@@ -106,7 +106,6 @@ const QuestionPage = () => {
   ];
 
   const cities = ["Indonesia", "Hàn Quốc", "Mỹ", "Nhật Bản", "Việt Nam"];
-
   const destination = ["Indonesia", "Việt Nam"];
 
   const handleChange = (e) => {
@@ -133,14 +132,16 @@ const QuestionPage = () => {
   return (
     <div className="bg-gray-50 py-12">
       {/* Header Section */}
-      <div className="container mx-auto px-6 mb-12">
+      <div className="container mx-auto px-4 sm:px-6 mb-12">
         <div className="flex items-center justify-center">
-          <div className="flex-1 bg-gray-900 text-white py-6 px-8 text-right rounded-l-lg">
+          {/* Giữ nguyên style desktop, chỉ thêm padding mobile */}
+          <div className="flex-1 bg-gray-900 text-white py-6 px-4 sm:px-8 text-right rounded-l-lg">
             <h2 className="text-2xl md:text-3xl font-bold uppercase">
               Nhận báo giá ngay
             </h2>
           </div>
 
+          {/* Giữ nguyên kích thước icon (w-20 h-20) */}
           <div className="flex-shrink-0 w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-lg -mx-4 z-10">
             <svg
               className="w-10 h-10 text-gray-800"
@@ -151,7 +152,7 @@ const QuestionPage = () => {
             </svg>
           </div>
 
-          <div className="flex-1 bg-yellow-400 text-gray-900 py-6 px-8 text-left rounded-r-lg">
+          <div className="flex-1 bg-yellow-400 text-gray-900 py-6 px-4 sm:px-8 text-left rounded-r-lg">
             <h2 className="text-2xl md:text-3xl font-bold uppercase">
               Các câu hỏi thường gặp
             </h2>
@@ -160,206 +161,207 @@ const QuestionPage = () => {
       </div>
 
       {/* Main Content */}
-      <main className="container mx-auto px-12 lg:px-24">
-        <div className="container mx-auto px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            {/* Left Column - Form */}
-            <div>
-              <div className="space-y-6">
-                {/* Họ tên */}
-                <div>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    placeholder="HỌ TÊN"
-                    className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent bg-white text-gray-800 placeholder-gray-500 font-medium"
-                  />
-                </div>
-
-                {/* Số điện thoại */}
-                <div>
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    placeholder="SỐ ĐIỆN THOẠI"
-                    className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent bg-white text-gray-800 placeholder-gray-500 font-medium"
-                  />
-                </div>
-
-                {/* Chuyển từ - Đến */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="relative">
-                    <select
-                      name="from"
-                      value={formData.from}
-                      onChange={handleChange}
-                      className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent bg-white text-gray-800 font-medium appearance-none cursor-pointer"
-                    >
-                      <option value="">CHUYỂN TỪ</option>
-                      {cities.map((city) => (
-                        <option key={city} value={city}>
-                          {city}
-                        </option>
-                      ))}
-                    </select>
-                    <svg
-                      className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 pointer-events-none"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 9l-7 7-7-7"
-                      />
-                    </svg>
-                  </div>
-
-                  <div className="relative">
-                    <select
-                      name="to"
-                      value={formData.to}
-                      onChange={handleChange}
-                      className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent bg-white text-gray-800 font-medium appearance-none cursor-pointer"
-                    >
-                      <option value="">ĐẾN</option>
-                      {destination.map((destination) => (
-                        <option key={destination} value={destination}>
-                          {destination}
-                        </option>
-                      ))}
-                    </select>
-                    <svg
-                      className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 pointer-events-none"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 9l-7 7-7-7"
-                      />
-                    </svg>
-                  </div>
-                </div>
-
-                {/* Ghi chú */}
-                <div>
-                  <textarea
-                    name="note"
-                    value={formData.note}
-                    onChange={handleChange}
-                    placeholder="GHI CHÚ CỤ THỂ"
-                    rows="5"
-                    className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent bg-white text-gray-800 placeholder-gray-500 font-medium resize-none"
-                  ></textarea>
-                </div>
-
-                {/* Submit Button */}
-                <div className="mt-12 text-center">
-                  <p className="text-gray-700 mb-4 leading-relaxed px-4">
-                    Để được báo giá cụ thể nhất, hãy điền đầy đủ thông tin yêu
-                    cầu
-                  </p>
-                  <div className="flex items-center justify-center gap-3 mb-4">
-                    <div className="w-8 h-0.5 bg-yellow-400"></div>
-                    <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
-                    <div className="w-8 h-0.5 bg-yellow-400"></div>
-                  </div>
-                  <button
-                    onClick={handleSubmit}
-                    className="w-full md:w-auto px-12 py-4 bg-gray-900 text-white font-bold uppercase rounded-lg hover:bg-gray-800 transition-colors duration-300 shadow-lg"
-                  >
-                    Yêu cầu báo giá
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column - FAQ */}
-            <div>
-              <div className="space-y-4">
-                {faqData.map((faq) => (
-                  <div
-                    key={faq.id}
-                    className={`border-2 rounded-lg overflow-hidden transition-all duration-300 ${
-                      openFAQ === faq.id
-                        ? "border-yellow-400 bg-yellow-50"
-                        : "border-gray-300 bg-white"
-                    }`}
-                  >
-                    <button
-                      onClick={() => toggleFAQ(faq.id)}
-                      className="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-gray-50 transition-colors"
-                    >
-                      <span className="text-gray-700 font-semibold uppercase text-sm pr-4">
-                        {faq.question}
-                      </span>
-                      <div
-                        className={`flex-shrink-0 w-10 h-10 rounded flex items-center justify-center transition-all duration-300 ${
-                          openFAQ === faq.id
-                            ? "bg-yellow-400 text-gray-900 rotate-45"
-                            : "bg-gray-800 text-white"
-                        }`}
-                      >
-                        <svg
-                          className="w-5 h-5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={3}
-                            d="M12 4v16m8-8H4"
-                          />
-                        </svg>
-                      </div>
-                    </button>
-
-                    <div
-                      className={`overflow-hidden transition-all duration-300 ${
-                        openFAQ === faq.id ? "max-h-96" : "max-h-0"
-                      }`}
-                    >
-                      <div className="px-6 pb-5 pt-2">
-                        <div className="w-12 h-0.5 bg-yellow-400 mb-3"></div>
-                        <p className="text-gray-600 leading-relaxed">
-                          {faq.answer}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+      {/* Giữ nguyên desktop: px-12 lg:px-24, chỉ thêm px-4 cho mobile */}
+      <main className="container mx-auto px-4 sm:px-12 lg:px-24">
+        {/* bỏ container lồng container không cần thiết */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          {/* Left Column - Form */}
+          <div>
+            <div className="space-y-6">
+              <div>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  placeholder="HỌ TÊN"
+                  className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent bg-white text-gray-800 placeholder-gray-500 font-medium"
+                />
               </div>
 
-              {/* Contact CTA */}
+              <div>
+                <input
+                  type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  placeholder="SỐ ĐIỆN THOẠI"
+                  className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent bg-white text-gray-800 placeholder-gray-500 font-medium"
+                />
+              </div>
+
+              {/* Mobile: 1 cột, Desktop giữ 2 cột như cũ */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="relative">
+                  <select
+                    name="from"
+                    value={formData.from}
+                    onChange={handleChange}
+                    className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent bg-white text-gray-800 font-medium appearance-none cursor-pointer"
+                  >
+                    <option value="">CHUYỂN TỪ</option>
+                    {cities.map((city) => (
+                      <option key={city} value={city}>
+                        {city}
+                      </option>
+                    ))}
+                  </select>
+                  <svg
+                    className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 pointer-events-none"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </div>
+
+                <div className="relative">
+                  <select
+                    name="to"
+                    value={formData.to}
+                    onChange={handleChange}
+                    className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent bg-white text-gray-800 font-medium appearance-none cursor-pointer"
+                  >
+                    <option value="">ĐẾN</option>
+                    {destination.map((d) => (
+                      <option key={d} value={d}>
+                        {d}
+                      </option>
+                    ))}
+                  </select>
+                  <svg
+                    className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 pointer-events-none"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </div>
+              </div>
+
+              <div>
+                <textarea
+                  name="note"
+                  value={formData.note}
+                  onChange={handleChange}
+                  placeholder="GHI CHÚ CỤ THỂ"
+                  rows="5"
+                  className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent bg-white text-gray-800 placeholder-gray-500 font-medium resize-none"
+                />
+              </div>
+
+              {/* Submit Button */}
               <div className="mt-12 text-center">
                 <p className="text-gray-700 mb-4 leading-relaxed px-4">
-                  Nếu bạn cần được tư vấn cụ thể hơn, hãy liên hệ với
-                  TixiLogistics để được hỗ trợ.
+                  Để được báo giá cụ thể nhất, hãy điền đầy đủ thông tin yêu cầu
                 </p>
                 <div className="flex items-center justify-center gap-3 mb-4">
                   <div className="w-8 h-0.5 bg-yellow-400"></div>
                   <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
                   <div className="w-8 h-0.5 bg-yellow-400"></div>
                 </div>
-                <Link
-                  to="/services"
-                  className="inline-block px-10 py-3 bg-yellow-400 text-gray-900 font-bold uppercase rounded-lg hover:bg-yellow-500 transition-colors duration-300 shadow-lg"
+
+                {/* Mobile full width, desktop như cũ */}
+                <button
+                  onClick={handleSubmit}
+                  className="w-full sm:w-auto px-12 py-4 bg-gray-900 text-white font-bold uppercase rounded-lg hover:bg-gray-800 transition-colors duration-300 shadow-lg"
                 >
-                  Liên hệ ngay
-                </Link>
+                  Yêu cầu báo giá
+                </button>
               </div>
+            </div>
+          </div>
+
+          {/* Right Column - FAQ */}
+          <div>
+            <div className="space-y-4">
+              {faqData.map((faq) => (
+                <div
+                  key={faq.id}
+                  className={`border-2 rounded-lg overflow-hidden transition-all duration-300 ${
+                    openFAQ === faq.id
+                      ? "border-yellow-400 bg-yellow-50"
+                      : "border-gray-300 bg-white"
+                  }`}
+                >
+                  <button
+                    onClick={() => toggleFAQ(faq.id)}
+                    className="w-full px-4 sm:px-6 py-5 flex items-start sm:items-center justify-between text-left hover:bg-gray-50 transition-colors"
+                  >
+                    <span className="text-gray-700 font-semibold uppercase text-sm pr-4 leading-relaxed">
+                      {faq.question}
+                    </span>
+
+                    <div
+                      className={`flex-shrink-0 w-10 h-10 rounded flex items-center justify-center transition-all duration-300 ${
+                        openFAQ === faq.id
+                          ? "bg-yellow-400 text-gray-900 rotate-45"
+                          : "bg-gray-800 text-white"
+                      }`}
+                    >
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={3}
+                          d="M12 4v16m8-8H4"
+                        />
+                      </svg>
+                    </div>
+                  </button>
+
+                  <div
+                    className={`overflow-hidden transition-all duration-300 ${
+                      openFAQ === faq.id ? "max-h-96" : "max-h-0"
+                    }`}
+                  >
+                    <div className="px-4 sm:px-6 pb-5 pt-2">
+                      <div className="w-12 h-0.5 bg-yellow-400 mb-3"></div>
+                      <p className="text-gray-600 leading-relaxed">
+                        {faq.answer}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Contact CTA */}
+            <div className="mt-12 text-center">
+              <p className="text-gray-700 mb-4 leading-relaxed px-4">
+                Nếu bạn cần được tư vấn cụ thể hơn, hãy liên hệ với
+                TixiLogistics để được hỗ trợ.
+              </p>
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <div className="w-8 h-0.5 bg-yellow-400"></div>
+                <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
+                <div className="w-8 h-0.5 bg-yellow-400"></div>
+              </div>
+
+              {/* Mobile full width, desktop như cũ */}
+              <Link
+                to="/services"
+                className="inline-block w-full sm:w-auto text-center px-10 py-3 bg-yellow-400 text-gray-900 font-bold uppercase rounded-lg hover:bg-yellow-500 transition-colors duration-300 shadow-lg"
+              >
+                Liên hệ ngay
+              </Link>
             </div>
           </div>
         </div>

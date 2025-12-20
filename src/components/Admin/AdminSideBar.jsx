@@ -39,7 +39,7 @@ import {
   FaBars,
   FaTimes,
 } from "react-icons/fa";
-
+import Logout from "../../Page/Logout";
 // Configuration-based menu structure
 const menuConfig = [
   {
@@ -301,16 +301,6 @@ const AdminSidebar = () => {
     setIsMobileMenuOpen(false);
   }, [location.pathname]);
 
-  // Handle logout with better UX
-  const handleLogout = useCallback(() => {
-    const confirmLogout = window.confirm("Bạn có chắc chắn muốn đăng xuất?");
-    if (confirmLogout) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("role");
-      navigate("/signin");
-    }
-  }, [navigate]);
-
   // Memoized active check function
   const isActive = useCallback((path) => activeItem === path, [activeItem]);
 
@@ -484,19 +474,32 @@ const AdminSidebar = () => {
       </nav>
 
       {/* Logout Section */}
-      <div className="p-4 border-t border-yellow-500/30 shrink-0 bg-yellow-500/5 backdrop-blur-sm">
-        <button
-          onClick={handleLogout}
-          onKeyDown={(e) => handleKeyDown(e, handleLogout)}
-          className="w-full group flex items-center justify-center px-4 py-2 rounded-xl bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-400 hover:to-yellow-500 text-black transition-all duration-300 ease-out shadow-lg hover:shadow-xl relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-50"
-          aria-label="Đăng xuất khỏi hệ thống"
+      <div className="p-4 border-t border-yellow-500 shrink-0 bg-yellow-500/5 backdrop-blur-sm">
+        <Logout
+          useConfirm
+          confirmMessage="Bạn có chắc chắn muốn đăng xuất?"
+          redirectTo="/signin"
         >
-          <div className="relative flex items-center">
-            <FaSignOutAlt className="w-3 h-3 mr-2 transition-transform duration-300 group-hover:translate-x-1" />
-            <span className="font-medium text-xs relative z-10">Đăng xuất</span>
-          </div>
-          <div className="absolute inset-0 bg-yellow-200/20 scale-0 group-hover:scale-100 transition-transform duration-300 origin-center rounded-xl"></div>
-        </button>
+          {({ onLogout, isLoggingOut }) => (
+            <button
+              onClick={onLogout}
+              onKeyDown={(e) => handleKeyDown(e, onLogout)}
+              disabled={isLoggingOut}
+              className={`w-full group flex items-center justify-center px-4 py-2 rounded-xl bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-400 hover:to-yellow-500 text-black transition-all duration-300 ease-out shadow-lg hover:shadow-xl relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-50 ${
+                isLoggingOut ? "opacity-70 cursor-not-allowed" : ""
+              }`}
+              aria-label="Đăng xuất khỏi hệ thống"
+            >
+              <div className="relative flex items-center">
+                <FaSignOutAlt className="w-3 h-3 mr-2 transition-transform duration-300 group-hover:translate-x-1" />
+                <span className="font-medium text-xs relative z-10">
+                  {isLoggingOut ? "Đang đăng xuất..." : "Đăng xuất"}
+                </span>
+              </div>
+              <div className="absolute inset-0 bg-yellow-200/20 scale-0 group-hover:scale-100 transition-transform duration-300 origin-center rounded-xl"></div>
+            </button>
+          )}
+        </Logout>
       </div>
     </div>
   );
