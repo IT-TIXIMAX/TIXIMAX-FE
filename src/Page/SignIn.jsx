@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { FaEye, FaEyeSlash, FaArrowLeft } from "react-icons/fa";
 import toast from "react-hot-toast";
 import { login, ROLES } from "../Services/Auth/authService";
 import { useAuth } from "../contexts/AuthContext";
@@ -97,8 +97,22 @@ const SignIn = () => {
             backgroundImage: `url(${BgHeader})`,
           }}
         >
-          {/* Remove the line below if you want 100% clear image */}
+          {/* overlay */}
           <div className="absolute inset-0 bg-blue-700/40"></div>
+
+          {/* BACK TO HOME */}
+          <button
+            type="button"
+            onClick={() => navigate("/")}
+            disabled={loading}
+            className="absolute top-4 left-4 z-20 flex items-center gap-2 text-white text-sm font-medium
+                       bg-white/60 hover:bg-white/30 px-3 py-1.5 rounded-lg
+                       backdrop-blur transition disabled:opacity-60 disabled:cursor-not-allowed"
+            title="Quay lại trang chủ"
+          >
+            <FaArrowLeft className="w-3.5 h-3.5 text-blue-600" />
+            <span className="text-blue-600 font-bold"> Trang Chủ</span>
+          </button>
 
           <div className="relative z-10">
             <div className="mb-3">
