@@ -210,11 +210,8 @@ const DashBoardWarehouseA = () => {
               </div>
               <div>
                 <h1 className="text-2xl sm:text-4xl font-bold text-yellow-300">
-                  Dashboard WarehouseA (Weight)
+                  Dashboard Warehouse
                 </h1>
-                <p className="text-gray-300 text-sm mt-2">
-                  Theo dõi tổng trọng lượng theo từng tháng
-                </p>
               </div>
             </div>
 

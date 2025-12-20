@@ -305,7 +305,7 @@ const Footer = () => {
                 TIXIMAX LOGISTICS
               </span>
               . All rights reserved. |{" "}
-              <span className="ml-1">Công ty TNHH TIXIMAX LOGISTICS</span>
+              <span className="ml-1">Công ty Cổ phần Tiximax</span>
             </div>
           </div>
         </div>
