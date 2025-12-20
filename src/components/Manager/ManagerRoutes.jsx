@@ -7,11 +7,10 @@ import {
   FiX,
   FiFileText,
   FiRefreshCw,
-  FiCheck,
 } from "react-icons/fi";
 import managerRoutesService from "../../Services/Manager/managerRoutesService";
 import ConfirmDialog from "../../common/ConfirmDialog";
-import { Truck } from "lucide-react";
+import { Truck, Check } from "lucide-react";
 
 const ManagerRoutes = () => {
   const [routes, setRoutes] = useState([]);
@@ -577,7 +576,7 @@ const ManagerRoutes = () => {
                   type="submit"
                   className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-xs font-medium transition-colors inline-flex items-center justify-center gap-1"
                 >
-                  <FiCheck className="w-4 h-4" />
+                  <Check className="w-4 h-4" />
                   {editingId ? "Cập nhật" : "Lưu"}
                 </button>
               </div>
