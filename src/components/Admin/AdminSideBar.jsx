@@ -46,7 +46,11 @@ const menuConfig = [
     title: "Tổng quan",
     icon: <FaChartPie />,
     items: [
-      { text: "Dashboard", icon: <FaChartLine />, path: "/admin/dashboard" },
+      {
+        text: "Thống kê tổng quan",
+        icon: <FaChartLine />,
+        path: "/admin/dashboard",
+      },
       {
         text: "Thống kê đơn hàng",
         icon: <FaListAlt />,
@@ -63,8 +67,8 @@ const menuConfig = [
         path: "/admin/warehouse-analytics",
       },
       {
-        text: "Doanh thu theo thời gian",
-        icon: <FaMoneyBillWave />,
+        text: "Thống kê khách hàng",
+        icon: <FaUserFriends />,
         path: "/admin/revenue-analytics",
       },
       {
@@ -365,7 +369,6 @@ const AdminSidebar = () => {
                 <p className="text-xs font-medium text-yellow-300 truncate">
                   Admin User
                 </p>
-                <p className="text-xs text-gray-400 truncate">Administrator</p>
               </div>
             </div>
           </div>

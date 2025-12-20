@@ -204,9 +204,6 @@ const DashboardOrder = () => {
               <h1 className="text-2xl sm:text-4xl font-bold text-yellow-300">
                 Dashboard Đơn Hàng
               </h1>
-              <p className="text-gray-300 text-sm mt-3">
-                Theo dõi tổng đơn hàng & tổng links theo từng tháng
-              </p>
             </div>
 
             {/* Year Picker + Reload */}

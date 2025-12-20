@@ -302,10 +302,10 @@ const Footer = () => {
             <div className="text-center text-sm max-w-3xl">
               © {new Date().getFullYear()}{" "}
               <span className="text-yellow-400 font-semibold">
-                TixiLogistics
+                TIXIMAX LOGISTICS
               </span>
               . All rights reserved. |{" "}
-              <span className="ml-1">Công ty TNHH Logistics Tixi</span>
+              <span className="ml-1">Công ty TNHH TIXIMAX LOGISTICS</span>
             </div>
           </div>
         </div>

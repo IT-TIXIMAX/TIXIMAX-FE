@@ -38,6 +38,9 @@ const dashboardService = {
   getYearlyWarehouse: (year) => {
     return api.get(`/dashboard/yearly-warehouse/${year}`);
   },
+  getYearlyCustomer: (year) => {
+    return api.get(`/dashboard/yearly-customer/${year}`);
+  },
 };
 
 export default dashboardService;

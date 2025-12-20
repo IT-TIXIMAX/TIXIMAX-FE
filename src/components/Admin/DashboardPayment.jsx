@@ -61,10 +61,9 @@ const DashboardPayment = () => {
 
   useEffect(() => {
     fetchYearly(year);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [year]);
 
-  // ✅ Map đủ 12 tháng + đọc đúng field, dùng ?? để không mất 0
+  //  Map đủ 12 tháng + đọc đúng field, dùng ?? để không mất 0
   const fullYearData = useMemo(() => {
     const byMonth = new Map(data.map((x) => [Number(x.month), x]));
 
@@ -219,9 +218,6 @@ const DashboardPayment = () => {
                 <h1 className="text-2xl sm:text-4xl font-bold text-yellow-300">
                   Dashboard Payment
                 </h1>
-                <p className="text-gray-300 text-sm mt-2">
-                  Theo dõi doanh thu & sản lượng theo từng tháng
-                </p>
               </div>
             </div>
 
@@ -290,14 +286,6 @@ const DashboardPayment = () => {
                   <p className="text-xl sm:text-2xl font-bold text-yellow-400 mt-2 truncate">
                     {metric.value}
                   </p>
-                  {idx === 3 && bestShipMonth ? (
-                    <p className="text-xs text-gray-400 mt-2">
-                      Top ship: {monthName(bestShipMonth.month)} •{" "}
-                      {new Intl.NumberFormat("vi-VN").format(
-                        bestShipMonth.totalShip
-                      )}
-                    </p>
-                  ) : null}
                 </div>
               </div>
             </div>

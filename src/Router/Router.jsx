@@ -138,6 +138,7 @@ import PendingReceive from "../components/WarehouseForeign/PendingReceive";
 import DashboardOrder from "../components/Admin/DashboardOrder";
 import DashboardWarehouseA from "../components/Admin/DashboardWarehouseA";
 import DashboardPayment from "../components/Admin/DashboardPayment";
+import DashboardCustomer from "../components/Admin/DashboardCustomer";
 const Router = createBrowserRouter([
   {
     path: "/",
@@ -205,7 +206,8 @@ const Router = createBrowserRouter([
       { path: "staff", element: <Permission /> },
       { path: "customers", element: <NotFound /> },
       { path: "settings", element: <CreateAccountStaff /> },
-      { path: "revenue-analytics", element: <RevenueDashboard /> }, // Chua tien khai
+      { path: "revenue-analytics", element: <DashboardCustomer /> }, // Chua tien khai
+      // { path: "revenue-analytics", element: <RevenueDashboard /> }, // Chua tien khai
       { path: "order-status-overview", element: <TrackingOrder /> },
       { path: "profit-loss", element: <ProfitLoss /> },
       { path: "employee-kpi", element: <EmployeeKPI /> },
