@@ -41,6 +41,29 @@ const dashboardService = {
   getYearlyCustomer: (year) => {
     return api.get(`/dashboard/yearly-customer/${year}`);
   },
+  getDebtsTotal: () => {
+    return api.get("/dashboard/admin/debts-total");
+  },
+  getFlightRevenue: (flightCode, inputCost, minWeight) => {
+    return api.get("/dashboard/admin/flight-revenue", {
+      params: {
+        flightCode,
+        inputCost,
+        minWeight,
+      },
+    });
+  },
+  getActualProfit: ({ startDate, endDate, exchangeRate, routeId }) => {
+    return api.get("/dashboard/admin/actual-profit", {
+      params: { startDate, endDate, exchangeRate, routeId },
+    });
+  },
+
+  getEstimatedProfit: ({ startDate, endDate, exchangeRate, routeId }) => {
+    return api.get("/dashboard/admin/estimated-profit", {
+      params: { startDate, endDate, exchangeRate, routeId },
+    });
+  },
 };
 
 export default dashboardService;

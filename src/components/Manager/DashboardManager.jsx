@@ -16,6 +16,86 @@ import {
   Loader2,
 } from "lucide-react";
 
+// IMPROVED: Custom Hook với better state management
+const useCountAnimation = (
+  targetValue,
+  shouldAnimate = true,
+  duration = 800
+) => {
+  const [displayValue, setDisplayValue] = useState(targetValue);
+  const prevTargetRef = useRef(targetValue);
+  const animationRef = useRef(null);
+  const startTimeRef = useRef(null);
+  const startValueRef = useRef(targetValue);
+
+  useEffect(() => {
+    const numTarget = Number(targetValue) || 0;
+    const numPrev = Number(prevTargetRef.current) || 0;
+
+    // Nếu giá trị không đổi hoặc không animate → set trực tiếp
+    if (numTarget === numPrev || !shouldAnimate) {
+      setDisplayValue(numTarget);
+      prevTargetRef.current = numTarget;
+      return;
+    }
+
+    // Bắt đầu animation
+    const startValue = numPrev;
+    const difference = numTarget - startValue;
+    startValueRef.current = startValue;
+    startTimeRef.current = performance.now();
+
+    const animate = (currentTime) => {
+      const elapsed = currentTime - startTimeRef.current;
+      const progress = Math.min(elapsed / duration, 1);
+
+      // Easing: easeOutQuart - smooth và natural
+      const easeProgress = 1 - Math.pow(1 - progress, 4);
+
+      const current = startValueRef.current + difference * easeProgress;
+      setDisplayValue(Math.round(current));
+
+      if (progress < 1) {
+        animationRef.current = requestAnimationFrame(animate);
+      } else {
+        setDisplayValue(numTarget);
+        prevTargetRef.current = numTarget;
+      }
+    };
+
+    animationRef.current = requestAnimationFrame(animate);
+
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, [targetValue, shouldAnimate, duration]);
+
+  return displayValue;
+};
+
+// ✨ Component hiển thị số với animation
+const AnimatedNumber = ({
+  value,
+  suffix = "",
+  shouldAnimate = true,
+  className = "",
+}) => {
+  const animatedValue = useCountAnimation(value || 0, shouldAnimate, 800);
+
+  const formatNumber = (val) => {
+    return Number(val).toLocaleString("vi-VN");
+  };
+
+  return (
+    <span className={className}>
+      {formatNumber(animatedValue)}
+      {suffix}
+    </span>
+  );
+};
+
 const FILTER_OPTIONS = [
   { value: "DAY", label: "Hôm nay" },
   { value: "MONTH", label: "Tháng này" },
@@ -31,6 +111,7 @@ const DEFAULT_STATS = {
   newCustomers: 0,
   totalLinks: 0,
   totalWeight: 0,
+  totalNetWeight: 0,
 };
 
 const DashboardManager = () => {
@@ -40,7 +121,7 @@ const DashboardManager = () => {
   const [stats, setStats] = useState(DEFAULT_STATS);
 
   // 4 API con
-  const [weights, setWeights] = useState({ totalNetWeight: 0 });
+  const [weights, setWeights] = useState({ totalNetWeight: 0, totalWeight: 0 });
   const [payments, setPayments] = useState({
     totalCollectedAmount: 0,
     totalShipAmount: 0,
@@ -57,9 +138,10 @@ const DashboardManager = () => {
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [hasLoadedDetailsOnce, setHasLoadedDetailsOnce] = useState(false);
   const [error, setError] = useState(null);
-
-  // ✅ WS silent refresh state
   const [refreshingDetails, setRefreshingDetails] = useState(false);
+
+  // ✨ NEW: Counter để force re-animation mỗi lần WS update
+  const [animationKey, setAnimationKey] = useState(0);
 
   // ✨ Connect WebSocket
   const { messages, isConnected } = useWebSocket("/topic/Tiximax");
@@ -90,7 +172,7 @@ const DashboardManager = () => {
     }
   };
 
-  // ✅ UPDATE: thêm silent để WS refresh không bật skeleton
+  // ✅ UPDATE: Simplified logic
   const fetchDetails = async (currentFilter, silent = false) => {
     try {
       if (!silent) {
@@ -108,7 +190,8 @@ const DashboardManager = () => {
           dashboardService.getCustomers({ filterType: currentFilter }),
         ]);
 
-      setWeights(weightsRes?.data || { totalNetWeight: 0 });
+      // ✨ Set data như bình thường
+      setWeights(weightsRes?.data || { totalNetWeight: 0, totalWeight: 0 });
       setPayments(
         paymentsRes?.data || {
           totalCollectedAmount: 0,
@@ -123,6 +206,14 @@ const DashboardManager = () => {
       );
       setCustomers(customersRes?.data || { newCustomers: 0 });
 
+      // ✨ Nếu là silent (WS update) → trigger animation bằng cách tăng key
+      if (silent) {
+        // Dùng setTimeout nhỏ để đảm bảo state đã update
+        setTimeout(() => {
+          setAnimationKey((prev) => prev + 1);
+        }, 50);
+      }
+
       setHasLoadedDetailsOnce(true);
     } catch (err) {
       console.error(err);
@@ -132,9 +223,8 @@ const DashboardManager = () => {
           "Đã xảy ra lỗi khi tải dữ liệu Chi tiết."
       );
 
-      // Nếu load thường thì reset về 0 như logic cũ
       if (!silent) {
-        setWeights({ totalNetWeight: 0 });
+        setWeights({ totalNetWeight: 0, totalWeight: 0 });
         setPayments({ totalCollectedAmount: 0, totalShipAmount: 0 });
         setOrders({ newOrderLinks: 0, newOrders: 0 });
         setCustomers({ newCustomers: 0 });
@@ -151,7 +241,7 @@ const DashboardManager = () => {
     fetchDetails(filterType, false);
   }, [filterType]);
 
-  // ✅ WebSocket: refresh Chi tiết theo từng nhóm (silent) + debounce chống spam
+  // ✅ WebSocket: refresh Chi tiết
   const wsTimerRef = useRef(null);
 
   const latestMessage = useMemo(() => {
@@ -163,7 +253,6 @@ const DashboardManager = () => {
     if (!latestMessage) return;
     if (!isConnected) return;
 
-    // Nếu backend có event cụ thể thì lọc ở đây
     const ev = String(latestMessage?.event ?? "").toUpperCase();
 
     const shouldRefresh =
@@ -174,14 +263,14 @@ const DashboardManager = () => {
       ev === "ORDER" ||
       ev === "WEIGHT" ||
       ev === "CUSTOMER" ||
-      ev === ""; // fallback: không có event vẫn refresh
+      ev === "";
 
     if (!shouldRefresh) return;
 
     if (wsTimerRef.current) clearTimeout(wsTimerRef.current);
 
     wsTimerRef.current = setTimeout(() => {
-      fetchDetails(filterType, true); // ✅ silent refresh (không skeleton)
+      fetchDetails(filterType, true);
     }, 400);
 
     return () => {
@@ -189,7 +278,7 @@ const DashboardManager = () => {
     };
   }, [latestMessage, isConnected, filterType]);
 
-  // Skeleton giống style PurchaserList
+  // Skeleton
   const SkeletonCard = () => (
     <div className="rounded-2xl border border-gray-200 bg-white shadow-sm p-5">
       <div className="animate-pulse">
@@ -217,13 +306,15 @@ const DashboardManager = () => {
     </div>
   );
 
+  // ✨ Determine nên animate hay không (chỉ khi có animationKey > 0)
+  const shouldAnimate = animationKey > 0;
+
   return (
     <div className="min-h-screen px-4 py-6">
       <div className="mx-auto">
         {/* Header */}
         <div className="mb-6 rounded-2xl border border-gray-200 bg-sky-300 px-6 py-4 shadow-sm">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            {/* Left */}
             <div>
               <div className="flex items-center gap-2 text-xs font-medium text-black mb-1">
                 <span>Dashboard</span>
@@ -243,7 +334,6 @@ const DashboardManager = () => {
               </div>
             </div>
 
-            {/* Right: Filter */}
             <div className="flex flex-col items-start gap-2 md:items-end">
               <span className="text-xs font-medium uppercase tracking-wide text-black-500">
                 Khoảng thời gian
@@ -402,10 +492,11 @@ const DashboardManager = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs font-medium uppercase tracking-wide text-gray-900">
-                        Tổng khối lượng
+                        Tổng khối lượng thực | Thu
                       </p>
-                      <p className="mt-2 text-3xl font-bold text-gray-900">
-                        {formatNumber(stats.totalWeight)} kg
+                      <p className="mt-2 text-2xl font-bold text-gray-900">
+                        {formatNumber(stats.totalWeight)} kg |{" "}
+                        {formatNumber(stats.totalNetWeight)} kg
                       </p>
                     </div>
                     <div className="rounded-xl bg-white/70 p-3">
@@ -418,7 +509,7 @@ const DashboardManager = () => {
           </div>
         </div>
 
-        {/* Chi tiết theo nhóm */}
+        {/* Chi tiết theo nhóm - ✨ VỚI ANIMATION */}
         <div>
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-bold text-gray-700 uppercase">
@@ -453,7 +544,6 @@ const DashboardManager = () => {
           </div>
 
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {/* ✅ Chỉ skeleton nếu CHƯA load lần nào + đang loading */}
             {!hasLoadedDetailsOnce && loadingDetails ? (
               <>
                 <SkeletonCard />
@@ -463,24 +553,43 @@ const DashboardManager = () => {
               </>
             ) : (
               <>
-                {/* Weights */}
+                {/* ✨ Weights - VỚI ANIMATION */}
                 <div className="rounded-2xl bg-gradient-to-br from-blue-100 to-blue-300 p-5 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-3">
-                    <div>
-                      <p className="text-xs font-medium uppercase tracking-wide text-gray-700">
-                        Khối lượng ròng
-                      </p>
-                      <p className="mt-2 text-4xl font-bold text-gray-900">
-                        {formatNumber(weights.totalNetWeight)} kg
-                      </p>
-                    </div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-gray-700">
+                      Cân nặng
+                    </p>
                     <div className="rounded-xl bg-white/70 p-3">
                       <Scale className="h-6 w-6 text-blue-600" />
                     </div>
                   </div>
+                  <div className="space-y-2 text-base text-gray-700">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium">Khối lượng thu</span>
+                      <span className="text-xl font-bold text-gray-900">
+                        <AnimatedNumber
+                          key={`weight-net-${animationKey}`}
+                          value={weights.totalNetWeight}
+                          suffix=" kg"
+                          shouldAnimate={shouldAnimate}
+                        />
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium">Khối lượng thực</span>
+                      <span className="text-xl font-bold text-gray-900">
+                        <AnimatedNumber
+                          key={`weight-total-${animationKey}`}
+                          value={weights.totalWeight}
+                          suffix=" kg"
+                          shouldAnimate={shouldAnimate}
+                        />
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Payments */}
+                {/* ✨ Payments - VỚI ANIMATION */}
                 <div className="rounded-2xl bg-gradient-to-br from-purple-100 to-purple-300 p-5 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-3">
                     <p className="text-xs font-medium uppercase tracking-wide text-gray-700">
@@ -494,19 +603,29 @@ const DashboardManager = () => {
                     <div className="flex items-center justify-between">
                       <span className="font-medium">Tổng tiền thu</span>
                       <span className="text-xl font-bold text-gray-900">
-                        {formatNumber(payments.totalCollectedAmount)} đ
+                        <AnimatedNumber
+                          key={`payment-collected-${animationKey}`}
+                          value={payments.totalCollectedAmount}
+                          suffix=" đ"
+                          shouldAnimate={shouldAnimate}
+                        />
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="font-medium">Tổng phí ship</span>
                       <span className="text-xl font-bold text-gray-900">
-                        {formatNumber(payments.totalShipAmount)} đ
+                        <AnimatedNumber
+                          key={`payment-ship-${animationKey}`}
+                          value={payments.totalShipAmount}
+                          suffix=" đ"
+                          shouldAnimate={shouldAnimate}
+                        />
                       </span>
                     </div>
                   </div>
                 </div>
 
-                {/* Orders */}
+                {/* ✨ Orders - VỚI ANIMATION */}
                 <div className="rounded-2xl bg-gradient-to-br from-green-100 to-green-300 p-5 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-3">
                     <p className="text-xs font-medium uppercase tracking-wide text-gray-700">
@@ -520,19 +639,27 @@ const DashboardManager = () => {
                     <div className="flex items-center justify-between">
                       <span className="font-medium">Link đơn mới</span>
                       <span className="text-xl font-bold text-gray-900">
-                        {formatNumber(orders.newOrderLinks)}
+                        <AnimatedNumber
+                          key={`order-links-${animationKey}`}
+                          value={orders.newOrderLinks}
+                          shouldAnimate={shouldAnimate}
+                        />
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="font-medium">Đơn mới</span>
                       <span className="text-xl font-bold text-gray-900">
-                        {formatNumber(orders.newOrders)}
+                        <AnimatedNumber
+                          key={`order-new-${animationKey}`}
+                          value={orders.newOrders}
+                          shouldAnimate={shouldAnimate}
+                        />
                       </span>
                     </div>
                   </div>
                 </div>
 
-                {/* Customers */}
+                {/* ✨ Customers - VỚI ANIMATION */}
                 <div className="rounded-2xl bg-gradient-to-br from-yellow-100 to-yellow-300 p-5 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-3">
                     <p className="text-xs font-medium uppercase tracking-wide text-gray-700">
@@ -543,7 +670,11 @@ const DashboardManager = () => {
                     </div>
                   </div>
                   <p className="text-4xl font-bold text-gray-900">
-                    {formatNumber(customers.newCustomers)}
+                    <AnimatedNumber
+                      key={`customer-new-${animationKey}`}
+                      value={customers.newCustomers}
+                      shouldAnimate={shouldAnimate}
+                    />
                   </p>
                   <p className="mt-1 text-sm text-gray-500">
                     Số khách hàng mới trong khoảng thời gian chọn

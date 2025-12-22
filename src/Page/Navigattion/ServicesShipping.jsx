@@ -332,7 +332,18 @@ const ServicesShipping = () => {
                       Kg (kilogram)
                     </td>
                     <td className="px-3 py-2 border-t border-amber-200">
-                      Từ 180.000 VNĐ
+                      Từ 290.000 VNĐ
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="px-3 py-2 border-t border-amber-200">
+                      Việt Nam - Indonesia
+                    </td>
+                    <td className="px-3 py-2 border-t border-amber-200">
+                      Kg (kilogram)
+                    </td>
+                    <td className="px-3 py-2 border-t border-amber-200">
+                      Từ 145.000 VNĐ
                     </td>
                   </tr>
                   <tr className="bg-amber-50">
@@ -343,7 +354,7 @@ const ServicesShipping = () => {
                       Kg (kilogram)
                     </td>
                     <td className="px-3 py-2 border-t border-amber-200">
-                      Từ 145.000 VNĐ
+                      Từ 110.000 VNĐ (Miền Bắc) – Từ 120.000 VNĐ (Miền Nam)
                     </td>
                   </tr>
                   <tr>
@@ -365,7 +376,7 @@ const ServicesShipping = () => {
                       Kg (kilogram)
                     </td>
                     <td className="px-3 py-2 border-t border-amber-200">
-                      Từ 230.000 VNĐ (Miền Bắc) – Từ 240.000 VNĐ (Miền Nam)
+                      Từ 235.000 VNĐ (Miền Bắc) – Từ 245.000 VNĐ (Miền Nam)
                     </td>
                   </tr>
                 </tbody>

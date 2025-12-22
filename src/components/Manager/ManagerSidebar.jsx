@@ -18,6 +18,7 @@ import {
   Gift,
   UserRoundPlus,
   BookKey,
+  LayoutDashboard,
 } from "lucide-react";
 import Logout from "../../Page/Logout";
 
@@ -32,8 +33,13 @@ const ManagerSidebar = () => {
       items: [
         {
           text: t("Thống kê"),
-          icon: <BarChart2 />,
+          icon: <LayoutDashboard />,
           path: "/manager/dashboard",
+        },
+        {
+          text: t("Thống kê chi phí"),
+          icon: <BarChart2 />,
+          path: "/manager/dashboardprofit",
         },
         {
           text: t("Danh sách đơn hàng"),

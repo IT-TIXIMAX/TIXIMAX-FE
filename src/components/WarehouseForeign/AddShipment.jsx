@@ -1,8 +1,8 @@
-// src/Components/Packing/RemoveShipment.jsx
+// src/Components/Packing/AddShipment.jsx
 import React, { useState, useRef, useEffect } from "react";
 import toast from "react-hot-toast";
 import {
-  Trash2,
+  Plus,
   Loader2,
   X,
   Scan,
@@ -12,11 +12,11 @@ import {
 } from "lucide-react";
 import packingsService from "../../Services/Warehouse/packingsService";
 
-const RemoveShipment = ({
+const AddShipment = ({
   packingCode,
-  packingList = [],
   onSuccess,
   className = "",
+  disabled: disabledProp = false,
 }) => {
   const [loading, setLoading] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
@@ -73,23 +73,15 @@ const RemoveShipment = ({
       e.preventDefault();
       const code = inputValue.trim();
 
-      // Validate: Check if code exists in packing list
-      if (!packingList.includes(code)) {
-        setErrorMessage(`Code "${code}" not found in this packing!`);
-        return;
-      }
-
-      // Check if already scanned
       if (scannedCodes.includes(code)) {
         setErrorMessage(`Code "${code}" already scanned!`);
         return;
       }
 
-      // Add to scanned list - SUCCESS
       setScannedCodes((prev) => [...prev, code]);
       setErrorMessage("");
       setInputValue("");
-      toast.success(`Added: ${code}`, { duration: 1500 });
+      toast.success(`Added: ${code}`, { duration: 1500, icon: "✅" });
 
       setTimeout(() => {
         inputRef.current?.focus();
@@ -110,14 +102,9 @@ const RemoveShipment = ({
     const newCode = editValue.trim();
 
     if (!newCode) {
+      // Nếu empty thì cancel
       setEditingIndex(null);
       setEditValue("");
-      return;
-    }
-
-    // Check if exists in packingList
-    if (!packingList.includes(newCode)) {
-      toast.error(`Code "${newCode}" not found in this packing!`);
       return;
     }
 
@@ -127,11 +114,11 @@ const RemoveShipment = ({
     );
 
     if (isDuplicate) {
-      toast.error(`Code "${newCode}" already scanned!`);
+      toast.error(`Code "${newCode}" already exists!`);
       return;
     }
 
-    // Nếu không thay đổi gì
+    // Nếu không thay đổi gì thì chỉ cancel
     if (newCode === scannedCodes[editingIndex]) {
       setEditingIndex(null);
       setEditValue("");
@@ -147,6 +134,7 @@ const RemoveShipment = ({
     // Remove from invalid list if fixed
     setInvalidCodes((prev) => prev.filter((c) => c !== oldCode));
 
+    // Clear API error if all invalid codes are fixed
     if (invalidCodes.length === 1 && invalidCodes.includes(oldCode)) {
       setApiError("");
     }
@@ -174,7 +162,7 @@ const RemoveShipment = ({
 
   // Remove single scanned code
   const removeScannedCode = (code, index, e) => {
-    e.stopPropagation();
+    e.stopPropagation(); // Prevent triggering edit
 
     setScannedCodes((prev) => prev.filter((_, idx) => idx !== index));
     setInvalidCodes((prev) => prev.filter((c) => c !== code));
@@ -206,10 +194,10 @@ const RemoveShipment = ({
     setEditValue("");
   };
 
-  // Handle remove
-  const handleRemove = async () => {
+  // Handle add
+  const handleAdd = async () => {
     if (scannedCodes.length === 0) {
-      setApiError("Please scan at least 1 shipment to remove.");
+      setApiError("Please scan at least 1 shipment to add.");
       return;
     }
 
@@ -218,9 +206,9 @@ const RemoveShipment = ({
     setInvalidCodes([]);
 
     try {
-      await packingsService.removeShipments(packingCode, scannedCodes);
+      await packingsService.addShipments(packingCode, scannedCodes);
 
-      toast.success("Shipment(s) removed successfully!", { duration: 2000 });
+      toast.success("Shipment(s) added successfully!", { duration: 2000 });
       closeScanner();
       onSuccess && onSuccess();
     } catch (err) {
@@ -244,7 +232,7 @@ const RemoveShipment = ({
 
       setApiError(errorMsg);
 
-      const modalContent = document.querySelector(".modal-content-remove");
+      const modalContent = document.querySelector(".modal-content-add");
       if (modalContent) {
         modalContent.scrollTop = 0;
       }
@@ -253,6 +241,7 @@ const RemoveShipment = ({
     }
   };
 
+  const disabled = disabledProp || loading || !packingCode;
   const isInvalidCode = (code) => invalidCodes.includes(code);
 
   // Scanner Modal
@@ -269,16 +258,18 @@ const RemoveShipment = ({
         <div className="flex min-h-screen items-center justify-center p-4">
           <div className="relative w-full max-w-lg rounded-xl bg-white shadow-xl">
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-gray-200 bg-red-600 px-6 py-4">
+            <div className="flex items-center justify-between border-b border-gray-200 bg-blue-600 px-6 py-4">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/20">
-                  <Trash2 className="h-5 w-5 text-white" />
+                  <Plus className="h-5 w-5 text-white" />
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-white">
-                    Remove Shipments
+                    Add Shipments
                   </h3>
-                  <p className="text-sm text-red-100">Packing: {packingCode}</p>
+                  <p className="text-sm text-blue-100">
+                    Packing: {packingCode}
+                  </p>
                 </div>
               </div>
               <button
@@ -292,7 +283,7 @@ const RemoveShipment = ({
             </div>
 
             {/* Content */}
-            <div className="modal-content-remove max-h-[70vh] overflow-y-auto p-6">
+            <div className="modal-content-add max-h-[70vh] overflow-y-auto p-6">
               {/* API Error Message */}
               {apiError && (
                 <div className="mb-4 rounded-lg border-2 border-red-300 bg-red-50 p-4">
@@ -300,15 +291,9 @@ const RemoveShipment = ({
                     <AlertTriangle className="h-6 w-6 flex-shrink-0 text-red-600" />
                     <div className="flex-1">
                       <h4 className="font-bold text-red-900">
-                        Failed to Remove Shipments
+                        Failed to Add Shipments
                       </h4>
                       <p className="mt-1 text-sm text-red-800">{apiError}</p>
-                      {invalidCodes.length > 0 && (
-                        <p className="mt-2 text-xs font-semibold text-red-700">
-                          ⚠️ Invalid codes are highlighted in red. Click on them
-                          to edit.
-                        </p>
-                      )}
                       <button
                         onClick={() => {
                           setApiError("");
@@ -401,7 +386,7 @@ const RemoveShipment = ({
                     <button
                       onClick={clearAllScanned}
                       disabled={loading}
-                      className="text-xs font-semibold text-red-600 hover:text-red-700 disabled:opacity-50"
+                      className="text-xs font-semibold text-blue-600 hover:text-blue-700 disabled:opacity-50"
                     >
                       Clear All
                     </button>
@@ -418,7 +403,7 @@ const RemoveShipment = ({
                           className={`flex items-center justify-between rounded-lg border-2 px-3 py-2.5 transition ${
                             isInvalid
                               ? "border-red-300 bg-red-50"
-                              : "border-gray-200 bg-white hover:border-red-300"
+                              : "border-gray-200 bg-white hover:border-blue-300"
                           }`}
                         >
                           <div className="flex flex-1 items-center gap-3">
@@ -426,14 +411,14 @@ const RemoveShipment = ({
                               className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded text-xs font-bold ${
                                 isInvalid
                                   ? "bg-red-200 text-red-800"
-                                  : "bg-red-100 text-red-700"
+                                  : "bg-blue-100 text-blue-700"
                               }`}
                             >
                               {index + 1}
                             </span>
 
                             {isEditing ? (
-                              // Edit Mode
+                              // Edit Mode - Input
                               <input
                                 ref={editInputRef}
                                 type="text"
@@ -444,13 +429,13 @@ const RemoveShipment = ({
                                 className="flex-1 rounded border-2 border-blue-400 bg-white px-2 py-1 font-mono text-sm font-bold focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-200"
                               />
                             ) : (
-                              // View Mode - Click to edit
+                              // View Mode - Clickable Text
                               <span
                                 onClick={() => startEdit(index, code)}
                                 className={`flex-1 cursor-text font-mono text-sm font-bold ${
                                   isInvalid
                                     ? "text-red-900"
-                                    : "text-gray-900 hover:text-red-700"
+                                    : "text-gray-900 hover:text-blue-700"
                                 }`}
                               >
                                 {code}
@@ -464,14 +449,14 @@ const RemoveShipment = ({
                             )}
                           </div>
 
-                          {/* Delete Button */}
+                          {/* Delete Button - Always visible */}
                           <button
                             onClick={(e) => removeScannedCode(code, index, e)}
                             disabled={loading}
                             className={`ml-2 rounded p-1 disabled:opacity-50 ${
                               isInvalid
                                 ? "text-red-600 hover:bg-red-100"
-                                : "text-gray-400 hover:bg-red-50 hover:text-red-600"
+                                : "text-gray-400 hover:bg-blue-50 hover:text-blue-600"
                             }`}
                             title="Remove this code"
                           >
@@ -506,12 +491,12 @@ const RemoveShipment = ({
                   Cancel
                 </button>
                 <button
-                  onClick={handleRemove}
+                  onClick={handleAdd}
                   disabled={loading || scannedCodes.length === 0}
                   className={`flex-1 rounded-lg px-4 py-2.5 font-semibold text-white transition ${
                     loading || scannedCodes.length === 0
                       ? "cursor-not-allowed bg-gray-400"
-                      : "bg-red-600 hover:bg-red-700"
+                      : "bg-blue-600 hover:bg-blue-700"
                   }`}
                 >
                   {loading ? (
@@ -521,7 +506,7 @@ const RemoveShipment = ({
                     </>
                   ) : (
                     <>
-                      Remove{" "}
+                      Add{" "}
                       {scannedCodes.length > 0 && `(${scannedCodes.length})`}
                     </>
                   )}
@@ -544,16 +529,16 @@ const RemoveShipment = ({
           }
           setShowScanner(true);
         }}
-        disabled={loading}
+        disabled={disabled}
         className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition ${
-          loading
+          disabled
             ? "cursor-not-allowed bg-gray-200 text-gray-400"
-            : "bg-red-600 text-white hover:bg-red-700"
+            : "bg-blue-600 text-white hover:bg-blue-700"
         } ${className}`}
-        title="Remove shipments"
+        title="Add shipments"
       >
-        <Trash2 className="h-4 w-4" />
-        Remove Shipment
+        <Plus className="h-4 w-4" />
+        Add Shipment
       </button>
 
       <ScannerModal />
@@ -561,4 +546,4 @@ const RemoveShipment = ({
   );
 };
 
-export default RemoveShipment;
+export default AddShipment;

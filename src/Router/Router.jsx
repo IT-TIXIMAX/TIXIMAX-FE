@@ -15,7 +15,7 @@ import AdminPage from "../components/Admin/AdminPage";
 import AdminDashboard from "../components/Admin/AdminDashboard";
 import ShipmentTracking from "../components/Admin/ShipmentTracking";
 import InventoryList from "../components/Admin/InventoryList";
-import RevenueDashboard from "../components/Admin/RevenueDashboard";
+// import RevenueDashboard from "../components/Admin/RevenueDashboard";
 import TrackingOrder from "../components/Admin/TrackingOrder";
 import EmployeeKPI from "../components/Admin/EmployeeKPI";
 import ProfitLoss from "../components/Admin/ProfitLoss";
@@ -101,9 +101,9 @@ import ManagerBankAccountList from "../components/Manager/ManagerBankAccountList
 import DividePaymentOrder from "../components/PaymentOrder/DividePaymentOrder";
 import UpdateShipmentCodeList from "../components/StaffPurchaser/UpdateShipmentCodeList";
 // import RemoveShipment from "../components/WarehouseForeign/RemoveShipment";
-import RemoveShipmentList from "../components/WarehouseForeign/RemoveShipmentList";
+import PackingProblem from "../components/WarehouseForeign/PackingProblem";
 import DenyRoles from "./DenyRoles";
-import PerformanceStaff from "../components/StaffSale/PerformanceStaff";
+// import PerformanceStaff from "../components/StaffSale/PerformanceStaff";
 import DashboardSale from "../components/StaffSale/DashboardSale";
 import PerformnanceMy from "../components/StaffSale/PerformanceMy";
 import AboutUs from "../Page/Navigattion/AboutUs";
@@ -139,6 +139,7 @@ import DashboardOrder from "../components/Admin/DashboardOrder";
 import DashboardWarehouseA from "../components/Admin/DashboardWarehouseA";
 import DashboardPayment from "../components/Admin/DashboardPayment";
 import DashboardCustomer from "../components/Admin/DashboardCustomer";
+import DashboardManagerProfit from "../components/Manager/DashboardManagerProfit";
 const Router = createBrowserRouter([
   {
     path: "/",
@@ -250,6 +251,7 @@ const Router = createBrowserRouter([
       { path: "profile", element: <ProfilePage /> },
       { path: "team", element: <StaffList /> },
       { path: "customers", element: <CustomerList /> },
+      { path: "dashboardprofit", element: <DashboardManagerProfit /> },
       { path: "permission", element: <Permission /> },
       { path: "stafflead", element: <StaffListPermission /> },
       { path: "createstaff", element: <CreateAccountStaff /> },
@@ -397,7 +399,7 @@ const Router = createBrowserRouter([
       { path: "outbound/orders", element: <NotFound /> },
       { path: "outbound/packinginwarehouse", element: <NotFound /> },
       { path: "stock/serial", element: <NotFound /> },
-      { path: "stock/location", element: <RemoveShipmentList /> },
+      { path: "stock/location", element: <PackingProblem /> },
       { path: "audit/check", element: <ImportProduct /> },
       { path: "audit/reconcile", element: <NotFound /> },
       { path: "reports/dashboard", element: <CreatePackingJapan /> },

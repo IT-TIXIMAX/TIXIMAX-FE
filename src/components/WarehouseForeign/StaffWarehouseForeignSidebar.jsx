@@ -82,7 +82,7 @@ const StaffWarehouseForeignSidebar = () => {
           path: "/staff-warehouse-foreign/outbound/packingawaiting",
         },
         {
-          text: "Problem Orders",
+          text: "Problem Packages",
           icon: <FolderOutput className="w-6 h-6" />,
           path: "/staff-warehouse-foreign/stock/location",
         },

@@ -307,7 +307,7 @@ const PackingAwaitList = () => {
           "Height (cm)",
           "Length (cm)",
           "Width (cm)",
-          "Volume (m³)",
+          "Dim (m³)",
           "Weight (kg)",
           "Customer Code",
           "Customer Name",
