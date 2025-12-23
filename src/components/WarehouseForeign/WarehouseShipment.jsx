@@ -283,7 +283,7 @@ const WarehouseShipment = () => {
                       Customer Code
                     </p>
                     <p className="font-semibold text-gray-900">
-                      {orderInfo.orders?.customer?.customerCode}
+                      {orderInfo.customerCode}
                     </p>
                   </div>
 

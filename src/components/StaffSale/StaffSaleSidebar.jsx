@@ -82,6 +82,11 @@ const StaffSaleSidebar = () => {
               icon: Luggage,
               label: "Ký gửi",
             },
+            {
+              to: "/staff-sale/exchange-order",
+              icon: CreditCard,
+              label: "Ký gửi",
+            },
           ],
           isOpen: isStaffDropdownOpen,
           onToggle: () => setIsStaffDropdownOpen(!isStaffDropdownOpen),

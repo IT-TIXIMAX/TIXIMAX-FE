@@ -12,6 +12,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Tags,
+  CreditCard,
 } from "lucide-react";
 import Logout from "../../Page/Logout";
 import profileService from "../../Services/SharedService/profileService";
@@ -47,6 +48,11 @@ const StaffPurchaserSidebar = () => {
           label: "Dashboard",
         },
         {
+          to: "/staff-purchaser/exchange-money",
+          icon: CreditCard,
+          label: "Exchange Money",
+        },
+        {
           to: "/staff-purchaser/orders",
           icon: Package,
           label: "Purchase Orders",
@@ -61,7 +67,7 @@ const StaffPurchaserSidebar = () => {
           icon: Truck,
           label: "Add Tracking Number",
         },
-         {
+        {
           to: "/staff-purchaser/auction-inventory",
           icon: Tags,
           label: "Add Auction Tracking",

@@ -105,6 +105,23 @@ const createPurchaseService = {
       throw error;
     }
   },
+  createMoneyExchangePurchase: async (orderCode, data) => {
+    if (!orderCode) throw new Error("Order code is required");
+    if (!data) throw new Error("Request body is required");
+
+    const payload = {
+      image: data.image || "",
+      note: data.note || "",
+    };
+
+    const response = await api.post(
+      `/purchases/money-exchange/add?orderCode=${encodeURIComponent(
+        orderCode
+      )}`,
+      payload
+    );
+    return response.data;
+  },
 };
 
 export default createPurchaseService;

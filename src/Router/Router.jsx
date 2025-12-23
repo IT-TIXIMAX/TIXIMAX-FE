@@ -140,6 +140,8 @@ import DashboardWarehouseA from "../components/Admin/DashboardWarehouseA";
 import DashboardPayment from "../components/Admin/DashboardPayment";
 import DashboardCustomer from "../components/Admin/DashboardCustomer";
 import DashboardManagerProfit from "../components/Manager/DashboardManagerProfit";
+import ExchangeOrderForm from "../components/Order/ExchangeOrderForm";
+import ExchanegMoneyList from "../components/StaffPurchaser/ExchangeMoneyList";
 const Router = createBrowserRouter([
   {
     path: "/",
@@ -286,6 +288,7 @@ const Router = createBrowserRouter([
       { path: "createorder", element: <CreateOrderForm /> },
       { path: "deposit", element: <CreateDepositForm /> },
       { path: "auction", element: <CreateAuctionForm /> },
+      { path: "exchange-order", element: <ExchangeOrderForm /> },
       { path: "createaccountuser", element: <CreateAccountUser /> },
       { path: "prospects", element: <NotFound /> },
       { path: "dashboard", element: <DashboardLeadSale /> },
@@ -331,6 +334,7 @@ const Router = createBrowserRouter([
       { path: "quotations", element: <PaymentOrderList /> },
       { path: "deposit", element: <CreateDepositForm /> },
       { path: "auction", element: <CreateAuctionForm /> },
+      { path: "exchange-order", element: <ExchangeOrderForm /> },
       // { path: "comfirm-payment", element: <PaymentOrderList /> },
       { path: "order-payment", element: <ListOrderManager /> },
       // { path: "ship-payment", element: <PaymentShipList /> },
@@ -370,6 +374,7 @@ const Router = createBrowserRouter([
       },
       { path: "profile", element: <StaffProfile /> },
       { path: "dashboard", element: <DashboardPurchase /> },
+      { path: "exchange-money", element: <ExchanegMoneyList /> },
       { path: "orders", element: <OrderLinkList /> },
       { path: "auction", element: <OrderAuctionList /> },
       { path: "inventory", element: <UpdateShipmentCodeList /> },

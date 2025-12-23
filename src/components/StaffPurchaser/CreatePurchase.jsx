@@ -27,6 +27,7 @@ const CreatePurchase = ({
         image: "",
         note: "",
         shipmentCode: "",
+        exchangeRate: "",
       });
     }
   }, [isOpen]);
@@ -88,7 +89,13 @@ const CreatePurchase = ({
       setPurchaseData((prev) => ({ ...prev, purchaseTotal: cleanValue }));
     }
   };
-
+  const handleExtraRateChange = (e) => {
+    const value = e.target.value;
+    const cleanValue = getRawValue(value);
+    if (isValidDecimal(cleanValue)) {
+      setPurchaseData((prev) => ({ ...prev, exchangeRate: cleanValue }));
+    }
+  };
   const handlePurchaseTotalBlur = () => {
     const currentValue = getRawValue(purchaseData.purchaseTotal);
     if (currentValue) {
@@ -166,6 +173,7 @@ const CreatePurchase = ({
         image: purchaseData.image,
         note: purchaseData.note || "",
         shipmentCode: purchaseData.shipmentCode || "",
+        exchangeRate: purchaseData.exchangeRate || "",
         trackingCode: selectedTrackingCodes,
       };
 
@@ -206,6 +214,7 @@ const CreatePurchase = ({
       image: "",
       note: "",
       shipmentCode: "",
+      exchangeRate: "",
     });
     onClose();
   };
@@ -370,6 +379,17 @@ const CreatePurchase = ({
                   }
                   className="w-full border-2 border-gray-500 rounded-md px-3 py-2 focus:border-black focus:ring-0 outline-none"
                   placeholder="Shipment code"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  ExtraRate (Optional)
+                </label>
+                <input
+                  type="text"
+                  onChange={handleExtraRateChange}
+                  className="w-full border-2 border-gray-500 rounded-md px-3 py-2 focus:border-black focus:ring-0 outline-none"
+                  placeholder="Extra rate"
                 />
               </div>
             </div>
