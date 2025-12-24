@@ -1,4 +1,12 @@
 import React, { useState } from "react";
+import {
+  ShoppingCart,
+  Truck,
+  Zap,
+  Package,
+  FileCheck,
+  Target,
+} from "lucide-react";
 
 const services = [
   {
@@ -10,12 +18,12 @@ const services = [
     description:
       "Cung cấp dịch vụ vận chuyển - đấu giá - mua hộ 2 chiều Indonesia - Việt Nam.",
     specialties: [
-      { name: "Mua hộ", icon: "🛒" },
-      { name: "Vận chuyển", icon: "🚚" },
-      { name: "Đấu giá", icon: "⚡" },
-      { name: "Ký gửi kho", icon: "📦" },
-      { name: "Thông quan hộ", icon: "✓" },
-      { name: "Fulfillment", icon: "🎯" },
+      { name: "Mua hộ", icon: ShoppingCart },
+      // { name: "Vận chuyển", icon: Truck },
+      { name: "Đấu giá", icon: Zap },
+      { name: "Ký gửi kho", icon: Package },
+      // { name: "Thông quan hộ", icon: FileCheck },
+      { name: "Fulfillment", icon: Target },
     ],
     estimatedTime: "5-7 ngày",
   },
@@ -27,12 +35,12 @@ const services = [
     description:
       "Cung cấp dịch vụ vận chuyển - đấu giá - mua hộ 2 chiều từ Nhật Bản về Việt Nam.",
     specialties: [
-      { name: "Mua hộ", icon: "🛒" },
-      { name: "Vận chuyển", icon: "🚚" },
-      { name: "Đấu giá", icon: "⚡" },
-      { name: "Ký gửi kho", icon: "📦" },
-      { name: "Thông quan hộ", icon: "✓" },
-      { name: "Fulfillment", icon: "🎯" },
+      { name: "Mua hộ", icon: ShoppingCart },
+      { name: "Vận chuyển", icon: Truck },
+      { name: "Đấu giá", icon: Zap },
+      { name: "Fulfillment", icon: Package },
+      // { name: "Thông quan hộ", icon: FileCheck },
+      // { name: "Fulfillment", icon: Target },
     ],
     estimatedTime: "7-10 ngày",
   },
@@ -45,12 +53,12 @@ const services = [
     description:
       "Chuyên vận chuyển - đấu giá - mua hộ từ Hàn Quốc về Việt Nam.",
     specialties: [
-      { name: "Mua hộ", icon: "🛒" },
-      { name: "Vận chuyển", icon: "🚚" },
-      { name: "Đấu giá", icon: "⚡" },
-      { name: "Ký gửi kho", icon: "📦" },
-      { name: "Thông quan hộ", icon: "✓" },
-      { name: "Fulfillment", icon: "🎯" },
+      { name: "Mua hộ", icon: ShoppingCart },
+      { name: "Vận chuyển", icon: Truck },
+      { name: "Fulfillment", icon: Zap },
+      { name: "Ký gửi kho", icon: Package },
+      // { name: "Thông quan hộ", icon: FileCheck },
+      // { name: "Fulfillment", icon: Target },
     ],
     estimatedTime: "6-9 ngày",
   },
@@ -62,12 +70,12 @@ const services = [
     market: "USA",
     description: "Chuyên vận chuyển - đấu giá - mua hộ từ Mỹ về Việt Nam.",
     specialties: [
-      { name: "Mua hộ", icon: "🛒" },
-      { name: "Vận chuyển", icon: "🚚" },
-      { name: "Đấu giá", icon: "⚡" },
-      { name: "Ký gửi kho", icon: "📦" },
-      { name: "Thông quan hộ", icon: "✓" },
-      { name: "Fulfillment", icon: "🎯" },
+      { name: "Mua hộ", icon: ShoppingCart },
+      { name: "Vận chuyển", icon: Truck },
+      { name: "Đấu giá", icon: Zap },
+      { name: "Fulfillment", icon: Package },
+      // { name: "Thông quan hộ", icon: FileCheck },
+      // { name: "Fulfillment", icon: Target },
     ],
     estimatedTime: "10-14 ngày",
   },
@@ -131,16 +139,16 @@ const ServicesPage = () => {
 
                   {/* Market Badge */}
                   <div className="text-center">
-                    <span className="inline-block bg-gradient-to-r from-gray-900 to-gray-800 text-white px-6 py-2 rounded-full text-sm font-bold uppercase tracking-wider shadow-md">
+                    <span className="inline-block bg-gradient-to-r from-yellow-500 to-yellow-400 text-white px-6 py-2 rounded-full text-sm font-bold uppercase tracking-wider shadow-md">
                       {service.market}
                     </span>
                   </div>
                 </div>
 
                 {/* Title */}
-                <h3 className="text-2xl font-bold text-gray-900 mb-4 text-center group-hover:text-yellow-600 transition-colors">
+                {/* <h3 className="text-2xl font-bold text-gray-900 mb-4 text-center group-hover:text-yellow-600 transition-colors">
                   {service.market}
-                </h3>
+                </h3> */}
 
                 {/* Description */}
                 <p className="text-gray-600 leading-relaxed text-sm mb-6 text-center">
@@ -151,9 +159,9 @@ const ServicesPage = () => {
                 <div className="mb-6">
                   <div className="flex items-center justify-center gap-2 mb-5">
                     <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
-                    <div className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-yellow-400/10 to-yellow-500/10 rounded-full border border-yellow-400/30">
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-yellow-400/20 to-yellow-500/20 rounded-full border border-yellow-400/50">
                       <svg
-                        className="w-3.5 h-3.5 text-yellow-500"
+                        className="w-3.5 h-3.5 text-yellow-600"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -172,33 +180,36 @@ const ServicesPage = () => {
                     <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
                   </div>
 
-                  {/* Specialty Grid - với icons */}
+                  {/* Specialty Grid - với Lucide icons */}
                   <div className="grid grid-cols-2 gap-3">
-                    {service.specialties.map((specialty, index) => (
-                      <div
-                        key={index}
-                        className="group/item relative overflow-hidden bg-gradient-to-br from-white to-gray-50 rounded-xl p-3 border border-gray-200 hover:border-yellow-400 transition-all duration-300 hover:shadow-lg"
-                      >
-                        {/* Glow effect on hover */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/0 to-yellow-500/0 group-hover/item:from-yellow-400/10 group-hover/item:to-yellow-500/5 transition-all duration-300"></div>
+                    {service.specialties.map((specialty, index) => {
+                      const IconComponent = specialty.icon;
+                      return (
+                        <div
+                          key={index}
+                          className="group/item relative overflow-hidden bg-gradient-to-br from-white to-gray-50 rounded-xl p-3 border border-gray-200 hover:border-yellow-400 transition-all duration-300 hover:shadow-lg"
+                        >
+                          {/* Glow effect on hover */}
+                          <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/0 to-yellow-500/0 group-hover/item:from-yellow-400/10 group-hover/item:to-yellow-500/5 transition-all duration-300"></div>
 
-                        {/* Content */}
-                        <div className="relative flex items-center gap-2.5">
-                          {/* Icon with background */}
-                          <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-lg flex items-center justify-center text-sm shadow-sm group-hover/item:scale-110 transition-transform duration-300">
-                            {specialty.icon}
+                          {/* Content */}
+                          <div className="relative flex items-center gap-2.5">
+                            {/* Icon with stronger background */}
+                            <div className="flex-shrink-0 w-9 h-9 bg-gradient-to-br from-yellow-400 via-yellow-500 to-amber-500 rounded-lg flex items-center justify-center shadow-md group-hover/item:scale-110 group-hover/item:shadow-lg transition-all duration-300">
+                              <IconComponent className="w-4.5 h-4.5 text-white stroke-[2.5]" />
+                            </div>
+
+                            {/* Text */}
+                            <span className="text-xs font-semibold text-gray-700 leading-tight group-hover/item:text-gray-900 transition-colors">
+                              {specialty.name}
+                            </span>
                           </div>
 
-                          {/* Text */}
-                          <span className="text-xs font-semibold text-gray-700 leading-tight group-hover/item:text-gray-900 transition-colors">
-                            {specialty.name}
-                          </span>
+                          {/* Bottom accent line */}
+                          <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-yellow-400 to-yellow-500 transform scale-x-0 group-hover/item:scale-x-100 transition-transform duration-300"></div>
                         </div>
-
-                        {/* Bottom accent line */}
-                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-yellow-400 to-yellow-500 transform scale-x-0 group-hover/item:scale-x-100 transition-transform duration-300"></div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -226,26 +237,6 @@ const ServicesPage = () => {
                   </div>
                   <span className="font-bold text-gray-900 text-base">
                     {service.estimatedTime}
-                  </span>
-                </div>
-
-                {/* Domain Badge */}
-                <div className="mt-6 text-center">
-                  <span className="inline-flex items-center gap-2 text-xs text-gray-500 font-mono bg-gray-50 px-4 py-2 rounded-full border border-gray-200">
-                    <svg
-                      className="w-3 h-3"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"
-                      />
-                    </svg>
-                    {service.domain}
                   </span>
                 </div>
               </div>
