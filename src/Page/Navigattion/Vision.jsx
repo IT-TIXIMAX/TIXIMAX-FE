@@ -15,33 +15,36 @@ const labelAnim = {
 
 const Vision = () => {
   return (
-    <main className="bg-gray-50 py-14 sm:py-16 lg:py-20">
+    <main className="bg-gradient-to-b from-white via-gray-50 to-white py-16 sm:py-20 lg:py-28">
       <div className="px-4">
-        <motion.h1
+        <motion.div
           variants={fadeUp}
           initial="hidden"
           whileInView="show"
           viewport={{ once: true }}
-          className="text-center text-3xl sm:text-4xl lg:text-5xl font-black uppercase tracking-wide text-gray-900"
+          className="text-center"
         >
-          Hiểu Thêm Về Chúng Tôi
-        </motion.h1>
+          <div className="h-1 w-20 bg-gradient-to-r from-yellow-400 to-yellow-500 mx-auto mb-4 rounded-full"></div>
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black uppercase tracking-tight text-gray-900">
+            Hiểu Thêm Về <span className="text-yellow-400">Chúng Tôi</span>
+          </h1>
+        </motion.div>
 
         <motion.p
           variants={fadeUp}
           initial="hidden"
           whileInView="show"
           viewport={{ once: true }}
-          className="max-w-4xl mx-auto text-center mt-5 sm:mt-6 text-gray-600 text-base sm:text-lg leading-relaxed"
+          className="max-w-4xl mx-auto text-center mt-6 text-gray-600 text-base sm:text-lg lg:text-xl leading-relaxed"
         >
           Chúng tôi tin rằng một doanh nghiệp bền vững không chỉ dựa vào lợi
           nhuận, mà dựa vào con người và những giá trị cốt lõi. Tiximax mang sứ
-          mệnh kết nối thế giới bằng logistics, thanh toán và mua bán toàn cầu.
+          mệnh kết nối thế giới bằng logistics,thanh toán toàn cầu.
         </motion.p>
       </div>
 
       <section className="relative max-w-5xl mx-auto mt-12 sm:mt-16 lg:mt-20 px-4">
-        {/* Ảnh: không bg, không blur, không ring */}
+        {/* Ảnh CEO */}
         <div className="flex justify-center">
           <img
             src={PICCEO}
@@ -55,8 +58,8 @@ const Vision = () => {
           />
         </div>
 
-        {/* ===== MOBILE: text grid (không bg) ===== */}
-        <div className="mt-8 grid grid-cols-2 gap-6 sm:hidden">
+        {/* ===== MOBILE: text grid ===== */}
+        <div className="mt-10 grid grid-cols-2 gap-8 sm:hidden">
           <motion.div
             variants={labelAnim}
             initial="hidden"
@@ -64,14 +67,27 @@ const Vision = () => {
             viewport={{ once: true }}
             className="text-center"
           >
-            <h3 className="font-bold text-gray-900 text-lg uppercase">
+            <h3 className="font-black text-gray-900 text-xl uppercase tracking-tight mb-3">
               Tầm Nhìn
             </h3>
             <Link
-              to="/about#vision"
-              className="mt-2 inline-block text-amber-600 font-semibold text-sm hover:text-amber-700 transition-colors"
+              to="/about"
+              className="inline-flex items-center gap-2 text-gray-600 hover:text-yellow-500 font-bold text-sm transition-all duration-300 group"
             >
-              Xem thêm &gt;&gt;
+              <span>Xem thêm</span>
+              <svg
+                className="w-4 h-4 group-hover:translate-x-1 transition-transform"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2.5}
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
             </Link>
           </motion.div>
 
@@ -82,14 +98,27 @@ const Vision = () => {
             viewport={{ once: true }}
             className="text-center"
           >
-            <h3 className="font-bold text-gray-900 text-lg uppercase">
+            <h3 className="font-black text-gray-900 text-xl uppercase tracking-tight mb-3">
               Sứ Mệnh
             </h3>
             <Link
-              to="/about#mission"
-              className="mt-2 inline-block text-amber-600 font-semibold text-sm hover:text-amber-700 transition-colors"
+              to="/about"
+              className="inline-flex items-center gap-2 text-gray-600 hover:text-yellow-500 font-bold text-sm transition-all duration-300 group"
             >
-              Xem thêm &gt;&gt;
+              <span>Xem thêm</span>
+              <svg
+                className="w-4 h-4 group-hover:translate-x-1 transition-transform"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2.5}
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
             </Link>
           </motion.div>
 
@@ -100,14 +129,27 @@ const Vision = () => {
             viewport={{ once: true }}
             className="text-center"
           >
-            <h3 className="font-bold text-gray-900 text-lg uppercase">
+            <h3 className="font-black text-gray-900 text-xl uppercase tracking-tight mb-3">
               Giá Trị Cốt Lõi
             </h3>
             <Link
-              to="/about#core-values"
-              className="mt-2 inline-block text-amber-600 font-semibold text-sm hover:text-amber-700 transition-colors"
+              to="/about"
+              className="inline-flex items-center gap-2 text-gray-600 hover:text-yellow-500 font-bold text-sm transition-all duration-300 group"
             >
-              Xem thêm &gt;&gt;
+              <span>Xem thêm</span>
+              <svg
+                className="w-4 h-4 group-hover:translate-x-1 transition-transform"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2.5}
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
             </Link>
           </motion.div>
 
@@ -118,19 +160,32 @@ const Vision = () => {
             viewport={{ once: true }}
             className="text-center"
           >
-            <h3 className="font-bold text-gray-900 text-lg uppercase">
+            <h3 className="font-black text-gray-900 text-xl uppercase tracking-tight mb-3">
               Cam Kết
             </h3>
             <Link
-              to="/about#commitments"
-              className="mt-2 inline-block text-amber-600 font-semibold text-sm hover:text-amber-700 transition-colors"
+              to="/about"
+              className="inline-flex items-center gap-2 text-gray-600 hover:text-yellow-500 font-bold text-sm transition-all duration-300 group"
             >
-              Xem thêm &gt;&gt;
+              <span>Xem thêm</span>
+              <svg
+                className="w-4 h-4 group-hover:translate-x-1 transition-transform"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2.5}
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
             </Link>
           </motion.div>
         </div>
 
-        {/* ===== TABLET/DESKTOP: absolute text (không bg) ===== */}
+        {/* ===== TABLET/DESKTOP: absolute text ===== */}
         <div className="hidden sm:block">
           {/* Top Left */}
           <motion.div
@@ -144,14 +199,27 @@ const Vision = () => {
               text-center
             "
           >
-            <h3 className="font-bold text-gray-900 text-2xl uppercase">
+            <h3 className="font-black text-gray-900 text-2xl lg:text-3xl uppercase tracking-tight mb-3">
               Tầm Nhìn
             </h3>
             <Link
-              to="/about#vision"
-              className="text-amber-600 font-semibold text-base inline-block hover:text-amber-700 transition-colors"
+              to="/about"
+              className="inline-flex items-center gap-2 text-gray-600 hover:text-yellow-500 font-bold text-base transition-all duration-300 group"
             >
-              Xem thêm &gt;&gt;
+              <span>Xem thêm</span>
+              <svg
+                className="w-5 h-5 group-hover:translate-x-2 transition-transform"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2.5}
+                  d="M13 7l5 5m0 0l-5 5m5-5H6"
+                />
+              </svg>
             </Link>
           </motion.div>
 
@@ -167,14 +235,27 @@ const Vision = () => {
               text-center
             "
           >
-            <h3 className="font-bold text-gray-900 text-2xl uppercase">
+            <h3 className="font-black text-gray-900 text-2xl lg:text-3xl uppercase tracking-tight mb-3">
               Sứ Mệnh
             </h3>
             <Link
-              to="/about#mission"
-              className="text-amber-600 font-semibold text-base inline-block hover:text-amber-700 transition-colors"
+              to="/about"
+              className="inline-flex items-center gap-2 text-gray-600 hover:text-yellow-500 font-bold text-base transition-all duration-300 group"
             >
-              Xem thêm &gt;&gt;
+              <span>Xem thêm</span>
+              <svg
+                className="w-5 h-5 group-hover:translate-x-2 transition-transform"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2.5}
+                  d="M13 7l5 5m0 0l-5 5m5-5H6"
+                />
+              </svg>
             </Link>
           </motion.div>
 
@@ -190,14 +271,27 @@ const Vision = () => {
               text-center
             "
           >
-            <h3 className="font-bold text-gray-900 text-2xl uppercase">
+            <h3 className="font-black text-gray-900 text-2xl lg:text-3xl uppercase tracking-tight mb-3">
               Giá Trị Cốt Lõi
             </h3>
             <Link
-              to="/about#core-values"
-              className="text-amber-600 font-semibold text-base inline-block hover:text-amber-700 transition-colors"
+              to="/about"
+              className="inline-flex items-center gap-2 text-gray-600 hover:text-yellow-500 font-bold text-base transition-all duration-300 group"
             >
-              Xem thêm &gt;&gt;
+              <span>Xem thêm</span>
+              <svg
+                className="w-5 h-5 group-hover:translate-x-2 transition-transform"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2.5}
+                  d="M13 7l5 5m0 0l-5 5m5-5H6"
+                />
+              </svg>
             </Link>
           </motion.div>
 
@@ -213,14 +307,27 @@ const Vision = () => {
               text-center
             "
           >
-            <h3 className="font-bold text-gray-900 text-2xl uppercase">
+            <h3 className="font-black text-gray-900 text-2xl lg:text-3xl uppercase tracking-tight mb-3">
               Cam Kết
             </h3>
             <Link
-              to="/about#commitments"
-              className="text-amber-600 font-semibold text-base inline-block hover:text-amber-700 transition-colors"
+              to="/about"
+              className="inline-flex items-center gap-2 text-gray-600 hover:text-yellow-500 font-bold text-base transition-all duration-300 group"
             >
-              Xem thêm &gt;&gt;
+              <span>Xem thêm</span>
+              <svg
+                className="w-5 h-5 group-hover:translate-x-2 transition-transform"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2.5}
+                  d="M13 7l5 5m0 0l-5 5m5-5H6"
+                />
+              </svg>
             </Link>
           </motion.div>
         </div>
