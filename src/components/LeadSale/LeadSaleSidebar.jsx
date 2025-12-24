@@ -85,7 +85,7 @@ const LeadSaleSideBar = () => {
             {
               to: "/lead-sale/exchange-order",
               icon: CreditCard,
-              label: "Ký gửi",
+              label: "Đổi tiền",
             },
           ],
           isOpen: isStaffLeadDropdownOpen,

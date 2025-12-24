@@ -42,6 +42,7 @@ const ExchangeOrderForm = () => {
     exchangeRate: "",
     moneyExChange: "",
     fee: "",
+    note: "", // ✅ NEW
   });
 
   const [masterData, setMasterData] = useState({
@@ -173,6 +174,15 @@ const ExchangeOrderForm = () => {
     }));
   }, []);
 
+  // ✅ NEW: handler cho text input (note)
+  const handleTextChange = useCallback((e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  }, []);
+
   // Calculations
   const calculations = useMemo(() => {
     const rate = Number(form.exchangeRate) || 0;
@@ -240,6 +250,7 @@ const ExchangeOrderForm = () => {
         exchangeRate: rate,
         moneyExChange: money,
         fee: fee,
+        note: form.note || "", // ✅ NEW
       };
 
       // ✅ CHANGED: Use exchangeOrderService.createExchangeOrder
@@ -260,6 +271,7 @@ const ExchangeOrderForm = () => {
         exchangeRate: "",
         moneyExChange: "",
         fee: "",
+        note: "", // ✅ NEW
       });
     } catch (error) {
       console.error("Error creating exchange order:", error);
@@ -424,7 +436,7 @@ const ExchangeOrderForm = () => {
                         value={formatNumber(form.exchangeRate)}
                         onChange={handleNumberChange}
                         className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                        placeholder="Nhập tỷ giá (VD: 1.000)"
+                        placeholder="Nhập tỷ giá "
                         disabled={!isFormEnabled}
                       />
                     </div>
@@ -444,7 +456,7 @@ const ExchangeOrderForm = () => {
                         value={formatNumber(form.moneyExChange)}
                         onChange={handleNumberChange}
                         className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                        placeholder="Nhập số tiền (VD: 100.000)"
+                        placeholder="Nhập số tiền "
                         disabled={!isFormEnabled}
                       />
                     </div>
@@ -463,10 +475,26 @@ const ExchangeOrderForm = () => {
                         value={formatNumber(form.fee)}
                         onChange={handleNumberChange}
                         className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                        placeholder="Nhập phí dịch vụ (VD: 50.000)"
+                        placeholder="Nhập phí dịch vụ "
                         disabled={!isFormEnabled}
                       />
                     </div>
+                  </div>
+
+                  {/* ✅ NEW: Ghi chú */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Ghi chú
+                    </label>
+                    <textarea
+                      name="note"
+                      value={form.note}
+                      onChange={handleTextChange}
+                      rows={3}
+                      className="w-full px-4 py-2 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                      placeholder="Nhập ghi chú (không bắt buộc)"
+                      disabled={!isFormEnabled}
+                    />
                   </div>
                 </div>
               </div>
@@ -643,7 +671,7 @@ const ExchangeOrderForm = () => {
           message={
             <div className="space-y-3">
               <p className="text-gray-700">
-                Bạn có chắc chắn muốn tạo đơn chuyển tiền với thông tin sau:
+                Vui lòng xem lại thông tin đơn trước khi tạo
               </p>
               <div className="bg-gray-50 p-4 rounded-lg text-sm space-y-2 border border-gray-200">
                 <div className="flex justify-between">
@@ -676,6 +704,17 @@ const ExchangeOrderForm = () => {
                     {formatNumber(form.fee)} VND
                   </span>
                 </div>
+
+                {/* ✅ NEW: Note in confirm */}
+                {form.note && (
+                  <div className="flex justify-between gap-4">
+                    <span className="text-gray-600 shrink-0">Ghi chú:</span>
+                    <span className="font-semibold text-gray-900 text-right whitespace-pre-wrap">
+                      {form.note}
+                    </span>
+                  </div>
+                )}
+
                 <div className="border-t border-gray-300 pt-2 mt-2">
                   <div className="flex justify-between">
                     <span className="text-gray-700 font-semibold">

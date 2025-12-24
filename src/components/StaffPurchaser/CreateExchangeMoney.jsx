@@ -79,7 +79,7 @@ const CreateExchangeMoney = ({ isOpen, onClose, orderCode, onSuccess }) => {
                 Money Exchange Purchase
               </h3>
               <p className="text-sm text-gray-600 mt-1">
-                Order: <span className="font-semibold">{orderCode}</span>
+                Order Code: <span className="font-semibold">{orderCode}</span>
               </p>
             </div>
             <button
@@ -93,11 +93,6 @@ const CreateExchangeMoney = ({ isOpen, onClose, orderCode, onSuccess }) => {
 
           {/* Form */}
           <div className="space-y-5">
-            <div className="flex items-center gap-2 text-sm font-semibold text-gray-900">
-              <ImageIcon className="w-4 h-4" />
-              Ảnh chứng từ <span className="text-red-500">*</span>
-            </div>
-
             <UploadImg
               imageUrl={data.image}
               onImageUpload={(url) =>

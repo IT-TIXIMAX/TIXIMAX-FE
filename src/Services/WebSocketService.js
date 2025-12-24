@@ -12,7 +12,7 @@ class WebSocketService {
   connect() {
     this.stompClient = new Client({
       webSocketFactory: () => {
-        return new SockJS("https://t-6cn5.onrender.com/ws");
+        return new SockJS("https://tiximax.net/ws");
       },
 
       debug: function (str) {

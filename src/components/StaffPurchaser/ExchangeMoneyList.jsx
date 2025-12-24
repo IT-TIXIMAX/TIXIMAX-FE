@@ -955,52 +955,13 @@ const ExchanegMoneyList = () => {
                                     </div>
                                     <div className="space-y-0.5 text-xls text-black-600">
                                       <div className="flex items-center gap-1">
-                                        <ExternalLink className="w-2.5 h-2.5" />
-                                        {link.website !== "string"
-                                          ? link.website
-                                          : "N/A"}
-                                      </div>
-                                      <div className="flex items-center gap-1">
-                                        {link.trackingCode}
+                                        Tracking Code: {link.trackingCode}
                                       </div>
                                     </div>
                                   </div>
-
-                                  {/* Pricing Info */}
-                                  <div className="lg:col-span-1">
-                                    <div className="space-y-0.5 text-xls text-black">
-                                      <div className="text-black-600">
-                                        Qty:{" "}
-                                        <span className="font-medium">
-                                          {link.quantity}
-                                        </span>
-                                      </div>
-                                      <div className="text-black-600">
-                                        Item price:{" "}
-                                        <span className="font-medium">
-                                          {link.priceWeb?.toLocaleString() || 0}
-                                        </span>
-                                      </div>
-                                      <div className="text-black-600">
-                                        Shipping:{" "}
-                                        <span className="font-medium">
-                                          {link.shipWeb?.toLocaleString() || 0}
-                                        </span>
-                                      </div>
-                                    </div>
-                                  </div>
-
                                   {/* Additional Info */}
                                   <div className="lg:col-span-1">
                                     <div className="space-y-0.5 text-xls text-black-600">
-                                      <div>
-                                        Variant:{" "}
-                                        <span className="font-medium">
-                                          {link.classify !== "string"
-                                            ? link.classify
-                                            : "N/A"}
-                                        </span>
-                                      </div>
                                       <div>
                                         Note:{" "}
                                         <span className="font-medium">
@@ -1033,25 +994,6 @@ const ExchanegMoneyList = () => {
                                           <Eye className="w-2.5 h-2.5" />
                                           Details
                                         </button>
-
-                                        {link.status !== "HUY" &&
-                                          link.status !== "DA_MUA" &&
-                                          link.status !== "MUA_SAU" && (
-                                            <button
-                                              onClick={() =>
-                                                handleOpenPurchaseLater(
-                                                  order,
-                                                  link
-                                                )
-                                              }
-                                              className="flex items-center gap-1 bg-indigo-500 text-white px-2 py-1 rounded-md text-xs hover:bg-indigo-600 transition-colors"
-                                              title="Move to Buy later"
-                                            >
-                                              <Clock className="w-2.5 h-2.5" />
-                                              Buy later
-                                            </button>
-                                          )}
-
                                         {link.status !== "HUY" &&
                                           link.status !== "DA_MUA" && (
                                             <button
