@@ -10,7 +10,7 @@ import {
   DollarSign,
   ArrowRightLeft,
 } from "lucide-react";
-import exchangeOrderService from "../../Services/LeadSale/exchangeOrderService"; // ✅ NEW
+import exchangeOrderService from "../../Services/LeadSale/exchangeOrderService";
 import routesService from "../../Services/StaffSale/routeService";
 import toast from "react-hot-toast";
 import AccountSearch from "./AccountSearch";
@@ -21,6 +21,12 @@ const formatNumber = (value) => {
   if (!value && value !== 0) return "";
   const num = String(value).replace(/\./g, "");
   return num.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+};
+
+// ✅ NEW: Format cho số thập phân (tỷ giá)
+const formatDecimal = (value) => {
+  if (!value && value !== 0) return "";
+  return String(value);
 };
 
 const parseNumber = (value) => {
@@ -42,7 +48,7 @@ const ExchangeOrderForm = () => {
     exchangeRate: "",
     moneyExChange: "",
     fee: "",
-    note: "", // ✅ NEW
+    note: "",
   });
 
   const [masterData, setMasterData] = useState({
@@ -137,7 +143,7 @@ const ExchangeOrderForm = () => {
       if (selectedRoute?.exchangeRate) {
         setForm((prev) => ({
           ...prev,
-          exchangeRate: Number(selectedRoute.exchangeRate) || "",
+          exchangeRate: String(Number(selectedRoute.exchangeRate) || ""),
         }));
 
         toast.success(
@@ -153,7 +159,31 @@ const ExchangeOrderForm = () => {
     [masterData.routes]
   );
 
-  // 🎯 Handler cho number inputs với format
+  // ✅ NEW: Handler riêng cho exchangeRate (cho phép thập phân)
+  const handleExchangeRateChange = useCallback((e) => {
+    const { value } = e.target;
+
+    // Chỉ cho phép số và 1 dấu chấm thập phân
+    const cleaned = value.replace(/[^\d.]/g, "");
+
+    // Đếm số dấu chấm, chỉ cho phép 1 dấu chấm
+    const dotCount = (cleaned.match(/\./g) || []).length;
+    if (dotCount > 1) {
+      return;
+    }
+
+    // Validate format số thập phân
+    if (cleaned && !/^\d*\.?\d*$/.test(cleaned)) {
+      return;
+    }
+
+    setForm((prev) => ({
+      ...prev,
+      exchangeRate: cleaned,
+    }));
+  }, []);
+
+  // 🎯 Handler cho number inputs với format (moneyExChange, fee)
   const handleNumberChange = useCallback((e) => {
     const { name, value } = e.target;
 
@@ -174,7 +204,7 @@ const ExchangeOrderForm = () => {
     }));
   }, []);
 
-  // ✅ NEW: handler cho text input (note)
+  // Handler cho text input (note)
   const handleTextChange = useCallback((e) => {
     const { name, value } = e.target;
     setForm((prev) => ({
@@ -185,7 +215,7 @@ const ExchangeOrderForm = () => {
 
   // Calculations
   const calculations = useMemo(() => {
-    const rate = Number(form.exchangeRate) || 0;
+    const rate = parseFloat(form.exchangeRate) || 0; // ✅ CHANGED: parseFloat
     const moneyExchange = Number(form.moneyExChange) || 0;
     const fee = Number(form.fee) || 0;
 
@@ -223,7 +253,7 @@ const ExchangeOrderForm = () => {
       return;
     }
 
-    const rate = Number(form.exchangeRate || 0);
+    const rate = parseFloat(form.exchangeRate || 0); // ✅ CHANGED: parseFloat
     const money = Number(form.moneyExChange || 0);
     const fee = Number(form.fee || 0);
 
@@ -250,10 +280,9 @@ const ExchangeOrderForm = () => {
         exchangeRate: rate,
         moneyExChange: money,
         fee: fee,
-        note: form.note || "", // ✅ NEW
+        note: form.note || "",
       };
 
-      // ✅ CHANGED: Use exchangeOrderService.createExchangeOrder
       const result = await exchangeOrderService.createExchangeOrder(
         preliminary.customerCode,
         Number(preliminary.routeId),
@@ -271,7 +300,7 @@ const ExchangeOrderForm = () => {
         exchangeRate: "",
         moneyExChange: "",
         fee: "",
-        note: "", // ✅ NEW
+        note: "",
       });
     } catch (error) {
       console.error("Error creating exchange order:", error);
@@ -423,7 +452,7 @@ const ExchangeOrderForm = () => {
                     Thông tin chuyển tiền
                   </h3>
 
-                  {/* Tỷ giá */}
+                  {/* Tỷ giá - ✅ CHANGED */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Tỷ giá <span className="text-red-500">*</span>
@@ -433,10 +462,10 @@ const ExchangeOrderForm = () => {
                       <input
                         type="text"
                         name="exchangeRate"
-                        value={formatNumber(form.exchangeRate)}
-                        onChange={handleNumberChange}
+                        value={formatDecimal(form.exchangeRate)}
+                        onChange={handleExchangeRateChange}
                         className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                        placeholder="Nhập tỷ giá "
+                        placeholder="Nhập tỷ giá (VD: 1.68, 25000.5)"
                         disabled={!isFormEnabled}
                       />
                     </div>
@@ -481,7 +510,7 @@ const ExchangeOrderForm = () => {
                     </div>
                   </div>
 
-                  {/* ✅ NEW: Ghi chú */}
+                  {/* Ghi chú */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Nhập thông tin tài khoản
@@ -534,7 +563,7 @@ const ExchangeOrderForm = () => {
                         <p className="text-xs text-blue-600 mb-1">Tỷ giá</p>
                         <p className="text-lg font-bold text-blue-900">
                           {form.exchangeRate
-                            ? `${formatNumber(form.exchangeRate)} VND`
+                            ? `${formatDecimal(form.exchangeRate)} VND`
                             : "---"}
                         </p>
                       </div>
@@ -693,7 +722,7 @@ const ExchangeOrderForm = () => {
                 <div className="flex justify-between">
                   <span className="text-gray-600">Tỷ giá:</span>
                   <span className="font-semibold text-gray-900">
-                    {formatNumber(form.exchangeRate)} VND
+                    {formatDecimal(form.exchangeRate)} VND
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -709,7 +738,6 @@ const ExchangeOrderForm = () => {
                   </span>
                 </div>
 
-                {/* ✅ NEW: Note in confirm */}
                 {form.note && (
                   <div className="flex justify-between gap-4">
                     <span className="text-gray-600 shrink-0">Ghi chú:</span>
