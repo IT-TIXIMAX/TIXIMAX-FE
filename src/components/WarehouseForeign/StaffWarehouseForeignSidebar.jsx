@@ -149,7 +149,7 @@ const StaffWarehouseForeignSidebar = () => {
         {
           text: "Performance",
           icon: <BarChart className="w-6 h-6" />,
-          path: "/staff-warehouse-foreign/reports/performance",
+          path: "/staff-warehouse-foreign/reports/performances",
         },
       ],
     },

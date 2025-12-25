@@ -142,6 +142,7 @@ import DashboardCustomer from "../components/Admin/DashboardCustomer";
 import DashboardManagerProfit from "../components/Manager/DashboardManagerProfit";
 import ExchangeOrderForm from "../components/Order/ExchangeOrderForm";
 import ExchanegMoneyList from "../components/StaffPurchaser/ExchangeMoneyList";
+import WarehouseJapan from "../components/WarehouseForeign/WarehouseJapan";
 const Router = createBrowserRouter([
   {
     path: "/",
@@ -408,7 +409,7 @@ const Router = createBrowserRouter([
       { path: "audit/check", element: <ImportProduct /> },
       { path: "audit/reconcile", element: <NotFound /> },
       { path: "reports/dashboard", element: <CreatePackingJapan /> },
-      { path: "reports/performance", element: <NotFound /> },
+      { path: "reports/performances", element: <WarehouseJapan /> },
       { path: "export", element: <NotFound /> },
     ],
   },
