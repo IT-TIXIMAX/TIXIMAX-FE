@@ -143,6 +143,10 @@ import DashboardManagerProfit from "../components/Manager/DashboardManagerProfit
 import ExchangeOrderForm from "../components/Order/ExchangeOrderForm";
 import ExchanegMoneyList from "../components/StaffPurchaser/ExchangeMoneyList";
 import WarehouseJapan from "../components/WarehouseForeign/WarehouseJapan";
+import SummaryOrder from "../components/Manager/Summary/SummaryOrder";
+import SummaryCustomer from "../components/Manager/Summary/SummaryCustomer";
+import SummaryRevenue from "../components/Manager/Summary/SummaryRevenue";
+import SummaryWeight from "../components/Manager/Summary/SummaryWeight";
 const Router = createBrowserRouter([
   {
     path: "/",
@@ -265,6 +269,10 @@ const Router = createBrowserRouter([
       { path: "routes", element: <ManagerRoutes /> },
       { path: "transfer", element: <ManagerDestination /> },
       { path: "dashboard", element: <DashboardManager /> },
+      { path: "dashboard/order", element: <SummaryOrder /> },
+      { path: "dashboard/customer", element: <SummaryCustomer /> },
+      { path: "dashboard/revenue", element: <SummaryRevenue /> },
+      { path: "dashboard/weight", element: <SummaryWeight /> },
       { path: "producttype", element: <ManagerProductType /> },
       { path: "order", element: <ManagerOrder /> },
       { path: "cancelorder", element: <OrderListCancel /> },

@@ -64,6 +64,26 @@ const dashboardService = {
       params: { startDate, endDate, exchangeRate, routeId },
     });
   },
+  getStaffCustomersSummary: ({ filterType, startDate, endDate }) => {
+    return api.get("/dashboard/staff/customers-summary", {
+      params: { filterType, startDate, endDate },
+    });
+  },
+  getRoutesWeightSummary: ({ filterType, startDate, endDate }) => {
+    return api.get("/dashboard/routes/weight-summary", {
+      params: { filterType, startDate, endDate },
+    });
+  },
+  getRoutesRevenueSummary: ({ filterType, startDate, endDate, status }) => {
+    return api.get("/dashboard/routes/revenue-summary", {
+      params: { filterType, startDate, endDate, status },
+    });
+  },
+  getRoutesOrdersSummary: ({ filterType, startDate, endDate }) => {
+    return api.get("/dashboard/routes/orders-summary", {
+      params: { filterType, startDate, endDate },
+    });
+  },
 };
 
 export default dashboardService;
