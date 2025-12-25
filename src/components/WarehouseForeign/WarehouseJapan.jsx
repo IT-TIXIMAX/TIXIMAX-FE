@@ -30,17 +30,28 @@ const WarehouseJapan = () => {
 
   const inputRef = useRef(null);
 
-  /* ================= LOAD SHIPMENT CODES ================= */
+  /* ================= LOAD SHIPMENT CODES (ĐÚNG NGUỒN) ================= */
   useEffect(() => {
     const fetchShipmentCodes = async () => {
       try {
         setLoadingCodes(true);
-        const res = await warehouseService.getReadyWarehouses(0, 50, {
-          trackingCode: "",
+
+        const data = await warehouseService.getWarehouseForeignLinks(0, 50, {
+          shipmentCode: "",
+          customerCode: "",
         });
 
-        const codes =
-          res?.content?.map((item) => item.trackingCode).filter(Boolean) || [];
+        const list = Array.isArray(data) ? data : data?.content || [];
+
+        const codes = [
+          ...new Set(
+            list.flatMap((order) =>
+              (order.orderLinks || [])
+                .map((link) => link.shipmentcode)
+                .filter(Boolean)
+            )
+          ),
+        ];
 
         setShipmentCodes(codes);
       } catch (err) {
@@ -210,7 +221,7 @@ const WarehouseJapan = () => {
             )}
           </div>
 
-          {/* ================= ORDER INFORMATION (NEW UI) ================= */}
+          {/* ================= ORDER INFORMATION ================= */}
           {orderInfo && (
             <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 border border-blue-200 rounded-lg p-4 space-y-3">
               <div className="flex items-center gap-2 mb-2">
