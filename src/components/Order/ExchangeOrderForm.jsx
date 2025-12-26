@@ -520,20 +520,6 @@ const ExchangeOrderForm = () => {
                     </div>
                   </div>
 
-                  {/* ✅ THÊM: Upload Ảnh */}
-                  <div>
-                    <UploadImg
-                      imageUrl={form.image}
-                      onImageUpload={handleImageUpload}
-                      onImageRemove={handleImageRemove}
-                      label="Ảnh "
-                      required={false}
-                      maxSizeMB={3}
-                      placeholder="Chưa có ảnh "
-                      className=""
-                    />
-                  </div>
-
                   {/* Ghi chú */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -552,6 +538,20 @@ const ExchangeOrderForm = () => {
                         disabled={!isFormEnabled}
                       />
                     </div>
+                  </div>
+
+                  {/* ✅ THÊM: Upload Ảnh */}
+                  <div>
+                    <UploadImg
+                      imageUrl={form.image}
+                      onImageUpload={handleImageUpload}
+                      onImageRemove={handleImageRemove}
+                      label="Ảnh "
+                      required={false}
+                      maxSizeMB={3}
+                      placeholder="Chưa có ảnh "
+                      className=""
+                    />
                   </div>
                 </div>
               </div>
