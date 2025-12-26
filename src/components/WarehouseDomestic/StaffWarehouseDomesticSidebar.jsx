@@ -11,6 +11,7 @@ import {
   FileSpreadsheet,
   User,
   LogOut,
+  CreditCard,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -48,17 +49,36 @@ const StaffWarehouseDomesticSidebar = () => {
       title: "Quản lý hàng tồn kho",
     },
     {
-      text: "Đơn hàng nhập kho",
+      text: "Nhập kho",
       icon: <ArrowDown className="w-6 h-6" />,
       path: "/staff-warehouse-domestic/imports",
       title: "Quản lý đơn hàng đang vận chuyển đến kho",
     },
     {
-      text: "Đơn đủ điều kiện",
-      icon: <PackageCheck className="w-6 h-6" />,
-      path: "/staff-warehouse-domestic/eligible-packings",
+      text: "Kiểm tra đóng gói",
+      icon: <ClipboardCheck className="w-6 h-6" />,
+      path: "/staff-warehouse-domestic/inventorys-check",
+      title:
+        "Hỗ trợ kiểm kê định kỳ hoặc đột xuất, quét mã và báo cáo chênh lệch",
+    },
+    {
+      text: "Đơn chờ thanh toán",
+      icon: <CreditCard className="w-6 h-6" />,
+      path: "/staff-warehouse-domestic/pending-payments",
       title: "Quản lý đơn hàng đủ điều kiện đóng gói",
     },
+    {
+      text: "Đơn đủ điều kiện",
+      icon: <PackageCheck className="w-6 h-6" />,
+      path: "/staff-warehouse-domestic/eligible-exports",
+      title: "Quản lý đơn hàng đủ điều kiện đóng gói",
+    },
+    // {
+    //   text: "Đơn đủ điều kiện",
+    //   icon: <PackageCheck className="w-6 h-6" />,
+    //   path: "/staff-warehouse-domestic/eligible-packings",
+    //   title: "Quản lý đơn hàng đủ điều kiện đóng gói",
+    // },
     {
       text: "Xuất kho đơn nội địa",
       icon: <ArrowUp className="w-6 h-6" />,
@@ -66,13 +86,6 @@ const StaffWarehouseDomesticSidebar = () => {
       title: "Quản lý đơn hàng nội địa sẵn sàng giao",
     },
 
-    {
-      text: "Kiểm tra đóng gói",
-      icon: <ClipboardCheck className="w-6 h-6" />,
-      path: "/staff-warehouse-domestic/inventory-check",
-      title:
-        "Hỗ trợ kiểm kê định kỳ hoặc đột xuất, quét mã và báo cáo chênh lệch",
-    },
     {
       text: "Tra cứu đơn xuất kho",
       icon: <Search className="w-6 h-6" />,

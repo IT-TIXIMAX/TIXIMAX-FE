@@ -119,7 +119,7 @@ const BankShipList = ({
   value = null,
   onChange,
   className = "",
-  label = "Chọn tài khoản nhận cước (Revenue)",
+  label = "Chọn tài khoản nhận cước ",
   onLoadingChange,
   onAccountsChange,
 }) => {

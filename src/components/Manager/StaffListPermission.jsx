@@ -9,7 +9,7 @@ const StaffListPermission = () => {
   const [staffData, setStaffData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
-  const [pageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(50);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
   const [searchText, setSearchText] = useState("");
@@ -25,7 +25,7 @@ const StaffListPermission = () => {
   const [loadingRoutes, setLoadingRoutes] = useState(false);
 
   // Fetch staff data
-  const fetchStaffData = async (page = 0, size = 10) => {
+  const fetchStaffData = async (page = 0, size = 20) => {
     setLoading(true);
     try {
       const response = await userService.getSaleLeadStaff(page, size);
@@ -41,14 +41,20 @@ const StaffListPermission = () => {
   };
 
   useEffect(() => {
-    fetchStaffData(0, 10);
-  }, []);
+    fetchStaffData(0, pageSize);
+  }, [pageSize]); // Add pageSize dependency
 
   // Handle page change
   const handlePageChange = (newPage) => {
     if (newPage >= 0 && newPage < totalPages) {
       fetchStaffData(newPage, pageSize);
     }
+  };
+
+  // Handle page size change
+  const handlePageSizeChange = (newSize) => {
+    setPageSize(newSize);
+    setCurrentPage(0); // Reset to first page
   };
 
   // Open modal for permission management
@@ -378,8 +384,28 @@ const StaffListPermission = () => {
           {/* Pagination */}
           {!loading && (
             <div className="flex flex-wrap justify-between items-center mt-6 pt-4 border-t border-gray-200 gap-4">
-              <div className="text-sm text-gray-600">
-                Hiển thị {getFilteredData().length} / {totalElements} nhân viên
+              <div className="flex items-center gap-4">
+                <div className="text-sm text-gray-600">
+                  Hiển thị {getFilteredData().length} / {totalElements} nhân
+                  viên
+                </div>
+
+                {/* Page Size Selector */}
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600">Hiển thị:</span>
+                  <select
+                    value={pageSize}
+                    onChange={(e) =>
+                      handlePageSizeChange(Number(e.target.value))
+                    }
+                    className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                  >
+                    <option value={20}>20</option>
+                    <option value={50}>50</option>
+                    <option value={100}>100</option>
+                  </select>
+                  <span className="text-sm text-gray-600">/ trang</span>
+                </div>
               </div>
 
               <div className="flex items-center gap-3">
