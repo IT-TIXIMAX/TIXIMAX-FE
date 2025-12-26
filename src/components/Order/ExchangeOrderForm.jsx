@@ -546,7 +546,7 @@ const ExchangeOrderForm = () => {
                       imageUrl={form.image}
                       onImageUpload={handleImageUpload}
                       onImageRemove={handleImageRemove}
-                      label="Ảnh "
+                      label="QR "
                       required={false}
                       maxSizeMB={3}
                       placeholder="Chưa có ảnh "

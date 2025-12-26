@@ -22,6 +22,7 @@ import {
   X,
   RotateCcw,
   Weight,
+  BarChart3,
 } from "lucide-react";
 import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
@@ -52,26 +53,26 @@ const formatNum = (n) => (Number.isFinite(n) ? n.toLocaleString("vi-VN") : "—"
 
 /* ---------------------- Loading Skeleton ---------------------- */
 const SkeletonCard = () => (
-  <div className="bg-white rounded-2xl shadow-md p-6 border-l-4 border-gray-200 animate-pulse">
-    <div className="flex items-center justify-between mb-4">
-      <div className="h-4 bg-gray-200 rounded w-24"></div>
-      <div className="w-10 h-10 bg-gray-200 rounded-lg"></div>
+  <div className="bg-white rounded-lg shadow-sm p-4 border-l-4 border-gray-200 animate-pulse">
+    <div className="flex items-center justify-between mb-3">
+      <div className="h-3 bg-gray-200 rounded w-20"></div>
+      <div className="w-8 h-8 bg-gray-200 rounded-lg"></div>
     </div>
-    <div className="h-8 bg-gray-200 rounded w-32 mb-2"></div>
-    <div className="h-3 bg-gray-200 rounded w-20"></div>
+    <div className="h-7 bg-gray-200 rounded w-28 mb-1"></div>
+    <div className="h-2.5 bg-gray-200 rounded w-16"></div>
   </div>
 );
 
 const SkeletonChart = () => (
-  <div className="bg-white rounded-2xl shadow-md p-6 animate-pulse">
-    <div className="flex items-center gap-2 mb-6">
-      <div className="w-1 h-6 bg-gray-200 rounded-full"></div>
-      <div className="h-5 bg-gray-200 rounded w-40"></div>
+  <div className="bg-white rounded-lg shadow-sm p-4 animate-pulse">
+    <div className="flex items-center gap-2 mb-4">
+      <div className="w-1 h-5 bg-gray-200 rounded-full"></div>
+      <div className="h-4 bg-gray-200 rounded w-32"></div>
     </div>
-    <div className="h-[280px] bg-gray-100 rounded-lg mb-4"></div>
-    <div className="pt-4 border-t border-gray-100 flex justify-between">
-      <div className="h-3 bg-gray-200 rounded w-24"></div>
-      <div className="h-3 bg-gray-200 rounded w-24"></div>
+    <div className="h-[200px] bg-gray-100 rounded-lg mb-3"></div>
+    <div className="pt-3 border-t border-gray-100 flex justify-between">
+      <div className="h-2.5 bg-gray-200 rounded w-20"></div>
+      <div className="h-2.5 bg-gray-200 rounded w-20"></div>
     </div>
   </div>
 );
@@ -186,57 +187,66 @@ const DashboardSale = () => {
   ];
 
   return (
-    <section className="min-h-screen bg-gradient-to-br py-8 px-4 sm:px-6 lg:px-8">
-      <div className="mx-auto">
-        {/* Header Card */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-blue-100">
-          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-blue-500 rounded-lg">
-                  <TrendingUp className="w-6 h-6 text-white" />
-                </div>
-                <h1 className="text-3xl font-bold text-gray-900">
+    <section className="min-h-screen ">
+      {/* ✅ NEW: Separate Header Section */}
+      <div className="px-4 sm:px-6 lg:px-8 pt-6">
+        <div className=" mx-auto bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 shadow-lg rounded-2xl">
+          <div className="px-4 sm:px-6 lg:px-8 py-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-white/20 backdrop-blur-sm rounded-xl">
+                <BarChart3 className="w-7 h-7 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-white">
                   Thống kế hiệu suất cá nhân
                 </h1>
+                {row.staffCode && (
+                  <p className="text-blue-100 text-sm mt-0.5">
+                    Nhân viên:{" "}
+                    <span className="font-semibold text-white">
+                      {row.name || row.staffCode}
+                    </span>
+                  </p>
+                )}
               </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-              <div className="flex items-center gap-2 text-gray-600 mt-3">
-                <Calendar className="w-4 h-4" />
-                <span className="font-medium">{rangeLabel}</span>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* ✅ MODIFIED: Control Card - chỉ còn date range và buttons */}
+        <div className="bg-white rounded-lg shadow-md p-4 mb-6 border border-blue-100">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 text-gray-700">
+                <Calendar className="w-4 h-4 text-blue-500" />
+                <span className="text-sm font-semibold">{rangeLabel}</span>
               </div>
-
-              {row.staffCode && (
-                <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 rounded-lg">
-                  <span className="text-sm text-gray-600">Nhân viên:</span>
-                  <span className="text-sm font-semibold text-blue-700">
-                    {row.name || row.staffCode}
-                  </span>
-                </div>
-              )}
 
               {perf.error && (
-                <div className="mt-3 flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
-                  <span className="text-red-600 text-sm">⚠️ {perf.error}</span>
+                <div className="mt-2 flex items-start gap-2 p-2.5 bg-red-50 border border-red-200 rounded-lg">
+                  <span className="text-red-600 text-xs">⚠️ {perf.error}</span>
                 </div>
               )}
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <button
                 onClick={resetToToday}
-                className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-gray-700 font-semibold transition-all duration-200 flex items-center gap-2 shadow-sm"
+                className="px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-gray-700 text-sm font-semibold transition-all duration-200 flex items-center gap-1.5 shadow-sm"
                 title="Về hôm nay"
               >
+                <RotateCcw className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Hôm nay</span>
               </button>
 
               <button
                 onClick={() => setOpenPicker(true)}
-                className="px-5 py-2.5 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-semibold transition-all duration-200 flex items-center gap-2 shadow-md"
+                className="px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold transition-all duration-200 flex items-center gap-1.5 shadow-md"
               >
-                <Calendar className="w-5 h-5" />
-                <span>Chọn khoảng ngày</span>
+                <Calendar className="w-4 h-4" />
+                <span>Chọn ngày</span>
               </button>
             </div>
           </div>
@@ -245,13 +255,13 @@ const DashboardSale = () => {
         {/* Loading Skeleton */}
         {perf.loading ? (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
               <SkeletonCard />
               <SkeletonCard />
               <SkeletonCard />
               <SkeletonCard />
             </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
               <SkeletonChart />
               <SkeletonChart />
               <SkeletonChart />
@@ -260,108 +270,110 @@ const DashboardSale = () => {
           </>
         ) : (
           <>
-            {/* KPI Cards - 4 CARDS */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            {/* KPI Cards - COMPACT 4 CARDS */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
               {/* Card 1: Tổng doanh thu */}
-              <div className="bg-white rounded-2xl shadow-md p-6 border-l-4 border-blue-500 hover:shadow-lg transition-shadow">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+              <div className="bg-white rounded-lg shadow-sm p-4 border-l-4 border-blue-500 hover:shadow-md transition-shadow">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
                     Tổng tiền hàng
                   </h3>
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <DollarSign className="w-5 h-5 text-blue-600" />
+                  <div className="p-1.5 bg-blue-100 rounded-lg">
+                    <DollarSign className="w-4 h-4 text-blue-600" />
                   </div>
                 </div>
-                <p className="text-3xl font-bold text-gray-900">
+                <p className="text-2xl font-bold text-gray-900">
                   {formatCurrency(row.totalGoods)}
                 </p>
-                <p className="text-sm text-gray-500 mt-2">
+                <p className="text-xs text-gray-500 mt-1.5">
                   Phí ship: {formatCurrency(row.totalShip)}
                 </p>
               </div>
 
               {/* Card 2: Tổng đơn hàng */}
-              <div className="bg-white rounded-2xl shadow-md p-6 border-l-4 border-cyan-500 hover:shadow-lg transition-shadow">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+              <div className="bg-white rounded-lg shadow-sm p-4 border-l-4 border-cyan-500 hover:shadow-md transition-shadow">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
                     Tổng đơn hàng
                   </h3>
-                  <div className="p-2 bg-cyan-100 rounded-lg">
-                    <Package className="w-5 h-5 text-cyan-600" />
+                  <div className="p-1.5 bg-cyan-100 rounded-lg">
+                    <Package className="w-4 h-4 text-cyan-600" />
                   </div>
                 </div>
-                <p className="text-3xl font-bold text-gray-900">
+                <p className="text-2xl font-bold text-gray-900">
                   {formatNum(row.totalOrders)}
                 </p>
-                <p className="text-sm text-gray-500 mt-2">
+                <p className="text-xs text-gray-500 mt-1.5">
                   Khách hàng mới: {formatNum(row.newCustomersInPeriod)}
                 </p>
               </div>
 
               {/* Card 3: Tổng kiện hàng */}
-              <div className="bg-white rounded-2xl shadow-md p-6 border-l-4 border-teal-500 hover:shadow-lg transition-shadow">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+              <div className="bg-white rounded-lg shadow-sm p-4 border-l-4 border-teal-500 hover:shadow-md transition-shadow">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
                     Tổng kiện hàng
                   </h3>
-                  <div className="p-2 bg-teal-100 rounded-lg">
-                    <Package className="w-5 h-5 text-teal-600" />
+                  <div className="p-1.5 bg-teal-100 rounded-lg">
+                    <Package className="w-4 h-4 text-teal-600" />
                   </div>
                 </div>
-                <p className="text-3xl font-bold text-gray-900">
+                <p className="text-2xl font-bold text-gray-900">
                   {formatNum(row.totalParcels)}
                 </p>
-                <p className="text-sm text-gray-500 mt-2">
-                  Feedback xấu: {formatNum(row.badFeedbackCount)}
+                <p className="text-xs text-gray-500 mt-1.5">
+                  Feedback: {formatNum(row.badFeedbackCount)}
                 </p>
               </div>
 
-              {/* Card 4: Tổng khối lượng hàng - MỚI */}
-              <div className="bg-white rounded-2xl shadow-md p-6 border-l-4 border-indigo-500 hover:shadow-lg transition-shadow">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+              {/* Card 4: Tổng khối lượng hàng */}
+              <div className="bg-white rounded-lg shadow-sm p-4 border-l-4 border-indigo-500 hover:shadow-md transition-shadow">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
                     Tổng khối lượng
                   </h3>
-                  <div className="p-2 bg-indigo-100 rounded-lg">
-                    <Weight className="w-5 h-5 text-indigo-600" />
+                  <div className="p-1.5 bg-indigo-100 rounded-lg">
+                    <Weight className="w-4 h-4 text-indigo-600" />
                   </div>
                 </div>
-                <p className="text-3xl font-bold text-gray-900">
+                <p className="text-2xl font-bold text-gray-900">
                   {formatNum(row.totalNetWeight)}
                 </p>
-                <p className="text-sm text-gray-500 mt-2">
-                  Đơn vị: Kilogram (kg)
-                </p>
+                <p className="text-xs text-gray-500 mt-1.5">Đơn vị: kg</p>
               </div>
             </div>
 
-            {/* Charts Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            {/* Charts Grid - COMPACT */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
               {/* Chart 1: Giá trị hàng vs Phí ship */}
-              <div className="bg-white rounded-2xl shadow-md p-6 hover:shadow-lg transition-shadow">
-                <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-                  <div className="w-1 h-6 bg-blue-500 rounded-full"></div>
+              <div className="bg-white rounded-lg shadow-sm p-4 hover:shadow-md transition-shadow">
+                <h3 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <div className="w-1 h-5 bg-blue-500 rounded-full"></div>
                   Giá trị hàng vs Phí ship
                 </h3>
-                <ResponsiveContainer width="100%" height={280}>
+                <ResponsiveContainer width="100%" height={200}>
                   <BarChart data={chartValueVsShip}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                    <XAxis dataKey="name" tick={{ fill: "#6b7280" }} />
+                    <XAxis
+                      dataKey="name"
+                      tick={{ fill: "#6b7280", fontSize: 12 }}
+                    />
                     <YAxis
                       tickFormatter={(v) => `${Math.round(v / 1_000_000)}tr`}
-                      tick={{ fill: "#6b7280" }}
+                      tick={{ fill: "#6b7280", fontSize: 12 }}
                     />
                     <Tooltip
                       formatter={(v) => formatCurrency(v)}
                       contentStyle={{
                         borderRadius: "8px",
                         border: "1px solid #e5e7eb",
+                        fontSize: "12px",
                       }}
                     />
-                    <Bar dataKey="value" fill="#3b82f6" radius={[8, 8, 0, 0]} />
+                    <Bar dataKey="value" fill="#3b82f6" radius={[6, 6, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
-                <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between text-sm">
+                <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between text-xs">
                   <span className="text-gray-600">
                     Doanh thu:{" "}
                     <b className="text-gray-900">
@@ -378,20 +390,27 @@ const DashboardSale = () => {
               </div>
 
               {/* Chart 2: Số đơn vs Số kiện */}
-              <div className="bg-white rounded-2xl shadow-md p-6 hover:shadow-lg transition-shadow">
-                <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-                  <div className="w-1 h-6 bg-cyan-500 rounded-full"></div>
+              <div className="bg-white rounded-lg shadow-sm p-4 hover:shadow-md transition-shadow">
+                <h3 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <div className="w-1 h-5 bg-cyan-500 rounded-full"></div>
                   Số đơn vs Số kiện
                 </h3>
-                <ResponsiveContainer width="100%" height={280}>
+                <ResponsiveContainer width="100%" height={200}>
                   <BarChart data={chartOrdersVsParcels}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                    <XAxis dataKey="name" tick={{ fill: "#6b7280" }} />
-                    <YAxis allowDecimals={false} tick={{ fill: "#6b7280" }} />
+                    <XAxis
+                      dataKey="name"
+                      tick={{ fill: "#6b7280", fontSize: 12 }}
+                    />
+                    <YAxis
+                      allowDecimals={false}
+                      tick={{ fill: "#6b7280", fontSize: 12 }}
+                    />
                     <Tooltip
                       contentStyle={{
                         borderRadius: "8px",
                         border: "1px solid #e5e7eb",
+                        fontSize: "12px",
                       }}
                     />
                     <Bar
@@ -399,11 +418,11 @@ const DashboardSale = () => {
                       fill="#06b6d4"
                       stroke="#0891b2"
                       strokeWidth={2}
-                      radius={[8, 8, 0, 0]}
+                      radius={[6, 6, 0, 0]}
                     />
                   </BarChart>
                 </ResponsiveContainer>
-                <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between text-sm">
+                <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between text-xs">
                   <span className="text-gray-600">
                     Đơn:{" "}
                     <b className="text-gray-900">
@@ -420,12 +439,12 @@ const DashboardSale = () => {
               </div>
 
               {/* Chart 3: Tỉ lệ hoàn tất */}
-              <div className="bg-white rounded-2xl shadow-md p-6 hover:shadow-lg transition-shadow">
-                <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-                  <div className="w-1 h-6 bg-teal-500 rounded-full"></div>
+              <div className="bg-white rounded-lg shadow-sm p-4 hover:shadow-md transition-shadow">
+                <h3 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <div className="w-1 h-5 bg-teal-500 rounded-full"></div>
                   Tỉ lệ hoàn tất
                 </h3>
-                <div className="h-[280px]">
+                <div className="h-[200px]">
                   <ResponsiveContainer>
                     <RadialBarChart
                       data={chartCompletion}
@@ -441,20 +460,22 @@ const DashboardSale = () => {
                       />
                       <Legend
                         verticalAlign="bottom"
-                        height={36}
+                        height={30}
                         iconType="circle"
+                        wrapperStyle={{ fontSize: "12px" }}
                       />
                       <Tooltip
                         formatter={(v) => `${v}%`}
                         contentStyle={{
                           borderRadius: "8px",
                           border: "1px solid #e5e7eb",
+                          fontSize: "12px",
                         }}
                       />
                     </RadialBarChart>
                   </ResponsiveContainer>
                 </div>
-                <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between text-sm">
+                <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between text-xs">
                   <span className="text-gray-600">
                     Hoàn tất:{" "}
                     <b className="text-teal-600">{completion.toFixed(1)}%</b>
@@ -469,20 +490,24 @@ const DashboardSale = () => {
               </div>
 
               {/* Chart 4: Khối lượng */}
-              <div className="bg-white rounded-2xl shadow-md p-6 hover:shadow-lg transition-shadow">
-                <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-                  <div className="w-1 h-6 bg-indigo-500 rounded-full"></div>
+              <div className="bg-white rounded-lg shadow-sm p-4 hover:shadow-md transition-shadow">
+                <h3 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <div className="w-1 h-5 bg-indigo-500 rounded-full"></div>
                   Khối lượng tịnh (kg)
                 </h3>
-                <ResponsiveContainer width="100%" height={280}>
+                <ResponsiveContainer width="100%" height={200}>
                   <BarChart data={chartWeight}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                    <XAxis dataKey="name" tick={{ fill: "#6b7280" }} />
-                    <YAxis tick={{ fill: "#6b7280" }} />
+                    <XAxis
+                      dataKey="name"
+                      tick={{ fill: "#6b7280", fontSize: 12 }}
+                    />
+                    <YAxis tick={{ fill: "#6b7280", fontSize: 12 }} />
                     <Tooltip
                       contentStyle={{
                         borderRadius: "8px",
                         border: "1px solid #e5e7eb",
+                        fontSize: "12px",
                       }}
                     />
                     <Bar
@@ -490,11 +515,11 @@ const DashboardSale = () => {
                       fill="#6366f1"
                       stroke="#4f46e5"
                       strokeWidth={2}
-                      radius={[8, 8, 0, 0]}
+                      radius={[6, 6, 0, 0]}
                     />
                   </BarChart>
                 </ResponsiveContainer>
-                <div className="mt-4 pt-4 border-t border-gray-100 text-sm text-gray-600">
+                <div className="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-600">
                   Tổng khối lượng:{" "}
                   <b className="text-gray-900">
                     {formatNum(row.totalNetWeight)} kg
@@ -504,11 +529,11 @@ const DashboardSale = () => {
             </div>
 
             {!perf.error && !perf.row && (
-              <div className="bg-white rounded-2xl shadow-md p-12 text-center">
-                <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Calendar className="w-8 h-8 text-blue-400" />
+              <div className="bg-white rounded-lg shadow-sm p-8 text-center">
+                <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <Calendar className="w-6 h-6 text-blue-400" />
                 </div>
-                <p className="text-gray-500 text-lg">
+                <p className="text-gray-500 text-sm">
                   Không có dữ liệu trong khoảng thời gian đã chọn
                 </p>
               </div>
@@ -524,27 +549,27 @@ const DashboardSale = () => {
           onClick={() => setOpenPicker(false)}
         >
           <div
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-md md:max-w-lg max-h-[90vh] overflow-auto"
+            className="bg-white rounded-xl shadow-2xl w-full max-w-md md:max-w-lg max-h-[90vh] overflow-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-2xl">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-5 py-3 flex items-center justify-between rounded-t-xl">
               <div>
-                <h2 className="text-xl font-bold text-gray-900">
+                <h2 className="text-lg font-bold text-gray-900">
                   Chọn khoảng thời gian
                 </h2>
               </div>
               <button
                 onClick={() => setOpenPicker(false)}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
                 title="Đóng"
               >
-                <X className="w-6 h-6 text-gray-600" />
+                <X className="w-5 h-5 text-gray-600" />
               </button>
             </div>
 
             {/* Date Picker */}
-            <div className="p-6">
+            <div className="p-4">
               <div className="flex justify-center">
                 <DateRange
                   ranges={[selectionRange]}
@@ -561,23 +586,23 @@ const DashboardSale = () => {
             </div>
 
             {/* Footer */}
-            <div className="sticky bottom-0 bg-slate-50 border-t border-gray-200 px-6 py-4 flex items-center justify-between rounded-b-2xl">
-              <div className="text-sm text-gray-600">
+            <div className="sticky bottom-0 bg-slate-50 border-t border-gray-200 px-5 py-3 flex items-center justify-between rounded-b-xl">
+              <div className="text-xs text-gray-600">
                 <span className="font-medium">Đã chọn:</span>{" "}
                 <span className="font-semibold text-gray-900">
                   {rangeLabel}
                 </span>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <button
                   onClick={() => setOpenPicker(false)}
-                  className="px-5 py-2.5 rounded-lg bg-slate-200 hover:bg-slate-300 text-gray-700 font-semibold transition-colors"
+                  className="px-4 py-2 rounded-lg bg-slate-200 hover:bg-slate-300 text-gray-700 text-sm font-semibold transition-colors"
                 >
                   Hủy
                 </button>
                 <button
                   onClick={applyAndClose}
-                  className="px-6 py-2.5 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-semibold transition-colors shadow-md"
+                  className="px-5 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold transition-colors shadow-md"
                 >
                   Áp dụng
                 </button>
