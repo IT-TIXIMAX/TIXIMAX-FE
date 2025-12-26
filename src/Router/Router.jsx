@@ -147,6 +147,7 @@ import SummaryOrder from "../components/Manager/Summary/SummaryOrder";
 import SummaryCustomer from "../components/Manager/Summary/SummaryCustomer";
 import SummaryRevenue from "../components/Manager/Summary/SummaryRevenue";
 import SummaryWeight from "../components/Manager/Summary/SummaryWeight";
+import ManagerRouteExchange from "../components/Manager/ManagerRouteExchange";
 const Router = createBrowserRouter([
   {
     path: "/",
@@ -279,6 +280,7 @@ const Router = createBrowserRouter([
       { path: "website", element: <ManagerWebsite /> },
       { path: "promotion", element: <ManagerPromotion /> },
       { path: "notifications", element: <NotFound /> },
+      { path: "exchange-routes", element: <ManagerRouteExchange /> },
     ],
   },
   {

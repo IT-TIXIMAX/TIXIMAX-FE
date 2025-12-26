@@ -116,6 +116,11 @@ const ManagerSidebar = () => {
           path: "/manager/routes",
         },
         {
+          text: t("Quản lí tỷ giá"),
+          icon: <FileText />,
+          path: "/manager/exchange-routes",
+        },
+        {
           text: t("Điểm đến"),
           icon: <MapPin />,
           path: "/manager/transfer",

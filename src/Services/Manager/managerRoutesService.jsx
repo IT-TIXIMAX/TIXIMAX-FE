@@ -29,7 +29,7 @@ const routesService = {
   updateRoute: async (id, data) => {
     const apiData = {
       name: data.name,
-      shipTime: data.shipTime.toString(), // API expects string
+      shipTime: data.shipTime.toString(),
       unitBuyingPrice: data.unitBuyingPrice ?? 0,
       unitDepositPrice: data.unitDepositPrice ?? 0,
       exchangeRate: data.exchangeRate ?? 0,
@@ -49,6 +49,24 @@ const routesService = {
 
   updateExchangeRates: async () => {
     const res = await api.put("/routes/update-exchange-rates");
+    return res.data;
+  },
+  getRouteExchangeByRouteId: async (routeId) => {
+    const res = await api.get(`/route-exchange/route/${routeId}`);
+    return res.data;
+  },
+  getEffectiveRouteExchange: async (routeId, date) => {
+    const res = await api.get(`/route-exchange/effective/${routeId}`, {
+      params: { date },
+    });
+    return res.data;
+  },
+  createRouteExchange: async (payload) => {
+    const res = await api.post("/route-exchange", payload);
+    return res.data;
+  },
+  deleteRouteExchange: async (id) => {
+    const res = await api.delete(`/route-exchange/${id}`);
     return res.data;
   },
 };
