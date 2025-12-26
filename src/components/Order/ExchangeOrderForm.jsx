@@ -9,12 +9,14 @@ import {
   Calculator,
   DollarSign,
   ArrowRightLeft,
+  Image as ImageIcon, // ✅ THÊM icon
 } from "lucide-react";
 import exchangeOrderService from "../../Services/LeadSale/exchangeOrderService";
 import routesService from "../../Services/StaffSale/routeService";
 import toast from "react-hot-toast";
 import AccountSearch from "./AccountSearch";
 import ConfirmDialog from "../../common/ConfirmDialog";
+import UploadImg from "../../common/UploadImg"; // ✅ IMPORT component
 
 // 🎯 Helper functions để format số
 const formatNumber = (value) => {
@@ -23,7 +25,6 @@ const formatNumber = (value) => {
   return num.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 };
 
-// ✅ NEW: Format cho số thập phân (tỷ giá)
 const formatDecimal = (value) => {
   if (!value && value !== 0) return "";
   return String(value);
@@ -47,6 +48,7 @@ const ExchangeOrderForm = () => {
   const [form, setForm] = useState({
     exchangeRate: "",
     moneyExChange: "",
+    image: "", // ✅ THÊM state cho ảnh
     fee: "",
     note: "",
   });
@@ -159,20 +161,16 @@ const ExchangeOrderForm = () => {
     [masterData.routes]
   );
 
-  // ✅ NEW: Handler riêng cho exchangeRate (cho phép thập phân)
   const handleExchangeRateChange = useCallback((e) => {
     const { value } = e.target;
 
-    // Chỉ cho phép số và 1 dấu chấm thập phân
     const cleaned = value.replace(/[^\d.]/g, "");
 
-    // Đếm số dấu chấm, chỉ cho phép 1 dấu chấm
     const dotCount = (cleaned.match(/\./g) || []).length;
     if (dotCount > 1) {
       return;
     }
 
-    // Validate format số thập phân
     if (cleaned && !/^\d*\.?\d*$/.test(cleaned)) {
       return;
     }
@@ -183,17 +181,13 @@ const ExchangeOrderForm = () => {
     }));
   }, []);
 
-  // 🎯 Handler cho number inputs với format (moneyExChange, fee)
   const handleNumberChange = useCallback((e) => {
     const { name, value } = e.target;
 
-    // Chỉ cho phép số và dấu chấm
     const cleaned = value.replace(/[^\d.]/g, "");
 
-    // Parse về number (remove dots)
     const numberValue = parseNumber(cleaned);
 
-    // Validate: chỉ số
     if (numberValue && !/^\d+$/.test(numberValue)) {
       return;
     }
@@ -204,7 +198,6 @@ const ExchangeOrderForm = () => {
     }));
   }, []);
 
-  // Handler cho text input (note)
   const handleTextChange = useCallback((e) => {
     const { name, value } = e.target;
     setForm((prev) => ({
@@ -213,9 +206,24 @@ const ExchangeOrderForm = () => {
     }));
   }, []);
 
+  // ✅ THÊM: Handlers cho upload ảnh
+  const handleImageUpload = useCallback((uploadedImageUrl) => {
+    setForm((prev) => ({
+      ...prev,
+      image: uploadedImageUrl,
+    }));
+  }, []);
+
+  const handleImageRemove = useCallback(() => {
+    setForm((prev) => ({
+      ...prev,
+      image: "",
+    }));
+  }, []);
+
   // Calculations
   const calculations = useMemo(() => {
-    const rate = parseFloat(form.exchangeRate) || 0; // ✅ CHANGED: parseFloat
+    const rate = parseFloat(form.exchangeRate) || 0;
     const moneyExchange = Number(form.moneyExChange) || 0;
     const fee = Number(form.fee) || 0;
 
@@ -253,7 +261,7 @@ const ExchangeOrderForm = () => {
       return;
     }
 
-    const rate = parseFloat(form.exchangeRate || 0); // ✅ CHANGED: parseFloat
+    const rate = parseFloat(form.exchangeRate || 0);
     const money = Number(form.moneyExChange || 0);
     const fee = Number(form.fee || 0);
 
@@ -279,6 +287,7 @@ const ExchangeOrderForm = () => {
       const orderData = {
         exchangeRate: rate,
         moneyExChange: money,
+        image: form.image || "", // ✅ THÊM image vào payload
         fee: fee,
         note: form.note || "",
       };
@@ -299,6 +308,7 @@ const ExchangeOrderForm = () => {
       setForm({
         exchangeRate: "",
         moneyExChange: "",
+        image: "", // ✅ RESET image
         fee: "",
         note: "",
       });
@@ -452,7 +462,7 @@ const ExchangeOrderForm = () => {
                     Thông tin chuyển tiền
                   </h3>
 
-                  {/* Tỷ giá - ✅ CHANGED */}
+                  {/* Tỷ giá */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Tỷ giá <span className="text-red-500">*</span>
@@ -508,6 +518,20 @@ const ExchangeOrderForm = () => {
                         disabled={!isFormEnabled}
                       />
                     </div>
+                  </div>
+
+                  {/* ✅ THÊM: Upload Ảnh */}
+                  <div>
+                    <UploadImg
+                      imageUrl={form.image}
+                      onImageUpload={handleImageUpload}
+                      onImageRemove={handleImageRemove}
+                      label="Ảnh "
+                      required={false}
+                      maxSizeMB={3}
+                      placeholder="Chưa có ảnh "
+                      className=""
+                    />
                   </div>
 
                   {/* Ghi chú */}
@@ -609,6 +633,21 @@ const ExchangeOrderForm = () => {
                           {formatNumber(calculations.totalWithFee)} VND
                         </span>
                       </div>
+                    </div>
+                  )}
+
+                  {/* ✅ THÊM: Hiển thị ảnh trong preview */}
+                  {form.image && (
+                    <div className="border border-gray-200 rounded-lg p-4">
+                      <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                        <ImageIcon className="w-4 h-4 text-blue-500" />
+                        Ảnh
+                      </h3>
+                      <img
+                        src={form.image}
+                        alt="Ảnh "
+                        className="w-full h-48 object-contain border border-gray-200 rounded-lg bg-gray-50"
+                      />
                     </div>
                   )}
 
@@ -738,9 +777,23 @@ const ExchangeOrderForm = () => {
                   </span>
                 </div>
 
+                {/* ✅ THÊM: Hiển thị ảnh trong confirm dialog */}
+                {form.image && (
+                  <div className="border-t border-gray-300 pt-2 mt-2">
+                    <p className="text-gray-600 mb-2">Ảnh :</p>
+                    <img
+                      src={form.image}
+                      alt="Ảnh "
+                      className="w-full h-32 object-contain border border-gray-200 rounded bg-white"
+                    />
+                  </div>
+                )}
+
                 {form.note && (
                   <div className="flex justify-between gap-4">
-                    <span className="text-gray-600 shrink-0">Ghi chú:</span>
+                    <span className="text-gray-600 shrink-0">
+                      Thông tin tài khoảng:
+                    </span>
                     <span className="font-semibold text-gray-900 text-right whitespace-pre-wrap">
                       {form.note}
                     </span>

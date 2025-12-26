@@ -3,7 +3,12 @@ import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import createPurchaseService from "../../Services/StaffPurchase/createPurchaseService";
 import UploadImg from "../../common/UploadImg";
-import { ArrowRightLeft, Image as ImageIcon, FileText } from "lucide-react";
+import {
+  ArrowRightLeft,
+  Image as ImageIcon,
+  FileText,
+  DollarSign, // ✅ THÊM icon
+} from "lucide-react";
 
 const getBackendErrorMessage = (error) => {
   const data = error?.response?.data;
@@ -24,16 +29,81 @@ const getBackendErrorMessage = (error) => {
   return "Không thể kết nối tới server.";
 };
 
+// ✅ THÊM: Format functions
+const formatCurrency = (value) => {
+  if (!value && value !== 0) return "";
+
+  const stringValue = value.toString();
+
+  // Nếu đang nhập và kết thúc bằng dấu chấm, giữ nguyên
+  if (stringValue.endsWith(".")) {
+    const integerPart = stringValue.slice(0, -1);
+    if (integerPart === "") return ".";
+    const formattedInteger = parseInt(integerPart).toLocaleString("en-US");
+    return `${formattedInteger}.`;
+  }
+
+  const parts = stringValue.split(".");
+  const integerPart = parts[0];
+  const decimalPart = parts[1];
+
+  // Nếu chỉ có dấu chấm
+  if (integerPart === "" && decimalPart === undefined) {
+    return "";
+  }
+
+  // Format phần nguyên với dấu phẩy
+  const formattedInteger = integerPart
+    ? parseInt(integerPart).toLocaleString("en-US")
+    : "0";
+
+  // Nếu có phần thập phân, giữ nguyên
+  if (decimalPart !== undefined) {
+    return `${formattedInteger}.${decimalPart}`;
+  }
+
+  return formattedInteger;
+};
+
+const getRawValue = (value) => value.toString().replace(/,/g, "");
+
+const isValidDecimal = (value) => /^\d*\.?\d*$/.test(value) || value === "";
+
 const CreateExchangeMoney = ({ isOpen, onClose, orderCode, onSuccess }) => {
-  const [data, setData] = useState({ image: "", note: "" });
+  const [data, setData] = useState({
+    image: "",
+    total: "", // ✅ THÊM total
+    note: "",
+  });
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (isOpen) setData({ image: "", note: "" });
+    if (isOpen) setData({ image: "", total: "", note: "" }); // ✅ RESET total
   }, [isOpen]);
 
+  // ✅ THÊM: Handler cho total
+  const handleTotalChange = (e) => {
+    const value = e.target.value;
+    const cleanValue = getRawValue(value);
+    if (isValidDecimal(cleanValue)) {
+      setData((prev) => ({ ...prev, total: cleanValue }));
+    }
+  };
+
+  // ✅ THÊM: Handler onBlur để làm tròn 2 số thập phân
+  const handleTotalBlur = () => {
+    const currentValue = getRawValue(data.total);
+    if (currentValue) {
+      const numValue = parseFloat(currentValue);
+      if (!isNaN(numValue) && numValue >= 0) {
+        const roundedValue = numValue.toFixed(2);
+        setData((prev) => ({ ...prev, total: roundedValue }));
+      }
+    }
+  };
+
   const handleClose = () => {
-    setData({ image: "", note: "" });
+    setData({ image: "", total: "", note: "" }); // ✅ RESET total
     onClose?.();
   };
 
@@ -42,6 +112,14 @@ const CreateExchangeMoney = ({ isOpen, onClose, orderCode, onSuccess }) => {
       toast.error("Order code không hợp lệ");
       return;
     }
+
+    // ✅ THÊM: Validation cho total
+    const rawTotal = getRawValue(data.total);
+    if (!rawTotal || Number(rawTotal) <= 0) {
+      toast.error("Vui lòng nhập số tiền hợp lệ (> 0)");
+      return;
+    }
+
     if (!data.image || data.image === "string") {
       toast.error("Vui lòng upload ảnh");
       return;
@@ -51,6 +129,7 @@ const CreateExchangeMoney = ({ isOpen, onClose, orderCode, onSuccess }) => {
     try {
       await createPurchaseService.createMoneyExchangePurchase(orderCode, {
         image: data.image,
+        total: Number(rawTotal), // ✅ THÊM total vào payload
         note: data.note || "",
       });
 
@@ -93,6 +172,25 @@ const CreateExchangeMoney = ({ isOpen, onClose, orderCode, onSuccess }) => {
 
           {/* Form */}
           <div className="space-y-5">
+            {/* ✅ THÊM: Total Amount Input */}
+            <div>
+              <label className="flex items-center gap-2 text-sm font-semibold text-gray-900 mb-2">
+                <DollarSign className="w-4 h-4 text-red-500" />
+                Total Amount <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="text"
+                  value={formatCurrency(data.total || "")}
+                  onChange={handleTotalChange}
+                  onBlur={handleTotalBlur}
+                  className="w-full pl-11 pr-4 py-2.5 border-2 border-red-500 rounded-md focus:border-red-600 focus:ring-0 outline-none text-base"
+                  placeholder="000.000"
+                />
+              </div>
+            </div>
+
             <UploadImg
               imageUrl={data.image}
               onImageUpload={(url) =>
@@ -133,7 +231,7 @@ const CreateExchangeMoney = ({ isOpen, onClose, orderCode, onSuccess }) => {
 
             <button
               onClick={handleSubmit}
-              disabled={loading || !data.image}
+              disabled={loading || !data.image || !data.total} // ✅ THÊM !data.total
               className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center transition-colors"
             >
               {loading && (
