@@ -112,3 +112,58 @@ const userService = {
 };
 
 export default userService;
+
+// import api from "../../config/api.js";
+
+// /* ================= Helpers ================= */
+// const checkPage = (page, size) => {
+//   if (page < 0 || size < 1 || size > 200) {
+//     throw new Error("Invalid pagination");
+//   }
+// };
+
+// const throwApiError = (err, fallback = "Request failed") => {
+//   const msg = err?.response?.data?.message || err?.message || fallback;
+//   throw new Error(msg);
+// };
+
+// const getPaging = async (url, page, size, params = {}) => {
+//   checkPage(page, size);
+//   try {
+//     const res = await api.get(`${url}/${page}/${size}`, { params });
+//     return res.data;
+//   } catch (e) {
+//     throwApiError(e);
+//   }
+// };
+
+// const userService = {
+//   // GET /accounts/{id}
+//   getAccountById: async (id) => {
+//     if (!id) throw new Error("Account ID is required");
+//     try {
+//       const res = await api.get(`/accounts/${id}`);
+//       return res.data;
+//     } catch (e) {
+//       throwApiError(e, "Failed to load account");
+//     }
+//   },
+
+//   // GET /accounts/customers/{page}/{size}
+//   getCustomerAccounts: (page = 0, size = 100) =>
+//     getPaging("/accounts/customers", page, size),
+
+//   // GET /accounts/staff/{page}/{size}
+//   getStaffAccounts: (page = 0, size = 100) =>
+//     getPaging("/accounts/staff", page, size),
+
+//   // GET /accounts/my-customers/{page}/{size}?search=
+//   getMyCustomers: (page = 0, size = 100, search = "") =>
+//     getPaging("/accounts/my-customers", page, size, { search }),
+
+//   // GET /accounts/sale-lead-staff/{page}/{size}
+//   getSaleLeadStaff: (page = 0, size = 100) =>
+//     getPaging("/accounts/sale-lead-staff", page, size),
+// };
+
+// export default userService;
