@@ -75,6 +75,7 @@ const services = [
 
 const ServicesPage = () => {
   const [showAll, setShowAll] = useState(false);
+  const [activeCard, setActiveCard] = useState(null);
   const needsToggle = services.length > 8;
   const displayedServices =
     needsToggle && !showAll ? services.slice(0, 8) : services;
@@ -112,7 +113,14 @@ const ServicesPage = () => {
                   href={`https://${service.domain}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group relative bg-white rounded-2xl overflow-hidden hover:shadow-2xl shadow-lg transition-all duration-500 cursor-pointer block transform hover:-translate-y-2 border-2 border-gray-900 flex-shrink-0 w-[320px]"
+                  onMouseDown={() => setActiveCard(service.id)}
+                  onTouchStart={() => setActiveCard(service.id)}
+                  className={`group relative bg-white rounded-2xl overflow-hidden hover:shadow-2xl shadow-lg transition-all duration-500 cursor-pointer block transform hover:-translate-y-2 border-2 outline-none focus:outline-none focus-visible:outline-none active:border-yellow-400 hover:border-yellow-400 ${
+                    activeCard === service.id
+                      ? "border-yellow-400 shadow-yellow-400/20"
+                      : "border-gray-900"
+                  } flex-shrink-0 w-[320px]`}
+                  style={{ outline: "none" }}
                 >
                   {/* Gradient overlay on hover */}
                   <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/0 to-yellow-500/0 group-hover:from-yellow-400/5 group-hover:to-yellow-500/10 transition-all duration-500"></div>
@@ -242,7 +250,14 @@ const ServicesPage = () => {
                 href={`https://${service.domain}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group relative bg-white rounded-2xl overflow-hidden hover:shadow-2xl shadow-lg transition-all duration-500 cursor-pointer block transform hover:-translate-y-2 border-2 border-gray-900"
+                onMouseDown={() => setActiveCard(service.id)}
+                onTouchStart={() => setActiveCard(service.id)}
+                className={`group relative bg-white rounded-2xl overflow-hidden hover:shadow-2xl shadow-lg transition-all duration-500 cursor-pointer block transform hover:-translate-y-2 border-2 outline-none focus:outline-none focus-visible:outline-none active:border-yellow-400 hover:border-yellow-400 ${
+                  activeCard === service.id
+                    ? "border-yellow-400 shadow-yellow-400/20"
+                    : "border-gray-900"
+                }`}
+                style={{ outline: "none" }}
               >
                 {/* Gradient overlay on hover */}
                 <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/0 to-yellow-500/0 group-hover:from-yellow-400/5 group-hover:to-yellow-500/10 transition-all duration-500"></div>
