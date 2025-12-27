@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import orderlinkService from "../../Services/StaffPurchase/orderlinkService";
-import DetailOrderLink from "./DetailOrderLink";
+import DetailExchangeMoney from "./DetailExchangeMoney";
 import CancelPurchase from "./CancelPurchase";
 import PurchaseLater from "./PurchaseLater";
 import PinOrder from "./PinOrder";
@@ -754,14 +754,14 @@ const ExchanegMoneyList = () => {
                       </div>
 
                       <div className="text-right flex items-center gap-3">
-                        <div>
+                        {/* <div>
                           <div className="text-base font-bold text-gray-900 flex items-center gap-1">
                             {formatCurrency(order.finalPriceOrder)}
                           </div>
                           <div className="text-xs text-gray-500 font-semibold">
                             Order total
                           </div>
-                        </div>
+                        </div> */}
 
                         {availableLinks.length > 0 && (
                           <button
@@ -963,7 +963,7 @@ const ExchanegMoneyList = () => {
                                   <div className="lg:col-span-1">
                                     <div className="space-y-0.5 text-xls text-black-600">
                                       <div>
-                                        Note:{" "}
+                                        Info BankAccout:{" "}
                                         <span className="font-medium">
                                           {link.note || "N/A"}
                                         </span>
@@ -1113,7 +1113,10 @@ const ExchanegMoneyList = () => {
       />
 
       {selectedLinkId && (
-        <DetailOrderLink linkId={selectedLinkId} onClose={handleCloseDetail} />
+        <DetailExchangeMoney
+          linkId={selectedLinkId}
+          onClose={handleCloseDetail}
+        />
       )}
     </div>
   );
