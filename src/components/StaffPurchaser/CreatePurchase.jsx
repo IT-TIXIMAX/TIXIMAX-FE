@@ -383,7 +383,7 @@ const CreatePurchase = ({
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  ExtraRate (Optional)
+                  ExtraRate (Only US-Route)
                 </label>
                 <input
                   type="text"

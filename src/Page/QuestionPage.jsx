@@ -276,7 +276,7 @@ const QuestionPage = () => {
                 {/* Mobile full width, desktop như cũ */}
                 <button
                   onClick={handleSubmit}
-                  className="w-full sm:w-auto px-12 py-4 bg-gray-900 text-white font-bold uppercase rounded-lg hover:bg-gray-800 transition-colors duration-300 shadow-lg"
+                  className="inline-block w-full sm:w-auto text-center px-10 py-3 bg-gray-900 text-white font-bold uppercase rounded-lg hover:bg-gray-800 transition-colors duration-300 shadow-lg"
                 >
                   Yêu cầu báo giá
                 </button>

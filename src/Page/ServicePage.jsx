@@ -16,7 +16,7 @@ const services = [
       "https://upload.wikimedia.org/wikipedia/commons/9/9f/Flag_of_Indonesia.svg",
     market: "Indonesia",
     description:
-      "Cung cấp dịch vụ vận chuyển - đấu giá - mua hộ 2 chiều Indonesia - Việt Nam.",
+      "Xây dựng niềm tin và sự trung thực có độ uy tín cao trong ngành vận chuyển logistics.",
     specialties: [
       { name: "Mua hộ", icon: ShoppingCart },
       { name: "Đấu giá", icon: Zap },
@@ -31,7 +31,7 @@ const services = [
     country: "https://upload.wikimedia.org/wikipedia/en/9/9e/Flag_of_Japan.svg",
     market: "Japan",
     description:
-      "Cung cấp dịch vụ vận chuyển - đấu giá - mua hộ 2 chiều từ Nhật Bản về Việt Nam.",
+      "Chìa khóa để thích ứng và đổi mới liên tục luôn mang lại cái mới và sự tin tưởng với khách hàng.",
     specialties: [
       { name: "Mua hộ", icon: ShoppingCart },
       { name: "Vận chuyển", icon: Truck },
@@ -47,7 +47,7 @@ const services = [
       "https://upload.wikimedia.org/wikipedia/commons/0/09/Flag_of_South_Korea.svg",
     market: "South Korea",
     description:
-      "Chuyên vận chuyển - đấu giá - mua hộ từ Hàn Quốc về Việt Nam.",
+      "Thúc đẩy sáng tạo và phát huy năng lực cá nhân để mang lại giá trị tốt nhất.",
     specialties: [
       { name: "Mua hộ", icon: ShoppingCart },
       { name: "Vận chuyển", icon: Truck },
@@ -62,7 +62,8 @@ const services = [
     country:
       "https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg",
     market: "USA",
-    description: "Chuyên vận chuyển - đấu giá - mua hộ từ Mỹ về Việt Nam.",
+    description:
+      "Đảm bảo sự thịnh vượng đi cùng nhân văn trong dịch vụ vận chuyển.",
     specialties: [
       { name: "Mua hộ", icon: ShoppingCart },
       { name: "Vận chuyển", icon: Truck },
@@ -293,28 +294,15 @@ const ServicesPage = () => {
 
                   {/* Specialties Section */}
                   <div className="mb-6">
-                    <div className="flex items-center justify-center gap-2 mb-5">
+                    {/* <div className="flex items-center justify-center gap-2 mb-5">
                       <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
                       <div className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-yellow-400/20 to-yellow-500/20 rounded-full border border-yellow-400/50">
-                        <svg
-                          className="w-3.5 h-3.5 text-yellow-600"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M5 13l4 4L19 7"
-                          />
-                        </svg>
                         <span className="text-xs font-bold text-gray-700 uppercase tracking-wider">
                           Chuyên môn
                         </span>
                       </div>
                       <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
-                    </div>
+                    </div> */}
 
                     {/* Specialty Grid */}
                     <div className="grid grid-cols-2 gap-3">

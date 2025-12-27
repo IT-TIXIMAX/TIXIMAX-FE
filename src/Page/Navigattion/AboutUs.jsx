@@ -511,7 +511,7 @@ const AboutUs = () => {
         </div>
       </section>
 
-      {/* Commitments */}
+      {/* Commitments - REDESIGNED */}
       <section
         id="commitments"
         className="py-12 lg:py-16 bg-gradient-to-br from-gray-50 to-amber-50/30"
@@ -524,9 +524,13 @@ const AboutUs = () => {
                 Cam Kết Của Chúng Tôi
               </span>
             </div>
-            <h2 className="text-3xl md:text-4xl font-black text-gray-900">
+            <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-3">
               Trách nhiệm với từng đối tượng
             </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Chúng tôi cam kết mang lại giá trị tốt nhất cho khách hàng và môi
+              trường làm việc tuyệt vời cho nhân viên
+            </p>
           </div>
 
           <div className="grid lg:grid-cols-2 gap-8">
@@ -536,29 +540,49 @@ const AboutUs = () => {
               initial="hidden"
               whileInView="show"
               viewport={{ once: true }}
-              className="rounded-3xl bg-white border border-gray-100 shadow-xl overflow-hidden"
+              className="group relative bg-white rounded-2xl overflow-hidden border-2 border-amber-400 hover:border-gray-900 shadow-lg hover:shadow-2xl transition-all duration-500"
             >
-              <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-4 text-white">
-                <div className="flex items-center gap-3 mb-3">
-                  <Users2 className="w-10 h-10" />
-                  <h3 className="text-2xl font-bold">Đối với Khách hàng</h3>
+              {/* Gradient overlay on hover */}
+              <div className="absolute inset-0 bg-gradient-to-br from-amber-400/0 to-amber-500/0 group-hover:from-amber-400/5 group-hover:to-amber-500/10 transition-all duration-500 pointer-events-none" />
+
+              {/* Header */}
+              <div className="relative bg-gradient-to-r from-amber-400 to-amber-500 p-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
+                    <Users2 className="w-8 h-8 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl lg:text-3xl font-black text-black tracking-tight">
+                      Đối với Khách hàng
+                    </h3>
+                    <p className="text-amber-50 text-sm font-medium mt-1">
+                      Cam kết chất lượng dịch vụ
+                    </p>
+                  </div>
                 </div>
               </div>
-              <div className="p-8">
-                <div className="space-y-6">
-                  {customerCommitments.map((commitment) => (
+
+              {/* Content */}
+              <div className="relative p-8">
+                <div className="space-y-5">
+                  {customerCommitments.map((commitment, idx) => (
                     <div
                       key={commitment.title}
-                      className="flex items-start gap-4 group"
+                      className="group/item flex items-start gap-4 p-4 rounded-xl hover:bg-amber-50 transition-all duration-300"
                     >
-                      <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600 flex-shrink-0 group-hover:bg-blue-500 group-hover:text-white transition-colors">
+                      <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 flex items-center justify-center text-white flex-shrink-0 shadow-md group-hover/item:scale-110 group-hover/item:shadow-lg transition-all duration-300">
                         {commitment.icon}
                       </div>
-                      <div>
-                        <h4 className="font-bold text-gray-900 mb-1">
-                          {commitment.title}
-                        </h4>
-                        <p className="text-gray-600 text-sm">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="w-6 h-6 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center text-xs font-bold">
+                            {idx + 1}
+                          </span>
+                          <h4 className="font-bold text-gray-900 text-lg">
+                            {commitment.title}
+                          </h4>
+                        </div>
+                        <p className="text-gray-600 leading-relaxed">
                           {commitment.desc}
                         </p>
                       </div>
@@ -566,6 +590,9 @@ const AboutUs = () => {
                   ))}
                 </div>
               </div>
+
+              {/* Bottom indicator */}
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 to-amber-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
             </motion.div>
 
             {/* Employee Commitments */}
@@ -574,29 +601,49 @@ const AboutUs = () => {
               initial="hidden"
               whileInView="show"
               viewport={{ once: true }}
-              className="rounded-3xl bg-white border border-gray-100 shadow-xl overflow-hidden"
+              className="group relative bg-white rounded-2xl overflow-hidden border-2 border-amber-400 hover:border-gray-900 shadow-lg hover:shadow-2xl transition-all duration-500"
             >
-              <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-4 text-white">
-                <div className="flex items-center gap-3 mb-3">
-                  <Heart className="w-10 h-10" />
-                  <h3 className="text-2xl font-bold">Đối với Nhân viên</h3>
+              {/* Gradient overlay on hover */}
+              <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/0 to-yellow-500/0 group-hover:from-yellow-400/5 group-hover:to-yellow-500/10 transition-all duration-500 pointer-events-none" />
+
+              {/* Header */}
+              <div className="relative bg-gradient-to-r from-yellow-400 to-yellow-500 p-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
+                    <Heart className="w-8 h-8 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl lg:text-3xl font-black text-black tracking-tight">
+                      Đối với Nhân viên
+                    </h3>
+                    <p className="text-yellow-50 text-sm font-medium mt-1">
+                      Cam kết môi trường làm việc
+                    </p>
+                  </div>
                 </div>
               </div>
-              <div className="p-8">
-                <div className="space-y-6">
-                  {employeeCommitments.map((commitment) => (
+
+              {/* Content */}
+              <div className="relative p-8">
+                <div className="space-y-5">
+                  {employeeCommitments.map((commitment, idx) => (
                     <div
                       key={commitment.title}
-                      className="flex items-start gap-4 group"
+                      className="group/item flex items-start gap-4 p-4 rounded-xl hover:bg-yellow-50 transition-all duration-300"
                     >
-                      <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center text-green-600 flex-shrink-0 group-hover:bg-green-500 group-hover:text-white transition-colors">
+                      <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-yellow-400 via-yellow-500 to-yellow-600 flex items-center justify-center text-white flex-shrink-0 shadow-md group-hover/item:scale-110 group-hover/item:shadow-lg transition-all duration-300">
                         {commitment.icon}
                       </div>
-                      <div>
-                        <h4 className="font-bold text-gray-900 mb-1">
-                          {commitment.title}
-                        </h4>
-                        <p className="text-gray-600 text-sm">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="w-6 h-6 rounded-full bg-yellow-100 text-yellow-600 flex items-center justify-center text-xs font-bold">
+                            {idx + 1}
+                          </span>
+                          <h4 className="font-bold text-gray-900 text-lg">
+                            {commitment.title}
+                          </h4>
+                        </div>
+                        <p className="text-gray-600 leading-relaxed">
                           {commitment.desc}
                         </p>
                       </div>
@@ -604,7 +651,56 @@ const AboutUs = () => {
                   ))}
                 </div>
               </div>
+
+              {/* Bottom indicator */}
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-yellow-400 to-yellow-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
             </motion.div>
+          </div>
+
+          {/* Bottom CTA or decorative element */}
+          <div className="mt-12">
+            <div className="relative overflow-hidden border-2 border-gray-900 rounded-2xl p-8 lg:p-10 bg-gradient-to-br from-white to-amber-50 shadow-xl hover:shadow-2xl transition-shadow">
+              {/* Background pattern */}
+              <div className="absolute inset-0 opacity-5">
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    backgroundImage:
+                      "radial-gradient(circle, #000 1px, transparent 1px)",
+                    backgroundSize: "20px 20px",
+                  }}
+                ></div>
+              </div>
+
+              <div className="relative flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="text-center md:text-left">
+                  <div className="inline-block mb-3">
+                    <div className="h-1.5 w-20 bg-gradient-to-r from-amber-400 to-yellow-500 mb-3 rounded-full"></div>
+                  </div>
+                  <h3 className="text-2xl lg:text-3xl font-black text-gray-900 mb-2 tracking-tight">
+                    Cam kết của chúng tôi là hành động
+                  </h3>
+                  <p className="text-gray-600 text-base lg:text-lg">
+                    Không chỉ là lời hứa, mà là trách nhiệm với từng khách hàng
+                    và nhân viên
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="flex -space-x-2">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-amber-500 border-2 border-white flex items-center justify-center">
+                      <CheckCircle2 className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-500 border-2 border-white flex items-center justify-center">
+                      <Heart className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-orange-500 border-2 border-white flex items-center justify-center">
+                      <Handshake className="w-5 h-5 text-white" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -660,10 +756,10 @@ const AboutUs = () => {
         </div>
       </section>
 
-      {/* Leadership */}
+      {/* Leadership - REDESIGNED */}
       <section className="py-12 lg:py-16 bg-gradient-to-br from-gray-50 to-amber-50/30">
         <div className="max-w-7xl mx-auto px-6 lg:px-10">
-          <div className="mb-10">
+          <div className="mb-10 text-center">
             <div className="inline-flex items-center gap-2 bg-amber-100 text-amber-700 px-4 py-2 rounded-full mb-4">
               <Trophy className="w-5 h-5" />
               <span className="font-semibold text-sm uppercase tracking-wider">
@@ -673,48 +769,113 @@ const AboutUs = () => {
             <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-3">
               Đội ngũ lãnh đạo
             </h2>
-            <p className="text-lg text-gray-600">
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
               Những người dẫn dắt Tiximax phát triển bền vững và khác biệt.
             </p>
           </div>
+
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {leaders.map((p, idx) => (
+            {leaders.map((leader, idx) => (
               <motion.div
-                key={p.name}
+                key={leader.name}
                 initial={{ opacity: 0, y: 14 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.45, delay: idx * 0.1 }}
-                className="rounded-3xl bg-white border border-gray-100 overflow-hidden shadow-lg hover:shadow-2xl transition-all group"
+                className="group relative bg-white rounded-2xl overflow-hidden border-2 border-gray-900 hover:border-amber-400 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2"
               >
+                {/* Gradient overlay on hover */}
+                <div className="absolute inset-0 bg-gradient-to-br from-amber-400/0 to-amber-500/0 group-hover:from-amber-400/5 group-hover:to-amber-500/10 transition-all duration-500 z-10 pointer-events-none" />
+
+                {/* Image Container */}
                 <div className="relative h-96 overflow-hidden">
+                  {/* Glow effect behind image */}
+                  <div className="absolute inset-0 bg-amber-400/20 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
                   <img
-                    src={p.image}
-                    alt={p.name}
-                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    src={leader.image}
+                    alt={leader.name}
+                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-                  <div className="absolute bottom-6 left-6 right-6">
-                    <p className="font-bold text-white text-xl mb-1">
-                      {p.name}
-                    </p>
-                    {/* <p className="text-base text-amber-300 font-medium">
-                      {p.role}
-                    </p> */}
+
+                  {/* Gradient overlay on image */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/60 to-transparent" />
+
+                  {/* Name on image */}
+                  <div className="absolute bottom-0 left-0 right-0 p-6 z-10">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="h-1 flex-1 bg-gradient-to-r from-amber-400 to-amber-500 rounded-full" />
+                    </div>
+                    <h3 className="font-black text-white text-2xl mb-2 tracking-tight">
+                      {leader.name}
+                    </h3>
                   </div>
                 </div>
-                <div className="p-6">
-                  <p className="text-base text-gray-800 font-medium">
-                    {p.role}
-                  </p>
-                  <p className="text-base font-medium text-gray-700">{p.bio}</p>
+
+                {/* Content */}
+                <div className="relative p-6 z-10">
+                  {/* Role Badge */}
+                  <div className="mb-4">
+                    <div className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-400/20 to-amber-500/20 px-4 py-2 rounded-full border border-amber-400/50">
+                      <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                      <span className="text-sm font-bold text-gray-800">
+                        {leader.role}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Email with icon */}
+                  <div className="flex items-center gap-3 bg-gray-50 rounded-xl p-4 border border-gray-200 group-hover:border-amber-400 transition-colors">
+                    <div className="bg-white p-2 rounded-lg shadow-sm">
+                      <svg
+                        className="w-5 h-5 text-amber-500"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                        />
+                      </svg>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-gray-500 font-medium mb-1">
+                        Liên hệ
+                      </p>
+
+                      <a
+                        href={`mailto:${leader.bio.replace("Email: ", "")}`}
+                        className="text-sm font-semibold text-gray-900 hover:text-amber-600 transition-colors truncate block"
+                      >
+                        {leader.bio.replace("Email: ", "")}
+                      </a>
+                    </div>
+                  </div>
                 </div>
+
+                {/* Bottom indicator */}
+                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 to-amber-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
               </motion.div>
             ))}
+          </div>
+
+          {/* Bottom decorative section */}
+          <div className="mt-12 text-center">
+            <div className="inline-flex items-center gap-2 text-gray-600">
+              <div className="h-px w-12 bg-gradient-to-r from-transparent to-amber-400" />
+              <span className="text-sm font-medium">
+                Đội ngũ chuyên nghiệp, tận tâm
+              </span>
+              <div className="h-px w-12 bg-gradient-to-r from-amber-400 to-transparent" />
+            </div>
           </div>
         </div>
       </section>
     </main>
   );
 };
+
 export default AboutUs;
