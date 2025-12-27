@@ -138,7 +138,7 @@ const DividePaymentOrder = () => {
   const selectedTotal = useMemo(() => {
     return items
       .filter((it) => selectedItems.includes(it.linkId))
-      .reduce((sum, it) => sum + (it.finalPriceVnd || 0), 0);
+      .reduce((sum, it) => sum + (it.finalPriceShip || 0), 0);
   }, [items, selectedItems]);
 
   const selectedShipmentCodes = useMemo(() => {
@@ -302,14 +302,14 @@ const DividePaymentOrder = () => {
 
                   {selectedItems.length > 0 && (
                     <div className="flex items-center gap-3 pl-4 border-l">
-                      <div className="text-sm">
-                        <span className="text-gray-600">Đã chọn:</span>{" "}
-                        <span className="font-semibold">
+                      <div className="text-xl">
+                        <span className="text-black-600">Đã chọn:</span>{" "}
+                        <span className="font-bold text-blue-600">
                           {selectedItems.length}
                         </span>
                       </div>
-                      <div className="text-sm">
-                        <span className="text-gray-600">Tổng:</span>{" "}
+                      <div className="text-xl">
+                        <span className="text-black-600">Tổng:</span>{" "}
                         <span className="font-bold text-blue-600">
                           {formatCurrency(selectedTotal)}
                         </span>
