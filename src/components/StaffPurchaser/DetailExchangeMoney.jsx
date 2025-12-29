@@ -192,7 +192,10 @@ const DetailExchangeMoney = ({ linkId, onClose }) => {
                     label="Price"
                     value={formatCurrency(orderLink.totalWeb)}
                   />
-                  <Row label="Innfomation BankAccout" value={orderLink.note} />
+                  <Row
+                    label="Bank Account Information"
+                    value={orderLink.note}
+                  />
                   <Row
                     label="Extra"
                     value={formatCurrency(orderLink.extraCharge)}
