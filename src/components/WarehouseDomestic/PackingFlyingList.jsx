@@ -23,7 +23,7 @@ const PackingFlyingList = () => {
   const [totalPackings, setTotalPackings] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterDate, setFilterDate] = useState("");
-  const [selectedPackings, setSelectedPackings] = useState([]); // Array of packingId
+  const [selectedPackings, setSelectedPackings] = useState([]);
   const [exportLoading, setExportLoading] = useState(false);
 
   // Helper function to extract error message from backend response

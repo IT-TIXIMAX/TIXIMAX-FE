@@ -148,6 +148,8 @@ import SummaryCustomer from "../components/Manager/Summary/SummaryCustomer";
 import SummaryRevenue from "../components/Manager/Summary/SummaryRevenue";
 import SummaryWeight from "../components/Manager/Summary/SummaryWeight";
 import ManagerRouteExchange from "../components/Manager/ManagerRouteExchange";
+import ImportDomesticPacking from "../components/WarehouseDomestic/ImportDomesticPacking";
+import ScanImportWarehouse from "../components/WarehouseDomestic/ScanImportWarehouse";
 const Router = createBrowserRouter([
   {
     path: "/",
@@ -435,14 +437,16 @@ const Router = createBrowserRouter([
       { path: "profile", element: <StaffProfile /> },
       { path: "dashboard", element: <DashboardWarehouse /> },
       { path: "inventory", element: <WarehouseDomestic /> },
-      { path: "imports", element: <PackingFlyingList /> },
+      { path: "imports", element: <ImportDomesticPacking /> },
       { path: "pending-payments", element: <NotFound /> },
       { path: "eligible-exports", element: <NotFound /> },
       { path: "exports", element: <NotFound /> },
       // { path: "eligible-packings", element: <PackingEligibleList /> },
-      { path: "inventorys-check", element: <InventoryWarehouse /> },
+      { path: "check", element: <ScanImportWarehouse /> },
       { path: "order-search", element: <ExportOrder /> },
       { path: "reports", element: <TrackingCodeList /> },
+      { path: "importsjp", element: <PackingFlyingList /> },
+      { path: "inventorys-check", element: <InventoryWarehouse /> },
     ],
   },
   {

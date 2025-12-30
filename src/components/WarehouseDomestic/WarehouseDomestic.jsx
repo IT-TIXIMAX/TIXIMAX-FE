@@ -17,6 +17,7 @@ import domesticService from "../../Services/Warehouse/domesticService";
 const STATUS_OPTIONS = [
   { value: "", label: "-- Tất cả trạng thái --" },
   { value: "DA_NHAP_KHO_VN", label: "Đã nhập kho VN" },
+  { value: "CHO_NHAP_KHO_VN", label: "Chờ nhập kho VN" },
   { value: "CHO_TRUNG_CHUYEN", label: "Chờ trung chuyển" },
   { value: "CHO_GIAO", label: "Chờ giao" },
   { value: "DANG_GIAO", label: "Đang giao" },

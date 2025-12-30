@@ -48,6 +48,7 @@ const StaffWarehouseDomesticSidebar = () => {
       path: "/staff-warehouse-domestic/inventory",
       title: "Quản lý hàng tồn kho",
     },
+
     {
       text: "Nhập kho",
       icon: <ArrowDown className="w-6 h-6" />,
@@ -55,12 +56,13 @@ const StaffWarehouseDomesticSidebar = () => {
       title: "Quản lý đơn hàng đang vận chuyển đến kho",
     },
     {
-      text: "Kiểm tra đóng gói",
+      text: "Kiểm tra hàng",
       icon: <ClipboardCheck className="w-6 h-6" />,
-      path: "/staff-warehouse-domestic/inventorys-check",
+      path: "/staff-warehouse-domestic/check",
       title:
         "Hỗ trợ kiểm kê định kỳ hoặc đột xuất, quét mã và báo cáo chênh lệch",
     },
+
     {
       text: "Đơn chờ thanh toán",
       icon: <CreditCard className="w-6 h-6" />,
@@ -97,6 +99,19 @@ const StaffWarehouseDomesticSidebar = () => {
       icon: <FileSpreadsheet className="w-6 h-6" />,
       path: "/staff-warehouse-domestic/reports",
       title: "Báo cáo nhập-xuất-tồn theo ngày/tháng, xuất file Excel/PDF",
+    },
+    {
+      text: "Nhập kho Japan",
+      icon: <ArrowDown className="w-6 h-6" />,
+      path: "/staff-warehouse-domestic/importsjp",
+      title: "Quản lý đơn hàng đang vận chuyển đến kho",
+    },
+    {
+      text: "Kiểm tra đóng gói",
+      icon: <ClipboardCheck className="w-6 h-6" />,
+      path: "/staff-warehouse-domestic/inventorys-check",
+      title:
+        "Hỗ trợ kiểm kê định kỳ hoặc đột xuất, quét mã và báo cáo chênh lệch",
     },
   ];
 
