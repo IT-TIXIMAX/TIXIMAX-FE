@@ -150,6 +150,7 @@ import SummaryWeight from "../components/Manager/Summary/SummaryWeight";
 import ManagerRouteExchange from "../components/Manager/ManagerRouteExchange";
 import ImportDomesticPacking from "../components/WarehouseDomestic/ImportDomesticPacking";
 import ScanImportWarehouse from "../components/WarehouseDomestic/ScanImportWarehouse";
+import ExportWarehouse from "../components/WarehouseDomestic/ExportWarehouse";
 const Router = createBrowserRouter([
   {
     path: "/",
@@ -440,7 +441,7 @@ const Router = createBrowserRouter([
       { path: "imports", element: <ImportDomesticPacking /> },
       { path: "pending-payments", element: <NotFound /> },
       { path: "eligible-exports", element: <NotFound /> },
-      { path: "exports", element: <NotFound /> },
+      { path: "exports", element: <ExportWarehouse /> },
       // { path: "eligible-packings", element: <PackingEligibleList /> },
       { path: "check", element: <ScanImportWarehouse /> },
       { path: "order-search", element: <ExportOrder /> },

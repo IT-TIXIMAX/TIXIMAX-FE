@@ -44,24 +44,23 @@ const dashboardService = {
   getDebtsTotal: () => {
     return api.get("/dashboard/admin/debts-total");
   },
-  getFlightRevenue: (flightCode, inputCost, minWeight) => {
+  getFlightRevenue: (flightCode, inputCost) => {
     return api.get("/dashboard/admin/flight-revenue", {
       params: {
         flightCode,
         inputCost,
-        minWeight,
       },
     });
   },
-  getActualProfit: ({ startDate, endDate, exchangeRate, routeId }) => {
+  getActualProfit: ({ startDate, endDate, routeId }) => {
     return api.get("/dashboard/admin/actual-profit", {
-      params: { startDate, endDate, exchangeRate, routeId },
+      params: { startDate, endDate, routeId },
     });
   },
 
-  getEstimatedProfit: ({ startDate, endDate, exchangeRate, routeId }) => {
+  getEstimatedProfit: ({ startDate, endDate, routeId }) => {
     return api.get("/dashboard/admin/estimated-profit", {
-      params: { startDate, endDate, exchangeRate, routeId },
+      params: { startDate, endDate, routeId },
     });
   },
   getStaffCustomersSummary: ({ filterType, startDate, endDate }) => {

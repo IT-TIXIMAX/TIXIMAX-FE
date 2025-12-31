@@ -316,12 +316,12 @@ const ScanImportWarehouse = () => {
                   <div className="rounded-xl border-2 border-red-200 bg-gradient-to-br from-red-50 to-red-100/50 p-4 shadow-sm">
                     <div className="flex flex-col items-center gap-2 mb-2">
                       <div className="text-xl font-semibold text-red-700 uppercase tracking-wide">
-                        Chưa nhập kho
+                        Tổng kiện hàng
                       </div>
                     </div>
                     <div className="flex items-baseline justify-center gap-2">
                       <div className="text-3xl font-extrabold text-red-900">
-                        {checkInData.waitImport ?? "—"}
+                        {checkInData.totalWarehouseInFlight ?? "—"}
                       </div>
                       <div className="text-2xl font-medium text-red-700">
                         kiện
@@ -332,12 +332,12 @@ const ScanImportWarehouse = () => {
                   <div className="rounded-xl border-2 border-green-200 bg-gradient-to-br from-green-50 to-green-100/50 p-4 shadow-sm">
                     <div className="flex flex-col items-center gap-2 mb-2">
                       <div className="text-xl font-semibold text-green-700 uppercase tracking-wide">
-                        Đã trong kho
+                        Đã nhập kho
                       </div>
                     </div>
                     <div className="flex items-baseline justify-center gap-2">
                       <div className="text-3xl font-extrabold text-green-900">
-                        {checkInData.inventory ?? "—"}
+                        {checkInData.imported ?? "—"}
                       </div>
                       <div className="text-2xl font-medium text-green-700">
                         kiện

@@ -93,7 +93,6 @@ const DashboardManagerProfit = () => {
   const [flightParams, setFlightParams] = useState({
     flightCode: "",
     inputCost: "",
-    minWeight: "",
   });
 
   // null = chưa có kết quả thật
@@ -110,7 +109,6 @@ const DashboardManagerProfit = () => {
   const [profitParams, setProfitParams] = useState({
     startDate: "",
     endDate: "",
-    exchangeRateActual: "", // ✅ nhập 1 lần
     routeId: "", // ✅ dropdown chọn tuyến
   });
 
@@ -196,8 +194,7 @@ const DashboardManagerProfit = () => {
   const canCalculate = useMemo(() => {
     const codeOk = !!flightParams.flightCode.trim();
     const costOk = parseNumberInput(flightParams.inputCost) > 0;
-    const weightOk = parseNumberInput(flightParams.minWeight) > 0;
-    return codeOk && costOk && weightOk;
+    return codeOk && costOk;
   }, [flightParams]);
 
   const handleFlightRevenueSearch = async () => {
@@ -209,14 +206,12 @@ const DashboardManagerProfit = () => {
 
     const flightCode = flightParams.flightCode.trim();
     const inputCost = parseNumberInput(flightParams.inputCost);
-    const minWeight = parseNumberInput(flightParams.minWeight);
 
     try {
       setLoadingRevenue(true);
       const res = await dashboardService.getFlightRevenue(
         flightCode,
-        inputCost,
-        minWeight
+        inputCost
       );
       setFlightRevenue(res?.data ?? null);
       setFlightAnimKey((k) => k + 1);
@@ -238,16 +233,10 @@ const DashboardManagerProfit = () => {
 
   // ✅ Profit fetch
   const fetchProfitData = async () => {
-    const { startDate, endDate, exchangeRateActual, routeId } = profitParams;
+    const { startDate, endDate, routeId } = profitParams;
 
-    if (!startDate || !endDate || !exchangeRateActual || !routeId) {
+    if (!startDate || !endDate || !routeId) {
       toast.error("Vui lòng nhập đầy đủ thông tin lợi nhuận");
-      return;
-    }
-
-    const rate = Number(exchangeRateActual);
-    if (!Number.isFinite(rate) || rate <= 0) {
-      toast.error("Tỷ giá không hợp lệ");
       return;
     }
 
@@ -264,13 +253,11 @@ const DashboardManagerProfit = () => {
         dashboardService.getEstimatedProfit({
           startDate,
           endDate,
-          exchangeRate: rate,
           routeId: rid,
         }),
         dashboardService.getActualProfit({
           startDate,
           endDate,
-          exchangeRate: rate,
           routeId: rid,
         }),
       ]);
@@ -467,23 +454,6 @@ const DashboardManagerProfit = () => {
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Trọng lượng tối thiểu (kg)
-              </label>
-              <input
-                type="text"
-                inputMode="numeric"
-                value={flightParams.minWeight}
-                onChange={(e) =>
-                  handleNumberChange("minWeight", e.target.value)
-                }
-                onKeyDown={onEnterToCalculate}
-                placeholder="000"
-                className={inputBaseClass}
-              />
-            </div>
-
             <div className="flex items-end">
               <button
                 onClick={handleFlightRevenueSearch}
@@ -573,7 +543,7 @@ const DashboardManagerProfit = () => {
                 <p className="text-lg font-bold text-purple-600">
                   <AnimatedNumber
                     value={displayRevenue.totalChargeableWeight}
-                    format={(n) => `${formatWeight(n)} g`}
+                    format={(n) => `${formatWeight(n)} kg`}
                     shouldAnimate={shouldAnimateFlight}
                     resetKey={flightAnimKey}
                     duration={COUNT_DURATION}
@@ -589,7 +559,7 @@ const DashboardManagerProfit = () => {
                 <p className="text-lg font-bold text-orange-600">
                   <AnimatedNumber
                     value={displayRevenue.totalActualGrossWeight}
-                    format={(n) => `${formatWeight(n)} g`}
+                    format={(n) => `${formatWeight(n)} kg`}
                     shouldAnimate={shouldAnimateFlight}
                     resetKey={flightAnimKey}
                     duration={COUNT_DURATION}
@@ -633,22 +603,7 @@ const DashboardManagerProfit = () => {
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Tỷ giá (nhập 1 lần)
-              </label>
-              <input
-                type="text"
-                className={inputBaseClass}
-                value={profitParams.exchangeRateActual}
-                onChange={(e) =>
-                  setProfitField("exchangeRateActual", e.target.value)
-                }
-                placeholder="000"
-              />
-            </div>
-
-            {/* ✅ Dropdown tuyến: show tên tuyến */}
+            {/*  Dropdown tuyến: show tên tuyến */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Tuyến
