@@ -541,7 +541,7 @@ const ExchanegMoneyList = () => {
                 <ShoppingBag className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-white">Exchaneg Money</h1>
+                <h1 className="text-xl font-bold text-white">Exchange Money</h1>
               </div>
             </div>
             <button

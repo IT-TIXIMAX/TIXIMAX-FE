@@ -78,7 +78,7 @@ import CustomerStaffList from "../components/StaffSale/CustomerStaffList";
 import Permission from "../components/Admin/Permission";
 import StaffListPermission from "../components/Manager/StaffListPermission";
 import PackingFlyingList from "../components/WarehouseDomestic/PackingFlyingList";
-import ExportList from "../components/WarehouseDomestic/ExportList";
+// import ExportList from "../components/WarehouseDomestic/ExportList";
 import CreateDepositForm from "../components/Order/CreateDepositForm";
 import MergedPaymentShip from "../components/PaymentOrder/MergedPaymentShip";
 import MergedPaymentOrder from "../components/PaymentOrder/MergedPaymentOrder";
@@ -105,7 +105,7 @@ import PackingProblem from "../components/WarehouseForeign/PackingProblem";
 import DenyRoles from "./DenyRoles";
 // import PerformanceStaff from "../components/StaffSale/PerformanceStaff";
 import DashboardSale from "../components/StaffSale/DashboardSale";
-import PerformnanceMy from "../components/StaffSale/PerformanceMy";
+// import PerformnanceMy from "../components/StaffSale/PerformanceMy";
 import AboutUs from "../Page/Navigattion/AboutUs";
 import ServiceAuction from "../Page/Navigattion/ServiceAuction";
 import ServicesStorage from "../Page/Navigattion/ServicesStorage";
@@ -366,7 +366,8 @@ const Router = createBrowserRouter([
       { path: "shipping/international", element: <NotFound /> }, // Chưa triển khai
       { path: "tracking", element: <Tracking /> }, // Chưa triển khai
       { path: "warehouses", element: <Tracking /> }, // Chưa triển khai
-      { path: "telesale", element: <PerformnanceMy /> }, // Chưa triển khai
+      // { path: "telesale", element: <PerformnanceMy /> }, // Chưa triển khai
+      { path: "telesale", element: <NotFound /> },
       { path: "knowledge", element: <ExportPacking /> }, // Chưa triển khai
       { path: "schedule", element: <NotFound /> }, // Chưa triển khai
       { path: "dashboard", element: <DashboardSale /> },

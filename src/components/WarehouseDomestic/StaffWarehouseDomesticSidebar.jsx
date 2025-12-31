@@ -42,7 +42,7 @@ const StaffWarehouseDomesticSidebar = () => {
       text: "Thống kê",
       icon: <BarChart className="w-6 h-6" />,
       path: "/staff-warehouse-domestic/dashboard",
-      title: "Xem số liệu tổng quan của kho nội địa",
+      title: "Xem số liệu tổng quan ",
     },
     {
       text: "Tồn kho",
@@ -55,27 +55,26 @@ const StaffWarehouseDomesticSidebar = () => {
       text: "Nhập kho",
       icon: <ArrowDown className="w-6 h-6" />,
       path: "/staff-warehouse-domestic/imports",
-      title: "Quản lý đơn hàng đang vận chuyển đến kho",
+      title: "Quản lý đơn hàng nhập kho",
     },
     {
       text: "Kiểm tra hàng",
       icon: <FolderSearch className="w-6 h-6" />,
       path: "/staff-warehouse-domestic/check",
-      title:
-        "Hỗ trợ kiểm kê định kỳ hoặc đột xuất, quét mã và báo cáo chênh lệch",
+      title: "Quét mã kiểm tra nhập kho",
     },
 
     {
       text: "Đơn chờ thanh toán",
       icon: <CreditCard className="w-6 h-6" />,
       path: "/staff-warehouse-domestic/pending-payments",
-      title: "Quản lý đơn hàng đủ điều kiện đóng gói",
+      title: "Quản lý đơn hàng chưa thanh toán vận chuyển",
     },
     {
       text: "Đơn đủ điều kiện",
       icon: <PackageCheck className="w-6 h-6" />,
       path: "/staff-warehouse-domestic/eligible-exports",
-      title: "Quản lý đơn hàng đủ điều kiện đóng gói",
+      title: "Quản lý đơn hàng đủ điều kiện xuất kho",
     },
     {
       text: "Xuất kho đơn nội địa",
@@ -88,13 +87,13 @@ const StaffWarehouseDomesticSidebar = () => {
       text: "Tra cứu đơn xuất kho",
       icon: <Search className="w-6 h-6" />,
       path: "/staff-warehouse-domestic/order-search",
-      title: "Tra cứu theo mã, barcode, tên hàng và xem lịch sử nhập-xuất-tồn",
+      title: "Tra cứu theo mã đơn hàng, mã vận đơn",
     },
     {
-      text: "Báo cáo thống kê",
+      text: "In mã vận đơn",
       icon: <FileSpreadsheet className="w-6 h-6" />,
       path: "/staff-warehouse-domestic/reports",
-      title: "Báo cáo nhập-xuất-tồn theo ngày/tháng, xuất file Excel/PDF",
+      title: "Xem báo cáo thống kê xuất nhập kho",
     },
     {
       text: "Nhập kho đơn US",
