@@ -576,7 +576,7 @@ function WarehouseDomestic() {
               <PackageOpen size={22} className="text-white" />
             </div>
             <h1 className="text-xl font-semibold text-white">
-              Quản lý đơn hàng Nội địa
+              Quản lý đơn hàng nội địa
             </h1>
           </div>
         </div>

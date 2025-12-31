@@ -13,8 +13,11 @@ import {
   Loader2,
   Search,
   X,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import ConfirmPayment from "./ConfirmPayment";
+import PartialPayment from "./PartialPayment"; // ✅ gọi PartialPayment vào đây
 
 const formatCurrency = (v) => {
   if (v === null || v === undefined || isNaN(Number(v))) return "—";
@@ -83,6 +86,7 @@ const PaymentOrderList = () => {
     "CHO_THANH_TOAN_SHIP",
     "DA_DU_HANG",
     "CHO_THANH_TOAN_DAU_GIA",
+    "",
   ];
   const savedTab = localStorage.getItem("activeTab");
   const initialTab = validTabs.includes(savedTab) ? savedTab : "DA_XAC_NHAN";
@@ -94,7 +98,10 @@ const PaymentOrderList = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const PAGE_SIZE = 100;
+  // ✅ toggle hiển thị PartialPayment
+  const [showPartial, setShowPartial] = useState(true);
+
+  const PAGE_SIZE = 50;
 
   // Gọi API lấy list theo status + search
   const fetchOrders = async (status, page = 0, term = "") => {
@@ -129,6 +136,12 @@ const PaymentOrderList = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
+  // ✅ khi chuyển tab không phải ship thì auto đóng partial cho gọn (tùy bạn)
+  useEffect(() => {
+    if (activeTab !== "CHO_THANH_TOAN_SHIP") setShowPartial(false);
+    else setShowPartial(true);
+  }, [activeTab]);
+
   const refreshAll = async () => {
     await fetchOrders(activeTab, currentPage, searchTerm);
   };
@@ -151,9 +164,7 @@ const PaymentOrderList = () => {
   };
 
   const handleKeyPress = (e) => {
-    if (e.key === "Enter") {
-      handleSearch();
-    }
+    if (e.key === "Enter") handleSearch();
   };
 
   const tabConfigs = [
@@ -461,6 +472,46 @@ const PaymentOrderList = () => {
             </div>
           </div>
         )}
+
+        {/* ✅ GỌI PARTIALPAYMENT VÀO CUỐI TRANG */}
+        {activeTab === "CHO_THANH_TOAN_SHIP" && (
+          <div className="mt-8">
+            <div className="bg-white rounded-lg shadow border border-gray-200 overflow-hidden">
+              <button
+                onClick={() => setShowPartial((v) => !v)}
+                className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <Truck className="w-5 h-5 text-purple-600" />
+                  <div className="text-left">
+                    <div className="font-semibold text-gray-900">
+                      Partial Payment (Theo đợt)
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      Danh sách thanh toán theo từng partial shipment
+                    </div>
+                  </div>
+                </div>
+                {showPartial ? (
+                  <ChevronUp className="w-5 h-5 text-gray-500" />
+                ) : (
+                  <ChevronDown className="w-5 h-5 text-gray-500" />
+                )}
+              </button>
+
+              {showPartial && (
+                <div className="border-t border-gray-200">
+                  {/* PartialPayment là page full-screen; nếu bạn muốn nhúng gọn, mình sẽ tách nó thành component nhỏ */}
+                  <PartialPayment />
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Nếu bạn muốn luôn hiện PartialPayment, đổi block trên thành:
+            <div className="mt-8"><PartialPayment /></div>
+        */}
       </div>
     </div>
   );

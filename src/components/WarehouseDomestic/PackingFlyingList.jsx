@@ -374,7 +374,7 @@ const PackingFlyingList = () => {
               <PlaneTakeoff size={22} className="text-white" />
             </div>
             <h1 className="text-xl font-semibold text-white">
-              Đơn Hàng Đang Vận Chuyển
+              Tổng kiện đang vận chuyển
             </h1>
           </div>
         </div>
