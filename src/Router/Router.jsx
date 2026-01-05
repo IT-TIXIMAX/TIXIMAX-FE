@@ -1,7 +1,7 @@
 // src/Router/Router.jsx
 import React from "react";
-// import { createBrowserRouter } from "react-router-dom";
-import { createHashRouter } from "react-router-dom";
+import { createBrowserRouter } from "react-router-dom";
+// import { createHashRouter } from "react-router-dom";
 import Layout from "../Page/Layout";
 import SignIn from "../Page/SignIn";
 import SignUp from "../Page/SignUp";
@@ -155,8 +155,8 @@ import ExportWarehouse from "../components/WarehouseDomestic/ExportWarehouse";
 import DashboardKPI from "../components/Manager/DashboardKPI";
 import PendingWarehouse from "../components/WarehouseDomestic/PendingWarehouse";
 import ExportWarehouseShip from "../components/WarehouseDomestic/ExportWarehouseShip";
-// const Router = createBrowserRouter([
-const Router = createHashRouter([
+const Router = createBrowserRouter([
+  // const Router = createHashRouter([
   {
     path: "/",
     element: <Layout />,
