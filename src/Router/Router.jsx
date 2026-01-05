@@ -1,6 +1,7 @@
 // src/Router/Router.jsx
 import React from "react";
-import { createBrowserRouter } from "react-router-dom";
+// import { createBrowserRouter } from "react-router-dom";
+import { createHashRouter } from "react-router-dom";
 import Layout from "../Page/Layout";
 import SignIn from "../Page/SignIn";
 import SignUp from "../Page/SignUp";
@@ -152,7 +153,8 @@ import ImportDomesticPacking from "../components/WarehouseDomestic/ImportDomesti
 import ScanImportWarehouse from "../components/WarehouseDomestic/ScanImportWarehouse";
 import ExportWarehouse from "../components/WarehouseDomestic/ExportWarehouse";
 import DashboardKPI from "../components/Manager/DashboardKPI";
-const Router = createBrowserRouter([
+// const Router = createBrowserRouter([
+const Router = createHashRouter([
   {
     path: "/",
     element: <Layout />,
