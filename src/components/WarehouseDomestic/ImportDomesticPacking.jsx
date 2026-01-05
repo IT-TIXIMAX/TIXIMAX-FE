@@ -211,7 +211,7 @@ const ImportDomesticPacking = () => {
   };
 
   const handleImportSuccess = (importData) => {
-    toast.success("✓ Đã nhập kho tracking code thành công!");
+    toast.success(" Đã nhập kho tracking code thành công!");
     handleModalClose();
   };
 

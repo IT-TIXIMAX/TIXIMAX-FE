@@ -1,15 +1,6 @@
 import api from "../../config/api.js";
 
 const orderlinkService = {
-  // getOrdersWithLinks: async (page = 0, size = 10, orderType = null) => {
-  //   let url = `/orders/with-links/${page}/${size}`;
-  //   if (orderType) url += `?orderType=${orderType}`;
-
-  //   const res = await api.get(url, {
-  //     timeout: 300000, // Timeout riêng cho API này: 90 giây
-  //   });
-  //   return res.data;
-  // },
   getOrdersWithLinks: async (page = 0, size = 10, filters = {}) => {
     let url = `/orders/with-links/${page}/${size}`;
 
@@ -38,18 +29,39 @@ const orderlinkService = {
     return res.data;
   },
 
-  getPurchasesShipmentCode: async (page = 0, size = 10, status = null) => {
+  // getPurchasesShipmentCode: async (page = 0, size = 10, status = null) => {
+  //   const params = {};
+  //   if (status) {
+  //     params.status = status;
+  //   }
+
+  //   const res = await api.get(`/purchases/lack-shipment-code/${page}/${size}`, {
+  //     params,
+  //   });
+  //   return res.data;
+  // },
+  getPurchasesShipmentCode: async (
+    page = 0,
+    size = 50,
+    status = null,
+    orderCode = null,
+    customerCode = null
+  ) => {
     const params = {};
     if (status) {
       params.status = status;
     }
-
+    if (orderCode) {
+      params.orderCode = orderCode;
+    }
+    if (customerCode) {
+      params.customerCode = customerCode;
+    }
     const res = await api.get(`/purchases/lack-shipment-code/${page}/${size}`, {
       params,
     });
     return res.data;
   },
-
   updatePurchaseShipmentAddress: async (purchaseId, data) => {
     const res = await api.put(`/purchases/shipment/${purchaseId}`, data);
     return res.data;
