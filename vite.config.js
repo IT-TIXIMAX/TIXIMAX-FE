@@ -23,7 +23,7 @@ import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [react()],
-  base: "/", // Thêm dòng này
+  base: "./", // Thêm dòng này
   define: {
     global: "globalThis",
     "process.env": {},
@@ -32,6 +32,13 @@ export default defineConfig({
     esbuildOptions: {
       define: {
         global: "globalThis",
+      },
+    },
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        assetFileNames: "assets/[name][extname]",
       },
     },
   },

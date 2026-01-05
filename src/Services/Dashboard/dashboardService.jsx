@@ -83,6 +83,11 @@ const dashboardService = {
       params: { filterType, startDate, endDate },
     });
   },
+  getRoutesKPI: ({ startDate, endDate }) => {
+    return api.get("/dashboard/routes/kpi", {
+      params: { startDate, endDate },
+    });
+  },
 };
 
 export default dashboardService;

@@ -151,6 +151,7 @@ import ManagerRouteExchange from "../components/Manager/ManagerRouteExchange";
 import ImportDomesticPacking from "../components/WarehouseDomestic/ImportDomesticPacking";
 import ScanImportWarehouse from "../components/WarehouseDomestic/ScanImportWarehouse";
 import ExportWarehouse from "../components/WarehouseDomestic/ExportWarehouse";
+import DashboardKPI from "../components/Manager/DashboardKPI";
 const Router = createBrowserRouter([
   {
     path: "/",
@@ -262,6 +263,7 @@ const Router = createBrowserRouter([
       { path: "profile", element: <ProfilePage /> },
       { path: "team", element: <StaffList /> },
       { path: "customers", element: <CustomerList /> },
+      { path: "kpistaff", element: <DashboardKPI /> },
       { path: "dashboardprofit", element: <DashboardManagerProfit /> },
       { path: "permission", element: <Permission /> },
       { path: "stafflead", element: <StaffListPermission /> },
