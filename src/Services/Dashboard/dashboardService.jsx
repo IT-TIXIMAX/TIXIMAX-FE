@@ -83,10 +83,30 @@ const dashboardService = {
       params: { filterType, startDate, endDate },
     });
   },
-  getRoutesKPI: ({ startDate, endDate }) => {
-    return api.get("/dashboard/routes/kpi", {
-      params: { startDate, endDate },
-    });
+  //   getRoutesKPI: ({ startDate, endDate }) => {
+  //     return api.get("/dashboard/routes/kpi", {
+  //       params: { startDate, endDate },
+  //     });
+  //   },
+  // };
+
+  // export default dashboardService;
+  getRoutesKPI: ({
+    startDate,
+    endDate,
+    filterType = "MONTH",
+    routeId,
+  } = {}) => {
+    const params = { filterType };
+
+    if (filterType === "CUSTOM") {
+      if (startDate) params.startDate = startDate;
+      if (endDate) params.endDate = endDate;
+    }
+
+    if (routeId) params.routeId = Number(routeId);
+
+    return api.get("/dashboard/routes/kpi", { params });
   },
 };
 

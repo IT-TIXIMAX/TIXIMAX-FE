@@ -53,12 +53,12 @@ const ManagerSidebar = () => {
           path: "/manager/cancelorder",
         },
         {
-          text: t("Hiệu suất nhân viên"),
+          text: t("Danh sách nhân viên"),
           icon: <List />,
           path: "/manager/team",
         },
         {
-          text: t("Danh sách nhân viên"),
+          text: t("Hiệu suất nhân viên"),
           icon: <ChartNoAxesCombined />,
           path: "/manager/kpistaff",
         },

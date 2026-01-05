@@ -208,6 +208,13 @@ class DomesticService {
     );
     return data;
   };
+
+  getDeliveryList = async (page = 0, size = 50, params = {}) => {
+    const { data } = await api.get(`/domestics/delivery/${page}/${size}`, {
+      params,
+    });
+    return data;
+  };
 }
 
 export default new DomesticService();

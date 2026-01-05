@@ -1,4 +1,4 @@
-// ExportShip.jsx
+// // ExportShip.jsx
 import React, {
   useCallback,
   useEffect,
@@ -30,24 +30,37 @@ const normalizeArray = (res) => {
 
 const formatDateTime = (iso) => {
   if (!iso) return "—";
-  try {
-    return new Date(iso).toLocaleString("vi-VN");
-  } catch {
-    return iso;
-  }
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return String(iso);
+  return d.toLocaleString("vi-VN");
 };
 
-const ExportShip = ({ customerCode: initialCustomerCode = "", onClose }) => {
+const ExportShip = ({
+  customerCode: initialCustomerCode = "",
+  onClose,
+  onSuccess, // ✅ thêm callback để cha refresh list
+}) => {
   const [customerCode, setCustomerCode] = useState(initialCustomerCode);
   const [vnpostTrackingCode, setVnpostTrackingCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [rows, setRows] = useState([]);
 
   const vnRef = useRef(null);
+  const submittingRef = useRef(false);
+  const focusTimerRef = useRef(null);
 
   useEffect(() => {
     setCustomerCode(initialCustomerCode || "");
-    setTimeout(() => vnRef.current?.focus(), 50);
+    setVnpostTrackingCode("");
+    setRows([]);
+
+    // focus input scan
+    if (focusTimerRef.current) clearTimeout(focusTimerRef.current);
+    focusTimerRef.current = setTimeout(() => vnRef.current?.focus(), 50);
+
+    return () => {
+      if (focusTimerRef.current) clearTimeout(focusTimerRef.current);
+    };
   }, [initialCustomerCode]);
 
   const totalShipping = useMemo(
@@ -56,27 +69,44 @@ const ExportShip = ({ customerCode: initialCustomerCode = "", onClose }) => {
   );
 
   const submitExport = useCallback(async () => {
+    if (loading || submittingRef.current) return;
+
     const code = customerCode.trim();
     const vn = vnpostTrackingCode.trim();
 
     if (!code) return toast.error("Thiếu mã khách (VD: C00001)");
     if (!vn) return toast.error("Hãy scan/nhập mã VNPost");
 
+    submittingRef.current = true;
     setLoading(true);
+
     try {
       const res = await domesticService.transferByCustomer(code, {
         vnpostTrackingCode: vn,
       });
+
       const arr = normalizeArray(res);
       setRows(arr);
+
       toast.success("✅ Xuất kho thành công");
+
+      // ✅ báo cho parent (để refresh list / đóng modal)
+      onSuccess?.({
+        customerCode: code,
+        vnpostTrackingCode: vn,
+        rows: arr,
+      });
+
+      // UX: giữ focus để scan tiếp (nếu bạn không đóng modal)
+      setTimeout(() => vnRef.current?.focus(), 50);
     } catch (e) {
       setRows([]);
       toast.error(e?.response?.data?.message || e?.message || "Lỗi xuất kho");
     } finally {
+      submittingRef.current = false;
       setLoading(false);
     }
-  }, [customerCode, vnpostTrackingCode]);
+  }, [customerCode, vnpostTrackingCode, loading, onSuccess]);
 
   return (
     <div className="w-full">
@@ -90,6 +120,9 @@ const ExportShip = ({ customerCode: initialCustomerCode = "", onClose }) => {
             <div className="text-base font-semibold text-gray-900">
               Xuất kho
             </div>
+            <div className="text-xs text-gray-500">
+              Scan VNPost rồi Enter hoặc bấm xác nhận
+            </div>
           </div>
         </div>
 
@@ -97,6 +130,7 @@ const ExportShip = ({ customerCode: initialCustomerCode = "", onClose }) => {
           onClick={onClose}
           className="h-9 w-9 rounded-xl hover:bg-gray-100 grid place-items-center"
           aria-label="Đóng"
+          type="button"
         >
           <X className="h-5 w-5 text-gray-600" />
         </button>
@@ -121,7 +155,7 @@ const ExportShip = ({ customerCode: initialCustomerCode = "", onClose }) => {
 
             <div>
               <div className="text-xs font-medium text-gray-500 mb-1">
-                Mã vận chuyển
+                Mã vận chuyển (VNPost)
               </div>
               <div className="relative">
                 <Truck className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -130,7 +164,7 @@ const ExportShip = ({ customerCode: initialCustomerCode = "", onClose }) => {
                   value={vnpostTrackingCode}
                   onChange={(e) => setVnpostTrackingCode(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && submitExport()}
-                  placeholder="Nhập mã vận chuyển VNPost"
+                  placeholder="Nhập/scan mã vận chuyển VNPost"
                   className="w-full rounded-xl border border-gray-300 bg-white pl-9 pr-3 py-2.5 text-sm outline-none
                              focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
                 />
@@ -142,7 +176,8 @@ const ExportShip = ({ customerCode: initialCustomerCode = "", onClose }) => {
             onClick={submitExport}
             disabled={loading}
             className="mt-3 w-full inline-flex items-center justify-center gap-2 rounded-xl bg-red-600 px-4 py-2.5
-                       text-sm font-semibold text-white hover:bg-red-800 disabled:opacity-60"
+                       text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-60"
+            type="button"
           >
             {loading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -182,7 +217,9 @@ const ExportShip = ({ customerCode: initialCustomerCode = "", onClose }) => {
             <div className="p-4 space-y-3">
               {rows.map((r, idx) => (
                 <div
-                  key={`${r?.domesticId || idx}-${r?.timestamp || ""}`}
+                  key={`${r?.domesticId || "x"}-${
+                    r?.vnpostTrackingCode || "y"
+                  }-${idx}`}
                   className="rounded-xl bg-gray-50 ring-1 ring-gray-200 p-4"
                 >
                   <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">

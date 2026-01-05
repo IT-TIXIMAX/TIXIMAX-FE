@@ -1,7 +1,7 @@
 // src/Router/Router.jsx
 import React from "react";
-import { createBrowserRouter } from "react-router-dom";
-// import { createHashRouter } from "react-router-dom";
+// import { createBrowserRouter } from "react-router-dom";
+import { createHashRouter } from "react-router-dom";
 import Layout from "../Page/Layout";
 import SignIn from "../Page/SignIn";
 import SignUp from "../Page/SignUp";
@@ -153,8 +153,10 @@ import ImportDomesticPacking from "../components/WarehouseDomestic/ImportDomesti
 import ScanImportWarehouse from "../components/WarehouseDomestic/ScanImportWarehouse";
 import ExportWarehouse from "../components/WarehouseDomestic/ExportWarehouse";
 import DashboardKPI from "../components/Manager/DashboardKPI";
-const Router = createBrowserRouter([
-  // const Router = createHashRouter([
+import PendingWarehouse from "../components/WarehouseDomestic/PendingWarehouse";
+import ExportWarehouseShip from "../components/WarehouseDomestic/ExportWarehouseShip";
+// const Router = createBrowserRouter([
+const Router = createHashRouter([
   {
     path: "/",
     element: <Layout />,
@@ -444,8 +446,8 @@ const Router = createBrowserRouter([
       { path: "dashboard", element: <DashboardWarehouse /> },
       { path: "inventory", element: <WarehouseDomestic /> },
       { path: "imports", element: <PackingFlyingList /> },
-      { path: "pending-payments", element: <NotFound /> },
-      { path: "eligible-exports", element: <NotFound /> },
+      { path: "pending-payments", element: <PendingWarehouse /> },
+      { path: "eligible-exports", element: <ExportWarehouseShip /> },
       { path: "exports", element: <ExportWarehouse /> },
       // { path: "eligible-packings", element: <PackingEligibleList /> },
       { path: "check", element: <ScanImportWarehouse /> },
