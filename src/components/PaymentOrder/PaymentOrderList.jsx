@@ -487,9 +487,6 @@ const PaymentOrderList = () => {
                     <div className="font-semibold text-gray-900">
                       Partial Payment (Theo đợt)
                     </div>
-                    <div className="text-xs text-gray-500">
-                      Danh sách thanh toán theo từng partial shipment
-                    </div>
                   </div>
                 </div>
                 {showPartial ? (

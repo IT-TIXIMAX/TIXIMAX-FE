@@ -23,7 +23,7 @@ const formatDateTime = (iso) => {
   if (!iso) return "-";
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleString("vi-VN");
+  return d.toLocaleDateString("vi-VN");
 };
 
 const Badge = ({ children, tone = "slate" }) => {
@@ -143,7 +143,7 @@ export default function PartialPayment() {
     <div className="min-h-screen bg-slate-50">
       <Toaster position="top-right" />
 
-      <div className="mx-auto max-w-7xl px-4 py-6">
+      <div className="mx-auto px-4 py-6">
         {/* Header */}
         <div className="rounded-2xl bg-white p-5 ring-1 ring-slate-200 shadow-sm">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -154,9 +154,6 @@ export default function PartialPayment() {
               <div>
                 <div className="text-lg font-semibold text-slate-900">
                   Partial Payment
-                </div>
-                <div className="text-sm text-slate-500">
-                  Danh sách thanh toán theo từng đợt (partial shipment)
                 </div>
               </div>
             </div>
@@ -283,9 +280,6 @@ export default function PartialPayment() {
               <thead className="bg-slate-50 text-slate-600">
                 <tr>
                   <th className="px-4 py-3 text-left font-semibold">
-                    Partial ID
-                  </th>
-                  <th className="px-4 py-3 text-left font-semibold">
                     Đơn / Order
                   </th>
                   <th className="px-4 py-3 text-left font-semibold">
@@ -334,15 +328,6 @@ export default function PartialPayment() {
                     <tr key={x.partialShipmentId} className="hover:bg-slate-50">
                       <td className="px-4 py-3">
                         <div className="font-semibold text-slate-900">
-                          #{x.partialShipmentId}
-                        </div>
-                        <div className="text-xs text-slate-500">
-                          PaymentId: {x.paymentId}
-                        </div>
-                      </td>
-
-                      <td className="px-4 py-3">
-                        <div className="font-semibold text-slate-900">
                           {x.orderCode || "-"}
                         </div>
                         <div className="text-xs text-slate-500">
@@ -353,9 +338,6 @@ export default function PartialPayment() {
                       <td className="px-4 py-3">
                         <div className="font-semibold text-slate-900">
                           {x.paymentCode || "-"}
-                        </div>
-                        <div className="text-xs text-slate-500">
-                          {x.note ? `Note: ${x.note}` : "Không có ghi chú"}
                         </div>
                       </td>
 
@@ -369,14 +351,12 @@ export default function PartialPayment() {
 
                       <td className="px-4 py-3">
                         <div className="inline-flex items-center gap-2 text-slate-700">
-                          <Calendar className="h-4 w-4 text-slate-400" />
                           {formatDateTime(x.shipmentDate)}
                         </div>
                       </td>
 
                       <td className="px-4 py-3">
                         <div className="inline-flex items-center gap-2">
-                          <User2 className="h-4 w-4 text-slate-400" />
                           <div>
                             <div className="font-semibold text-slate-900">
                               {x.staffName || "-"}
