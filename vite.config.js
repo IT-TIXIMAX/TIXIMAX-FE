@@ -23,7 +23,7 @@ import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [react()],
-  base: "./",
+  base: "/",
   define: {
     global: "globalThis",
     "process.env": {},
@@ -32,15 +32,6 @@ export default defineConfig({
     esbuildOptions: {
       define: {
         global: "globalThis",
-      },
-    },
-  },
-  build: {
-    rollupOptions: {
-      output: {
-        entryFileNames: "assets/[name].js",
-        chunkFileNames: "assets/[name].js",
-        assetFileNames: "assets/[name][extname]",
       },
     },
   },
