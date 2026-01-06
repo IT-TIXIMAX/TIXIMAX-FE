@@ -1,28 +1,52 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  Search,
-  Package,
-  User,
-  Phone,
-  MapPin,
-  TruckIcon,
-  X,
-} from "lucide-react";
-// import toast from "react-hot-toast"; // nếu muốn toast lỗi
+import { Search, Package, TruckIcon, X } from "lucide-react";
 import DomesticService from "../../Services/Warehouse/domesticService";
-
 import ExportShip from "./ExportShip";
+
 const PAGE_SIZES = [50, 100, 200];
+
+/* ===================== Skeletons ===================== */
+const StatCardSkeleton = () => (
+  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 animate-pulse">
+    <div className="flex items-center justify-between">
+      <div className="space-y-2">
+        <div className="h-4 w-28 bg-gray-200 rounded" />
+        <div className="h-8 w-20 bg-gray-200 rounded" />
+      </div>
+      <div className="h-12 w-12 bg-gray-200 rounded-lg" />
+    </div>
+  </div>
+);
+
+const TableSkeleton = ({ rows = 10 }) => (
+  <div className="p-4 animate-pulse">
+    <div className="h-12 bg-gray-100 rounded-lg mb-4" />
+    <div className="space-y-3">
+      {Array.from({ length: rows }).map((_, i) => (
+        <div key={i} className="bg-white border border-gray-200 rounded-xl p-4">
+          <div className="flex items-center gap-3">
+            <div className="h-4 w-20 bg-gray-200 rounded" />
+            <div className="h-4 w-36 bg-gray-200 rounded" />
+            <div className="h-4 w-28 bg-gray-200 rounded" />
+            <div className="h-4 flex-1 bg-gray-200 rounded hidden md:block" />
+            <div className="h-9 w-28 bg-gray-200 rounded-lg" />
+          </div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <div className="h-8 w-24 bg-gray-200 rounded-lg" />
+            <div className="h-8 w-28 bg-gray-200 rounded-lg" />
+            <div className="h-8 w-20 bg-gray-200 rounded-lg" />
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
 
 const ExportWarehouseShip = () => {
   const [deliveries, setDeliveries] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // input đang gõ
   const [searchInput, setSearchInput] = useState("");
-  // term đã apply
-  const [appliedTerm, setAppliedTerm] = useState("");
-  // term gọi API
   const [activeSearch, setActiveSearch] = useState("");
 
   const [page, setPage] = useState(0);
@@ -31,7 +55,6 @@ const ExportWarehouseShip = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
 
-  // ✅ modal state
   const [openExport, setOpenExport] = useState(false);
   const [selectedCustomerCode, setSelectedCustomerCode] = useState("");
 
@@ -50,7 +73,6 @@ const ExportWarehouseShip = () => {
       setTotalElements(res?.totalElements ?? 0);
     } catch (err) {
       console.error("Error fetching deliveries:", err);
-      // toast.error(err?.response?.data?.message || "Lỗi tải dữ liệu");
     } finally {
       setLoading(false);
     }
@@ -62,14 +84,13 @@ const ExportWarehouseShip = () => {
 
   const handleSearch = useCallback(() => {
     const v = searchInput.trim();
-    setAppliedTerm(v);
     setActiveSearch(v);
     setPage(0);
+    // ✅ search là hành động user -> sẽ loading do fetchDeliveries chạy theo activeSearch/page
   }, [searchInput]);
 
   const handleClearSearch = useCallback(() => {
     setSearchInput("");
-    setAppliedTerm("");
     setActiveSearch("");
     setPage(0);
   }, []);
@@ -79,39 +100,17 @@ const ExportWarehouseShip = () => {
     setPage(0);
   }, []);
 
-  // nếu có activeSearch -> hiển thị list API; nếu không -> filter local theo appliedTerm
-  const filteredDeliveries = useMemo(() => {
-    if (activeSearch.trim()) return deliveries;
-
-    const term = appliedTerm.trim();
-    if (!term) return deliveries;
-
-    const lower = term.toLowerCase();
-    return deliveries.filter((d) => {
-      const code = (d.customerCode ?? "").toLowerCase();
-      const name = (d.customerName ?? "").toLowerCase();
-      const staff = (d.staffName ?? "").toLowerCase();
-      const phone = d.phoneNumber ?? "";
-      return (
-        code.includes(lower) ||
-        name.includes(lower) ||
-        staff.includes(lower) ||
-        phone.includes(term)
-      );
-    });
-  }, [deliveries, appliedTerm, activeSearch]);
-
+  // ✅ FIX typo: shipmemtCode -> shipmentCode
   const totalShipments = useMemo(() => {
-    return filteredDeliveries.reduce(
-      (sum, d) => sum + (d.shipmemtCode?.length || 0),
+    return deliveries.reduce(
+      (sum, d) => sum + (d.shipmentCode?.length || 0),
       0
     );
-  }, [filteredDeliveries]);
+  }, [deliveries]);
 
   const showingFrom = totalElements ? page * pageSize + 1 : 0;
   const showingTo = Math.min((page + 1) * pageSize, totalElements);
 
-  // ✅ open modal export for a customer
   const openExportModal = useCallback((customerCode) => {
     setSelectedCustomerCode(customerCode || "");
     setOpenExport(true);
@@ -122,78 +121,113 @@ const ExportWarehouseShip = () => {
     setSelectedCustomerCode("");
   }, []);
 
-  // ✅ xuất thành công: đóng modal + refresh
-  const handleExportSuccess = useCallback(() => {
-    closeExportModal();
-    fetchDeliveries();
-  }, [closeExportModal, fetchDeliveries]);
+  /**
+   * ✅ TÍNH NĂNG #2 (đúng yêu cầu):
+   * - Xuất kho thành công: KHÔNG fetchDeliveries() => không loading lại
+   * - Chỉ ẩn row khách đó khỏi bảng
+   * - User muốn đồng bộ lại server thì bấm "Tải lại" (lúc đó mới loading)
+   */
+  const handleExportSuccess = useCallback(
+    (payload) => {
+      const codeFromPayload = payload?.customerCode?.trim();
+      const code = codeFromPayload || selectedCustomerCode?.trim();
+      if (!code) return;
+
+      setDeliveries((prev) => prev.filter((d) => d?.customerCode !== code));
+
+      // update số liệu UI cho hợp lý (server sẽ sync khi user bấm Tải lại / đổi page)
+      setTotalElements((prev) => Math.max(0, prev - 1));
+    },
+    [selectedCustomerCode]
+  );
 
   return (
     <div className="min-h-screen">
       <div className="mx-auto p-6">
         {/* Header */}
-        <div className="mb-6">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-blue-600 rounded-lg">
-              <TruckIcon className="text-white" size={24} />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-800">
-                Xuất Kho Vận Chuyển Nội Địa
+        <div className="bg-blue-600 rounded-xl shadow-sm p-5 mb-6">
+          <div className="flex items-center justify-between">
+            {/* Left: Title */}
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                <TruckIcon size={22} className="text-white" />
+              </div>
+              <h1 className="text-xl font-semibold text-white">
+                Xuất Kho Nội Địa
               </h1>
             </div>
+
+            {/* Right: Reload Button */}
+            <button
+              onClick={fetchDeliveries}
+              disabled={loading}
+              className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/30 rounded-lg text-sm font-medium text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              type="button"
+            >
+              Tải lại
+            </button>
           </div>
         </div>
 
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 mb-1">
-                  Tổng Đơn Hàng
-                </p>
-                <p className="text-3xl font-bold text-blue-600">
-                  {totalElements}
-                </p>
+          {loading ? (
+            <>
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+            </>
+          ) : (
+            <>
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600 mb-1">
+                      Tổng Đơn Hàng
+                    </p>
+                    <p className="text-3xl font-bold text-blue-600">
+                      {totalElements}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-blue-100 rounded-lg">
+                    <Package className="text-blue-600" size={24} />
+                  </div>
+                </div>
               </div>
-              <div className="p-3 bg-blue-100 rounded-lg">
-                <Package className="text-blue-600" size={24} />
-              </div>
-            </div>
-          </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 mb-1">
-                  Tổng Kiện Hàng
-                </p>
-                <p className="text-3xl font-bold text-green-600">
-                  {totalShipments}
-                </p>
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600 mb-1">
+                      Tổng Kiện Hàng
+                    </p>
+                    <p className="text-3xl font-bold text-green-600">
+                      {totalShipments}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-green-100 rounded-lg">
+                    <Package className="text-green-600" size={24} />
+                  </div>
+                </div>
               </div>
-              <div className="p-3 bg-green-100 rounded-lg">
-                <Package className="text-green-600" size={24} />
-              </div>
-            </div>
-          </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 mb-1">
-                  Đang Hiển Thị
-                </p>
-                <p className="text-3xl font-bold text-purple-600">
-                  {filteredDeliveries.length}
-                </p>
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600 mb-1">
+                      Đang Hiển Thị
+                    </p>
+                    <p className="text-3xl font-bold text-purple-600">
+                      {deliveries.length}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-purple-100 rounded-lg">
+                    <TruckIcon className="text-purple-600" size={24} />
+                  </div>
+                </div>
               </div>
-              <div className="p-3 bg-purple-100 rounded-lg">
-                <TruckIcon className="text-purple-600" size={24} />
-              </div>
-            </div>
-          </div>
+            </>
+          )}
         </div>
 
         {/* Filter & Search Section */}
@@ -266,13 +300,9 @@ const ExportWarehouseShip = () => {
         {/* Table Section */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           {loading ? (
-            <div className="p-12 text-center">
-              <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-blue-600"></div>
-              <p className="mt-4 text-gray-600 font-medium">
-                Đang tải dữ liệu...
-              </p>
-            </div>
-          ) : filteredDeliveries.length === 0 ? (
+            // ✅ Skeleton khi loading
+            <TableSkeleton rows={10} />
+          ) : deliveries.length === 0 ? (
             <div className="p-12 text-center">
               <Package className="mx-auto text-gray-400 mb-4" size={48} />
               <p className="text-gray-600 font-medium">Không có đơn hàng nào</p>
@@ -313,7 +343,7 @@ const ExportWarehouseShip = () => {
                 </thead>
 
                 <tbody>
-                  {filteredDeliveries.map((delivery, index) => (
+                  {deliveries.map((delivery, index) => (
                     <tr
                       key={`${delivery.customerCode}-${index}`}
                       className={`border-b border-gray-200 hover:bg-blue-50 transition-colors ${
@@ -321,33 +351,22 @@ const ExportWarehouseShip = () => {
                       }`}
                     >
                       <td className="px-4 py-4">
-                        <div className="flex items-center gap-2">
-                          <div className="p-1.5 bg-blue-100 rounded">
-                            <Package size={16} className="text-blue-600" />
-                          </div>
-                          <span className="font-semibold text-blue-700 whitespace-nowrap">
-                            {delivery.customerCode}
-                          </span>
-                        </div>
+                        <span className="font-semibold text-blue-700 whitespace-nowrap">
+                          {delivery.customerCode}
+                        </span>
                       </td>
 
                       <td className="px-4 py-4">
-                        <div className="flex items-center gap-2">
-                          <User size={16} className="text-gray-400" />
-                          <span className="font-medium text-gray-900">
-                            {delivery.customerName}
-                          </span>
-                        </div>
+                        <span className="font-medium text-gray-900">
+                          {delivery.customerName}
+                        </span>
                       </td>
 
                       <td className="px-4 py-4">
                         {delivery.phoneNumber ? (
-                          <div className="flex items-center gap-2">
-                            <Phone size={16} className="text-gray-400" />
-                            <span className="text-sm text-gray-700 whitespace-nowrap">
-                              {delivery.phoneNumber}
-                            </span>
-                          </div>
+                          <span className="text-sm text-gray-700 whitespace-nowrap">
+                            {delivery.phoneNumber}
+                          </span>
                         ) : (
                           <span className="text-sm text-gray-400 italic">
                             Chưa có
@@ -357,15 +376,9 @@ const ExportWarehouseShip = () => {
 
                       <td className="px-4 py-4">
                         {delivery.address ? (
-                          <div className="flex items-start gap-2">
-                            <MapPin
-                              size={16}
-                              className="text-gray-400 mt-0.5 flex-shrink-0"
-                            />
-                            <span className="text-sm text-gray-700">
-                              {delivery.address}
-                            </span>
-                          </div>
+                          <span className="text-sm text-gray-700">
+                            {delivery.address}
+                          </span>
                         ) : (
                           <span className="text-sm text-gray-400 italic">
                             Chưa có địa chỉ
@@ -379,38 +392,37 @@ const ExportWarehouseShip = () => {
                         </span>
                       </td>
 
-                      <td className="px-4 py-4 text-center">
-                        <span className="inline-flex items-center justify-center min-w-[36px] h-9 px-3 bg-green-100 text-green-700 rounded-lg font-bold text-sm">
-                          {delivery.shipmemtCode?.length || 0}
+                      <td className="px-4 py-4 text-center align-top">
+                        <span className="inline-flex items-center justify-center min-w-[36px] h-9 px-3 bg-blue-100 text-blue-700 rounded-lg font-bold text-sm">
+                          {delivery.shipmentCode?.length || 0}
                         </span>
                       </td>
 
                       <td className="px-4 py-4">
                         <div className="flex flex-wrap gap-2">
-                          {delivery.shipmemtCode?.map((code, idx) => (
+                          {delivery.shipmentCode?.map((code, idx) => (
                             <div
                               key={`${delivery.customerCode}-${code}-${idx}`}
-                              className="inline-flex items-center gap-2 bg-gradient-to-r from-green-50 to-blue-50 px-3 py-1.5 rounded-lg border border-green-200"
+                              className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-50 to-white px-3 py-2 rounded-lg border border-blue-200"
                             >
-                              <span className="font-mono text-xs font-medium text-gray-800">
-                                {code}
-                              </span>
-                              <span className="text-xs px-1.5 py-0.5 bg-green-600 text-white rounded-full font-semibold min-w-[20px] text-center">
+                              <span className="text-xs px-1.5 py-0.5 bg-blue-600 text-white rounded-full font-semibold min-w-[20px] text-center">
                                 {idx + 1}
+                              </span>
+                              <span className="text-sm font-mono text-gray-800">
+                                {code}
                               </span>
                             </div>
                           ))}
                         </div>
                       </td>
 
-                      {/* ✅ Xuất kho theo từng khách */}
                       <td className="px-4 py-4 text-center">
                         <button
                           type="button"
                           onClick={() => openExportModal(delivery.customerCode)}
                           className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-red-600 text-white font-semibold text-sm hover:bg-red-700"
                         >
-                          Xuất kho
+                          Xuất
                         </button>
                       </td>
                     </tr>
@@ -421,7 +433,7 @@ const ExportWarehouseShip = () => {
           )}
 
           {/* Pagination */}
-          {totalPages > 1 && (
+          {totalPages > 1 && !loading && (
             <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="text-sm text-gray-600">
@@ -485,7 +497,7 @@ const ExportWarehouseShip = () => {
         </div>
       </div>
 
-      {/* ✅ Modal ExportShip */}
+      {/*  Modal ExportShip */}
       {openExport && (
         <div className="fixed inset-0 z-50">
           <div

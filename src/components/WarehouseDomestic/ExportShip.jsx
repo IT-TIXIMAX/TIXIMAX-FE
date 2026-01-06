@@ -1,4 +1,4 @@
-// // ExportShip.jsx
+// ExportShip.jsx
 import React, {
   useCallback,
   useEffect,
@@ -6,17 +6,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import {
-  X,
-  Loader2,
-  Warehouse,
-  BadgeCheck,
-  Truck,
-  Hash,
-  ClipboardList,
-  Clock,
-  MapPin,
-} from "lucide-react";
+import { X, Loader2, Warehouse, BadgeCheck, Truck } from "lucide-react";
 import toast from "react-hot-toast";
 import domesticService from "../../Services/Warehouse/domesticService";
 
@@ -28,22 +18,27 @@ const normalizeArray = (res) => {
   return [];
 };
 
-const formatDateTime = (iso) => {
+const formatDate = (iso) => {
   if (!iso) return "—";
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return String(iso);
-  return d.toLocaleString("vi-VN");
+  return d.toLocaleDateString("vi-VN", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
 };
 
 const ExportShip = ({
   customerCode: initialCustomerCode = "",
   onClose,
-  onSuccess, // ✅ thêm callback để cha refresh list
+  onSuccess, // callback để cha refresh list (không nên đóng modal ngay nếu muốn thấy nút đổi)
 }) => {
   const [customerCode, setCustomerCode] = useState(initialCustomerCode);
   const [vnpostTrackingCode, setVnpostTrackingCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [rows, setRows] = useState([]);
+  const [exported, setExported] = useState(false); // ✅ trạng thái đã xuất thành công
 
   const vnRef = useRef(null);
   const submittingRef = useRef(false);
@@ -53,8 +48,8 @@ const ExportShip = ({
     setCustomerCode(initialCustomerCode || "");
     setVnpostTrackingCode("");
     setRows([]);
+    setExported(false); // ✅ reset khi mở modal với khách khác
 
-    // focus input scan
     if (focusTimerRef.current) clearTimeout(focusTimerRef.current);
     focusTimerRef.current = setTimeout(() => vnRef.current?.focus(), 50);
 
@@ -68,8 +63,14 @@ const ExportShip = ({
     [rows]
   );
 
+  const canSubmit = useMemo(() => {
+    return (
+      !loading && !exported && customerCode.trim() && vnpostTrackingCode.trim()
+    );
+  }, [loading, exported, customerCode, vnpostTrackingCode]);
+
   const submitExport = useCallback(async () => {
-    if (loading || submittingRef.current) return;
+    if (loading || submittingRef.current || exported) return;
 
     const code = customerCode.trim();
     const vn = vnpostTrackingCode.trim();
@@ -88,25 +89,24 @@ const ExportShip = ({
       const arr = normalizeArray(res);
       setRows(arr);
 
-      toast.success("✅ Xuất kho thành công");
+      toast.success("Xuất kho thành công");
+      setExported(true); // ✅ nút sẽ đổi thành ĐÓNG
 
-      // ✅ báo cho parent (để refresh list / đóng modal)
+      // ✅ báo cha refresh list (KHÔNG nên đóng modal ngay nếu muốn thấy nút đổi)
       onSuccess?.({
         customerCode: code,
         vnpostTrackingCode: vn,
         rows: arr,
       });
-
-      // UX: giữ focus để scan tiếp (nếu bạn không đóng modal)
-      setTimeout(() => vnRef.current?.focus(), 50);
     } catch (e) {
       setRows([]);
+      setExported(false);
       toast.error(e?.response?.data?.message || e?.message || "Lỗi xuất kho");
     } finally {
       submittingRef.current = false;
       setLoading(false);
     }
-  }, [customerCode, vnpostTrackingCode, loading, onSuccess]);
+  }, [customerCode, vnpostTrackingCode, loading, exported, onSuccess]);
 
   return (
     <div className="w-full">
@@ -119,9 +119,6 @@ const ExportShip = ({
           <div>
             <div className="text-base font-semibold text-gray-900">
               Xuất kho
-            </div>
-            <div className="text-xs text-gray-500">
-              Scan VNPost rồi Enter hoặc bấm xác nhận
             </div>
           </div>
         </div>
@@ -149,7 +146,7 @@ const ExportShip = ({
                 disabled
                 readOnly
                 className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm
-               text-gray-700 outline-none cursor-not-allowed"
+                           text-gray-700 outline-none cursor-not-allowed"
               />
             </div>
 
@@ -162,29 +159,41 @@ const ExportShip = ({
                 <input
                   ref={vnRef}
                   value={vnpostTrackingCode}
+                  disabled={exported || loading}
                   onChange={(e) => setVnpostTrackingCode(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && submitExport()}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !exported) submitExport();
+                  }}
                   placeholder="Nhập/scan mã vận chuyển VNPost"
                   className="w-full rounded-xl border border-gray-300 bg-white pl-9 pr-3 py-2.5 text-sm outline-none
-                             focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+                             focus:border-blue-600 focus:ring-4 focus:ring-blue-100
+                             disabled:bg-gray-50 disabled:text-gray-600 disabled:cursor-not-allowed"
                 />
               </div>
             </div>
           </div>
 
+          {/* ✅ Button: confirm -> close */}
           <button
-            onClick={submitExport}
-            disabled={loading}
-            className="mt-3 w-full inline-flex items-center justify-center gap-2 rounded-xl bg-red-600 px-4 py-2.5
-                       text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-60"
+            onClick={exported ? onClose : submitExport}
+            disabled={exported ? false : !canSubmit}
+            className={`mt-3 w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5
+                       text-sm font-semibold text-white disabled:opacity-60 disabled:cursor-not-allowed
+                       ${
+                         exported
+                           ? "bg-green-600 hover:bg-green-700"
+                           : "bg-red-600 hover:bg-red-700"
+                       }`}
             type="button"
           >
             {loading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
+            ) : exported ? (
+              <X className="h-4 w-4" />
             ) : (
               <BadgeCheck className="h-4 w-4" />
             )}
-            Xác nhận xuất kho
+            {exported ? "Hoàn thành" : "Xác nhận xuất kho"}
           </button>
         </div>
 
@@ -209,9 +218,13 @@ const ExportShip = ({
           <div className="rounded-xl bg-white ring-1 ring-gray-200 overflow-hidden">
             <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
               <div className="text-sm font-semibold text-gray-900">
-                Kết quả xuất kho • Rows: {rows.length} • Vận đơn:{" "}
-                {totalShipping}
+                Kết quả xuất kho - Tổng số mã xuất: {totalShipping}
               </div>
+              {exported && (
+                <div className="text-xs font-semibold text-green-700 bg-green-50 ring-1 ring-green-200 px-2 py-1 rounded-lg">
+                  Thành công
+                </div>
+              )}
             </div>
 
             <div className="p-4 space-y-3">
@@ -223,38 +236,34 @@ const ExportShip = ({
                   className="rounded-xl bg-gray-50 ring-1 ring-gray-200 p-4"
                 >
                   <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-                    <div>
-                      <div className="text-sm font-semibold text-gray-900">
-                        Domestic #{r?.domesticId || "—"} • {r?.status || "—"}
-                      </div>
+                    <div className="min-w-0">
                       <div className="mt-1 text-sm text-gray-600">
                         {r?.note || "—"}
                       </div>
 
                       <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-700">
-                        <div className="flex items-center gap-2">
-                          <MapPin className="h-4 w-4 text-gray-400" />
+                        <div className="flex items-center gap-2 min-w-0">
                           <span className="font-medium">Từ:</span>
                           <span className="truncate">
                             {r?.fromLocationName || "—"}
                           </span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4 text-gray-400" />
-                          <span className="font-medium">Time:</span>
+
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="font-medium">Ngày:</span>
                           <span className="truncate">
-                            {formatDateTime(r?.timestamp)}
+                            {formatDate(r?.timestamp)}
                           </span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Hash className="h-4 w-4 text-gray-400" />
-                          <span className="font-medium">VNPost:</span>
+
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="font-medium">Mã VNPost:</span>
                           <span className="truncate">
                             {r?.vnpostTrackingCode || "—"}
                           </span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <MapPin className="h-4 w-4 text-gray-400" />
+
+                        <div className="flex items-center gap-2 min-w-0">
                           <span className="font-medium">Đ/c:</span>
                           <span className="truncate">
                             {r?.toAddressName || "—"}
@@ -264,10 +273,9 @@ const ExportShip = ({
                     </div>
 
                     <div className="min-w-[220px] rounded-xl bg-white ring-1 ring-gray-200 overflow-hidden">
-                      <div className="px-3 py-2 border-b border-gray-200 flex items-center gap-2">
-                        <ClipboardList className="h-4 w-4 text-gray-400" />
+                      <div className="px-3 py-2 border-b border-gray-200">
                         <div className="text-sm font-semibold text-gray-900">
-                          Vận đơn ({r?.shippingList?.length || 0})
+                          Ds mã vận đơn ({r?.shippingList?.length || 0})
                         </div>
                       </div>
                       <div className="max-h-[160px] overflow-auto">

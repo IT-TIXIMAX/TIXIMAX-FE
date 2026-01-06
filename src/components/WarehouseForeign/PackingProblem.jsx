@@ -22,7 +22,7 @@ const RemoveShipmentList = () => {
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [packingCache, setPackingCache] = useState({});
-  const [pageSize, setPageSize] = useState(20);
+  const [pageSize, setPageSize] = useState(50);
 
   // Status mapping
   const renderStatusLabel = (status) => {
@@ -377,24 +377,24 @@ const RemoveShipmentList = () => {
         {/* Header */}
         <div className="bg-blue-600 rounded-xl shadow-sm p-5 mb-4">
           <div className="flex items-center justify-between">
+            {/* Left: Title */}
             <div className="flex items-center gap-3">
-              <PackageSearch className="h-8 w-8 text-white" />
-              <div>
-                <h1 className="text-2xl font-bold text-white">
-                  Packing Management
-                </h1>
+              <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                <PackageSearch size={22} className="text-white" />
               </div>
+              <h1 className="text-xl font-semibold text-white">
+                Packing Management
+              </h1>
             </div>
 
+            {/* Right: Reload Button */}
             <button
               onClick={() => fetchAwaiting(page, pageSize)}
               disabled={loading}
-              className="inline-flex items-center gap-2 rounded-lg bg-white/20 px-4 py-2.5 text-sm font-semibold text-white hover:bg-white/30 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/30 rounded-lg text-sm font-medium text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              <RefreshCw
-                className={`h-4 w-4 ${loading ? "animate-spin" : ""}`}
-              />
-              Reload
+              <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+              {loading ? "Đang tải..." : "Tải lại"}
             </button>
           </div>
         </div>
@@ -447,7 +447,7 @@ const RemoveShipmentList = () => {
                         Show:
                       </span>
                       <div className="flex items-center gap-2">
-                        {[20, 50, 100].map((size) => (
+                        {[50, 100, 200].map((size) => (
                           <button
                             key={size}
                             onClick={() => handlePageSizeChange(size)}

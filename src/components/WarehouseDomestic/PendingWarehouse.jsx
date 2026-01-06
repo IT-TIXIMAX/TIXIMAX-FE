@@ -1,13 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  Search,
-  Package,
-  User,
-  Phone,
-  MapPin,
-  TruckIcon,
-  X,
-} from "lucide-react";
+import { Search, Package, TruckIcon, X, RefreshCw } from "lucide-react";
 import DomesticService from "../../Services/Warehouse/domesticService";
 
 const PAGE_SIZES = [50, 100, 200];
@@ -19,27 +11,67 @@ const getShipmentCodes = (d) => {
 
 const getAddress = (d) => d?.address ?? d?.toAddress ?? d?.to ?? "-";
 
+/* ===================== Loading Skeletons ===================== */
+const StatCardSkeleton = () => (
+  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 animate-pulse">
+    <div className="flex items-center justify-between">
+      <div className="space-y-2">
+        <div className="h-4 w-28 bg-gray-200 rounded" />
+        <div className="h-8 w-20 bg-gray-200 rounded" />
+      </div>
+      <div className="h-12 w-12 bg-gray-200 rounded-lg" />
+    </div>
+  </div>
+);
+
+const TableSkeleton = ({ rows = 10 }) => (
+  <div className="p-4 animate-pulse">
+    <div className="h-12 bg-gray-100 rounded-lg mb-4" />
+    <div className="space-y-3">
+      {Array.from({ length: rows }).map((_, i) => (
+        <div key={i} className="bg-white border border-gray-200 rounded-xl p-4">
+          <div className="flex items-center gap-3">
+            <div className="h-4 w-20 bg-gray-200 rounded" />
+            <div className="h-4 w-36 bg-gray-200 rounded" />
+            <div className="h-4 w-28 bg-gray-200 rounded" />
+            <div className="h-4 flex-1 bg-gray-200 rounded hidden md:block" />
+            <div className="h-9 w-28 bg-gray-200 rounded-lg" />
+          </div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <div className="h-8 w-24 bg-gray-200 rounded-lg" />
+            <div className="h-8 w-28 bg-gray-200 rounded-lg" />
+            <div className="h-8 w-20 bg-gray-200 rounded-lg" />
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
 const PendingWarehouse = () => {
   const [deliveries, setDeliveries] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // ✅ input đang gõ
+  // Search state
   const [searchInput, setSearchInput] = useState("");
-  // ✅ term đã apply (chỉ set khi bấm Search)
-  const [appliedSearch, setAppliedSearch] = useState("");
+  const [activeSearch, setActiveSearch] = useState("");
 
-  // paging server-side
+  // Paging server-side
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(50);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
 
+  // Fetch với search từ server
   const fetchDeliveries = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await DomesticService.getDeliveryList(page, pageSize, {
-        status: "CHUA_DU_DIEU_KIEN",
-      });
+
+      const params = { status: "CHUA_DU_DIEU_KIEN" };
+      const keyword = activeSearch.trim();
+      if (keyword) params.customerCode = keyword;
+
+      const res = await DomesticService.getDeliveryList(page, pageSize, params);
 
       setDeliveries(res?.content ?? []);
       setTotalPages(res?.totalPages ?? 0);
@@ -49,134 +81,135 @@ const PendingWarehouse = () => {
     } finally {
       setLoading(false);
     }
-  }, [page, pageSize]);
+  }, [page, pageSize, activeSearch]);
 
   useEffect(() => {
     fetchDeliveries();
   }, [fetchDeliveries]);
 
-  // ✅ chỉ lọc theo appliedSearch
-  const filteredDeliveries = useMemo(() => {
-    const termRaw = appliedSearch.trim();
-    const term = termRaw.toLowerCase();
-    if (!term) return deliveries;
+  // Handle search
+  const handleSearch = useCallback(() => {
+    const v = searchInput.trim();
+    setActiveSearch(v);
+    setPage(0);
+  }, [searchInput]);
 
-    return deliveries.filter((d) => {
-      const customerName = (d?.customerName ?? "").toLowerCase();
-      const customerCode = (d?.customerCode ?? "").toLowerCase();
-      const phone = String(d?.phoneNumber ?? "");
+  // Clear search
+  const handleClearSearch = useCallback(() => {
+    setSearchInput("");
+    setActiveSearch("");
+    setPage(0);
+  }, []);
 
-      return (
-        customerName.includes(term) ||
-        customerCode.includes(term) ||
-        phone.includes(termRaw) // số điện thoại dùng raw
-      );
-    });
-  }, [deliveries, appliedSearch]);
+  // Page size change
+  const handlePageSizeChange = useCallback((newSize) => {
+    setPageSize(newSize);
+    setPage(0);
+  }, []);
 
-  const totalOrdersOnPage = deliveries.length;
-  const totalOrdersFiltered = filteredDeliveries.length;
-
-  const totalShipmentsFiltered = useMemo(() => {
-    return filteredDeliveries.reduce(
-      (sum, d) => sum + getShipmentCodes(d).length,
-      0
-    );
-  }, [filteredDeliveries]);
+  // Stats
+  const totalShipments = useMemo(() => {
+    return deliveries.reduce((sum, d) => sum + getShipmentCodes(d).length, 0);
+  }, [deliveries]);
 
   const showingFrom = totalElements ? page * pageSize + 1 : 0;
   const showingTo = totalElements
     ? Math.min((page + 1) * pageSize, totalElements)
     : 0;
 
-  // ✅ bấm Search mới apply
-  const handleSearch = useCallback(() => {
-    const v = searchInput.trim();
-    setAppliedSearch(v);
-    setPage(0);
-  }, [searchInput]);
-
-  const handleClear = useCallback(() => {
-    setSearchInput("");
-    setAppliedSearch("");
-    setPage(0);
-  }, []);
-
-  const canPrev = page > 0;
-  const canNext = page < totalPages - 1;
-
   return (
     <div className="min-h-screen">
       <div className="mx-auto p-6">
         {/* Header */}
-        <div className="mb-6">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-600 rounded-lg">
-              <TruckIcon className="text-white" size={24} />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-800">
+        <div className="bg-blue-600 rounded-xl shadow-sm p-5 mb-6">
+          <div className="flex items-center justify-between">
+            {/* Left: Title */}
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                <TruckIcon size={22} className="text-white" />
+              </div>
+              <h1 className="text-xl font-semibold text-white">
                 ĐH Chưa Thanh Toán Vận Chuyển
               </h1>
             </div>
+
+            {/* Right: Reload Button */}
+            <button
+              onClick={fetchDeliveries}
+              disabled={loading}
+              className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/30 rounded-lg text-sm font-medium text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              type="button"
+            >
+              Tải lại
+            </button>
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 mb-1">
-                  Tổng Đơn
-                </p>
-                <p className="text-3xl font-bold text-blue-600">
-                  {totalOrdersOnPage}
-                </p>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          {loading ? (
+            <>
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+            </>
+          ) : (
+            <>
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600 mb-1">
+                      Tổng Đơn Hàng
+                    </p>
+                    <p className="text-3xl font-bold text-blue-600">
+                      {totalElements}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-blue-100 rounded-lg">
+                    <Package className="text-blue-600" size={24} />
+                  </div>
+                </div>
               </div>
-              <div className="p-3 bg-blue-100 rounded-lg">
-                <Package className="text-blue-600" size={24} />
-              </div>
-            </div>
-          </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 mb-1">
-                  Đang Hiển Thị
-                </p>
-                <p className="text-3xl font-bold text-blue-600">
-                  {totalOrdersFiltered}
-                </p>
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600 mb-1">
+                      Tổng Kiện Hàng
+                    </p>
+                    <p className="text-3xl font-bold text-green-600">
+                      {totalShipments}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-green-100 rounded-lg">
+                    <Package className="text-green-600" size={24} />
+                  </div>
+                </div>
               </div>
-              <div className="p-3 bg-blue-100 rounded-lg">
-                <Search className="text-blue-600" size={24} />
-              </div>
-            </div>
-          </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 mb-1">
-                  Tổng Mã Vận Đơn
-                </p>
-                <p className="text-3xl font-bold text-blue-600">
-                  {totalShipmentsFiltered}
-                </p>
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600 mb-1">
+                      Đang Hiển Thị
+                    </p>
+                    <p className="text-3xl font-bold text-purple-600">
+                      {deliveries.length}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-purple-100 rounded-lg">
+                    <TruckIcon className="text-purple-600" size={24} />
+                  </div>
+                </div>
               </div>
-              <div className="p-3 bg-blue-100 rounded-lg">
-                <Package className="text-blue-600" size={24} />
-              </div>
-            </div>
-          </div>
+            </>
+          )}
         </div>
 
-        {/* Search + Page size */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
-          <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-            {/* Search */}
+        {/* Search Section */}
+        <div className="bg-white border border-gray-200 rounded-xl p-4 mb-4">
+          <div className="flex flex-col lg:flex-row gap-3 items-start lg:items-center justify-between">
+            {/* Search Input */}
             <div className="flex-1 w-full lg:w-auto">
               <div className="flex gap-2">
                 <div className="relative flex-1">
@@ -186,19 +219,17 @@ const PendingWarehouse = () => {
                   />
                   <input
                     type="text"
-                    placeholder="Tìm theo mã khách hàng..."
+                    placeholder="Tìm kiếm mã khách hàng ..."
                     value={searchInput}
                     onChange={(e) => setSearchInput(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                    className="w-full pl-10 pr-10 py-2.5 border-2 border-gray-300 rounded-lg outline-none
-                               focus:ring-0 focus:border-blue-500 transition-all"
+                    className="w-full pl-10 pr-10 py-2.5 border-2 border-gray-300 rounded-lg outline-none focus:ring-0 focus:border-blue-500 transition-all"
                   />
                   {searchInput && (
                     <button
+                      onClick={handleClearSearch}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                       type="button"
-                      onClick={() => setSearchInput("")}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700"
-                      aria-label="Clear input"
                     >
                       <X size={18} />
                     </button>
@@ -206,39 +237,23 @@ const PendingWarehouse = () => {
                 </div>
 
                 <button
-                  type="button"
                   onClick={handleSearch}
                   disabled={loading}
-                  className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-all
-                             flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
+                  type="button"
                 >
-                  <Search size={18} />
-                  Tìm kiếm
+                  {loading ? (
+                    <RefreshCw size={16} className="animate-spin" />
+                  ) : (
+                    <Search size={16} />
+                  )}
+                  {loading ? "Đang tìm..." : "Tìm kiếm"}
                 </button>
-
-                {appliedSearch && (
-                  <button
-                    type="button"
-                    onClick={handleClear}
-                    className="px-4 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium transition-all whitespace-nowrap"
-                  >
-                    Xóa lọc
-                  </button>
-                )}
               </div>
-
-              {appliedSearch && (
-                <div className="mt-2 text-sm text-gray-600">
-                  Đang lọc theo:{" "}
-                  <span className="font-semibold text-gray-900">
-                    {appliedSearch}
-                  </span>
-                </div>
-              )}
             </div>
 
-            {/* Page size */}
-            <div className="flex items-center gap-3">
+            {/* Page Size Selector */}
+            <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-gray-700 whitespace-nowrap">
                 Hiển thị:
               </span>
@@ -246,16 +261,13 @@ const PendingWarehouse = () => {
                 {PAGE_SIZES.map((size) => (
                   <button
                     key={size}
-                    type="button"
-                    onClick={() => {
-                      setPageSize(size);
-                      setPage(0);
-                    }}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                    onClick={() => handlePageSizeChange(size)}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                       pageSize === size
-                        ? "bg-blue-600 text-white shadow-sm"
+                        ? "bg-blue-600 text-white"
                         : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                     }`}
+                    type="button"
                   >
                     {size}
                   </button>
@@ -265,24 +277,30 @@ const PendingWarehouse = () => {
           </div>
         </div>
 
-        {/* Table */}
+        {/* Table Section */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           {loading ? (
-            <div className="p-12 text-center">
-              <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-blue-600"></div>
-              <p className="mt-4 text-gray-600 font-medium">
-                Đang tải dữ liệu...
-              </p>
-            </div>
-          ) : filteredDeliveries.length === 0 ? (
+            // Loading Skeleton
+            <TableSkeleton rows={10} />
+          ) : deliveries.length === 0 ? (
             <div className="p-12 text-center">
               <Package className="mx-auto text-gray-400 mb-4" size={48} />
               <p className="text-gray-700 font-semibold">
                 Không có đơn hàng nào
               </p>
               <p className="text-sm text-gray-500 mt-1">
-                Thử đổi từ khóa, bấm tìm kiếm hoặc chuyển trang.
+                {activeSearch
+                  ? "Không tìm thấy kết quả phù hợp."
+                  : "Hiện tại không có đơn hàng nào."}
               </p>
+              {activeSearch && (
+                <button
+                  onClick={handleClearSearch}
+                  className="mt-3 px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Xóa bộ lọc
+                </button>
+              )}
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -311,7 +329,7 @@ const PendingWarehouse = () => {
                 </thead>
 
                 <tbody>
-                  {filteredDeliveries.map((d, index) => {
+                  {deliveries.map((d, index) => {
                     const shipmentCodes = getShipmentCodes(d);
                     const address = getAddress(d);
 
@@ -352,7 +370,7 @@ const PendingWarehouse = () => {
                         </td>
 
                         <td className="px-4 py-4 align-top">
-                          <span className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium whitespace-nowrap">
+                          <span className="inline-flex items-center px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium whitespace-nowrap">
                             {d?.staffName || "-"}
                           </span>
                         </td>
@@ -393,51 +411,29 @@ const PendingWarehouse = () => {
           )}
 
           {/* Pagination */}
-          {totalPages > 1 && (
+          {totalPages > 1 && !loading && (
             <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="text-sm text-gray-600">
-                  {totalElements ? (
-                    <>
-                      Hiển thị{" "}
-                      <span className="font-semibold text-gray-900">
-                        {showingFrom}
-                      </span>{" "}
-                      -{" "}
-                      <span className="font-semibold text-gray-900">
-                        {showingTo}
-                      </span>{" "}
-                      /{" "}
-                      <span className="font-semibold text-gray-900">
-                        {totalElements}
-                      </span>{" "}
-                      • Trang{" "}
-                      <span className="font-semibold text-gray-900">
-                        {page + 1}
-                      </span>{" "}
-                      /{" "}
-                      <span className="font-semibold text-gray-900">
-                        {totalPages}
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      Trang{" "}
-                      <span className="font-semibold text-gray-900">
-                        {page + 1}
-                      </span>{" "}
-                      /{" "}
-                      <span className="font-semibold text-gray-900">
-                        {totalPages}
-                      </span>
-                    </>
-                  )}
+                  Hiển thị{" "}
+                  <span className="font-semibold text-gray-900">
+                    {showingFrom}
+                  </span>{" "}
+                  -{" "}
+                  <span className="font-semibold text-gray-900">
+                    {showingTo}
+                  </span>{" "}
+                  trong tổng số{" "}
+                  <span className="font-semibold text-gray-900">
+                    {totalElements}
+                  </span>{" "}
+                  đơn hàng
                 </div>
 
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setPage(0)}
-                    disabled={!canPrev || loading}
+                    disabled={page === 0}
                     className="px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                     type="button"
                   >
@@ -445,22 +441,20 @@ const PendingWarehouse = () => {
                   </button>
                   <button
                     onClick={() => setPage((p) => Math.max(0, p - 1))}
-                    disabled={!canPrev || loading}
+                    disabled={page === 0}
                     className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                     type="button"
                   >
                     Trước
                   </button>
-
                   <span className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold">
-                    {page + 1}
+                    {page + 1} / {totalPages}
                   </span>
-
                   <button
                     onClick={() =>
                       setPage((p) => Math.min(totalPages - 1, p + 1))
                     }
-                    disabled={!canNext || loading}
+                    disabled={page >= totalPages - 1}
                     className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                     type="button"
                   >
@@ -468,7 +462,7 @@ const PendingWarehouse = () => {
                   </button>
                   <button
                     onClick={() => setPage(totalPages - 1)}
-                    disabled={!canNext || loading}
+                    disabled={page >= totalPages - 1}
                     className="px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                     type="button"
                   >
@@ -479,8 +473,6 @@ const PendingWarehouse = () => {
             </div>
           )}
         </div>
-
-        {/* ✅ Gợi ý: nếu muốn “Search toàn hệ thống” thì phải truyền keyword lên API (mình làm giúp được) */}
       </div>
     </div>
   );

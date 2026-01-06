@@ -342,10 +342,6 @@ const PendingReceive = () => {
           <div className="flex flex-col sm:flex-row gap-3">
             {/* Customer Code */}
             <div className="flex-1 relative">
-              <User
-                className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400"
-                size={18}
-              />
               <input
                 type="text"
                 placeholder="Customer Code..."
@@ -368,10 +364,6 @@ const PendingReceive = () => {
 
             {/* Shipment Code */}
             <div className="flex-1 relative">
-              <Package
-                className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400"
-                size={18}
-              />
               <input
                 type="text"
                 placeholder="Shipment Code..."
