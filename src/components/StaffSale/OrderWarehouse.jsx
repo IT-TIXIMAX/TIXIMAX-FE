@@ -44,9 +44,10 @@ const Chip = ({ children, tone = "default" }) => {
   );
 };
 
+// ✅ đã giảm từ 6 -> 5 cột
 const SkeletonRow = () => (
   <tr className="border-b">
-    {Array.from({ length: 6 }).map((_, i) => (
+    {Array.from({ length: 5 }).map((_, i) => (
       <td key={i} className="px-6 py-4">
         <div className="h-4 w-full max-w-[220px] animate-pulse rounded bg-slate-100" />
         {i === 1 && (
@@ -90,9 +91,8 @@ const ShipmentChips = ({ codes }) => {
   );
 };
 
+// ✅ đã xóa hoàn toàn cell "Trạng thái"
 const Row = ({ row }) => {
-  const statusMeta = STATUS_OPTIONS[row.status];
-
   return (
     <tr className="border-b hover:bg-slate-50/70 transition">
       <td className="px-6 py-4">
@@ -124,19 +124,6 @@ const Row = ({ row }) => {
       </td>
 
       <td className="px-6 py-4">
-        <span
-          className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
-            statusMeta?.color || "bg-slate-50 text-slate-700 ring-slate-200"
-          }`}
-        >
-          {statusMeta?.icon
-            ? React.createElement(statusMeta.icon, { className: "h-4 w-4" })
-            : null}
-          {statusMeta?.label || row.status || "—"}
-        </span>
-      </td>
-
-      <td className="px-6 py-4">
         <ShipmentChips codes={row.shipmentCode} />
       </td>
     </tr>
@@ -148,14 +135,12 @@ const OrderWarehouse = () => {
   const [loading, setLoading] = useState(false);
 
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(50);
   const [totalCount, setTotalCount] = useState(0);
 
   const [selectedStatus, setSelectedStatus] = useState("CHUA_DU_DIEU_KIEN");
 
-  // input đang gõ
   const [searchInput, setSearchInput] = useState("");
-  // term áp dụng gọi API
   const [searchCode, setSearchCode] = useState("");
 
   useEffect(() => {
@@ -276,7 +261,6 @@ const OrderWarehouse = () => {
           {/* Controls */}
           <div className="p-5 sm:p-6">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              {/* ✅ Search (Enter hoặc bấm button đều chạy) */}
               <form onSubmit={handleSearch} className="w-full lg:max-w-xl">
                 <div className="flex gap-2">
                   <div className="relative flex-1">
@@ -317,14 +301,11 @@ const OrderWarehouse = () => {
                 </div>
               </form>
 
-              {/* Paging controls */}
               <div className="relative">
                 <select
                   value={rowsPerPage}
                   onChange={handleChangeRowsPerPage}
-                  className="w-[88px] appearance-none cursor-pointer rounded-xl border border-slate-200 bg-white
-               pl-3 pr-9 py-2 text-sm text-slate-900 outline-none transition
-               focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                  className="w-24 appearance-none rounded-xl border pl-3 pr-9 py-2 text-sm focus:ring-2 focus:ring-blue-100"
                 >
                   <option value={50}>50</option>
                   <option value={100}>100</option>
@@ -358,9 +339,7 @@ const OrderWarehouse = () => {
                   <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wide text-slate-600">
                     Nhân viên
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wide text-slate-600">
-                    Trạng thái
-                  </th>
+                  {/* ✅ XÓA CỘT TRẠNG THÁI */}
                   <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wide text-slate-600">
                     Mã vận đơn
                   </th>
@@ -375,18 +354,10 @@ const OrderWarehouse = () => {
                     <SkeletonRow />
                     <SkeletonRow />
                     <SkeletonRow />
-                    <tr>
-                      <td colSpan={6} className="px-6 py-4">
-                        <div className="flex items-center gap-2 text-sm text-slate-500">
-                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-200 border-t-blue-600" />
-                          Đang tải dữ liệu…
-                        </div>
-                      </td>
-                    </tr>
                   </>
                 ) : deliveries.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6">
+                    <td colSpan={5} className="px-6">
                       <EmptyState />
                     </td>
                   </tr>
