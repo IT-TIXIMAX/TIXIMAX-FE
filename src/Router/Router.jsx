@@ -155,6 +155,7 @@ import ExportWarehouse from "../components/WarehouseDomestic/ExportWarehouse";
 import DashboardKPI from "../components/Manager/DashboardKPI";
 import PendingWarehouse from "../components/WarehouseDomestic/PendingWarehouse";
 import ExportWarehouseShip from "../components/WarehouseDomestic/ExportWarehouseShip";
+import OrderWarehouse from "../components/StaffSale/OrderWarehouse";
 const Router = createBrowserRouter([
   // const Router = createHashRouter([
   {
@@ -371,7 +372,7 @@ const Router = createBrowserRouter([
       { path: "shipping/domestic", element: <RelateOrder /> }, // Chưa triển khai
       { path: "shipping/international", element: <NotFound /> }, // Chưa triển khai
       { path: "tracking", element: <Tracking /> }, // Chưa triển khai
-      { path: "warehouses", element: <Tracking /> }, // Chưa triển khai
+      { path: "warehouses", element: <OrderWarehouse /> }, // Chưa triển khai
       // { path: "telesale", element: <PerformnanceMy /> }, // Chưa triển khai
       { path: "telesale", element: <NotFound /> },
       { path: "knowledge", element: <ExportPacking /> }, // Chưa triển khai
