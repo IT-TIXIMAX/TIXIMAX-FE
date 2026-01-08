@@ -5,137 +5,67 @@ import {
   Package,
   CheckCircle2,
   CircleSlash,
-  ChevronDown,
+  TruckIcon,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import DomesticService from "../../Services/Warehouse/domesticService";
 
+const PAGE_SIZES = [50, 100, 200];
+
 const STATUS_OPTIONS = {
   CHUA_DU_DIEU_KIEN: {
     label: "Chưa thanh toán vận chuyển",
-    color: "bg-blue-50 text-blue-700 ring-blue-200",
+    color: "bg-blue-600",
+    hoverColor: "hover:bg-blue-700",
     icon: CircleSlash,
-    tabActive: "bg-blue-50 text-blue-700 border-blue-600",
-    tabHover: "hover:text-blue-700",
-    badge: "bg-blue-100 text-blue-800",
+    badgeColor: "bg-blue-100 text-blue-800",
   },
   DU_DIEU_KIEN: {
     label: "Đủ điều kiện xuất kho",
-    color: "bg-emerald-50 text-emerald-700 ring-emerald-200",
+    color: "bg-green-600",
+    hoverColor: "hover:bg-green-700",
     icon: CheckCircle2,
-    tabActive: "bg-emerald-50 text-emerald-700 border-emerald-600",
-    tabHover: "hover:text-emerald-700",
-    badge: "bg-emerald-100 text-emerald-800",
+    badgeColor: "bg-green-100 text-green-800",
   },
 };
 
-const Chip = ({ children, tone = "default" }) => {
-  const tones = {
-    default:
-      "bg-white text-slate-700 ring-1 ring-slate-200 hover:ring-slate-300",
-    softBlue: "bg-blue-50 text-blue-700 ring-1 ring-blue-200",
-  };
-  return (
-    <span
-      className={`inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-medium transition ${tones[tone]}`}
-    >
-      {children}
-    </span>
-  );
-};
-
-// ✅ đã giảm từ 6 -> 5 cột
-const SkeletonRow = () => (
-  <tr className="border-b">
-    {Array.from({ length: 5 }).map((_, i) => (
-      <td key={i} className="px-6 py-4">
-        <div className="h-4 w-full max-w-[220px] animate-pulse rounded bg-slate-100" />
-        {i === 1 && (
-          <div className="mt-2 h-3 w-40 animate-pulse rounded bg-slate-100" />
-        )}
-      </td>
-    ))}
-  </tr>
-);
-
-const EmptyState = ({
-  title = "Không có dữ liệu",
-  desc = "Thử đổi bộ lọc hoặc tìm kiếm mã khách.",
-}) => (
-  <div className="flex flex-col items-center justify-center py-14 text-center">
-    <div className="grid h-12 w-12 place-items-center rounded-2xl bg-blue-50 ring-1 ring-blue-100">
-      <Package className="h-6 w-6 text-blue-600" />
+/* ===================== Skeletons ===================== */
+const StatCardSkeleton = () => (
+  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 animate-pulse">
+    <div className="flex items-center justify-between">
+      <div className="space-y-2">
+        <div className="h-4 w-28 bg-gray-200 rounded" />
+        <div className="h-8 w-20 bg-gray-200 rounded" />
+      </div>
+      <div className="h-12 w-12 bg-gray-200 rounded-lg" />
     </div>
-    <div className="mt-4 text-base font-semibold text-slate-900">{title}</div>
-    <div className="mt-1 text-sm text-slate-500">{desc}</div>
   </div>
 );
 
-const ShipmentChips = ({ codes }) => {
-  const list = Array.isArray(codes) ? codes : [];
-  const maxShow = 6;
-
-  if (!list.length)
-    return <span className="text-sm text-slate-400">Không có</span>;
-
-  const shown = list.slice(0, maxShow);
-  const remain = list.length - shown.length;
-
-  return (
-    <div className="flex flex-wrap gap-2">
-      {shown.map((code, idx) => (
-        <Chip key={`${code}-${idx}`}>{code}</Chip>
+const TableSkeleton = ({ rows = 10 }) => (
+  <div className="p-4 animate-pulse">
+    <div className="h-12 bg-gray-100 rounded-lg mb-4" />
+    <div className="space-y-3">
+      {Array.from({ length: rows }).map((_, i) => (
+        <div key={i} className="bg-white border border-gray-200 rounded-xl p-4">
+          <div className="flex items-center gap-3">
+            <div className="h-4 w-20 bg-gray-200 rounded" />
+            <div className="h-4 w-36 bg-gray-200 rounded" />
+            <div className="h-4 w-28 bg-gray-200 rounded" />
+            <div className="h-4 flex-1 bg-gray-200 rounded hidden md:block" />
+          </div>
+        </div>
       ))}
-      {remain > 0 && <Chip tone="softBlue">+{remain}</Chip>}
     </div>
-  );
-};
-
-// ✅ đã xóa hoàn toàn cell "Trạng thái"
-const Row = ({ row }) => {
-  return (
-    <tr className="border-b hover:bg-slate-50/70 transition">
-      <td className="px-6 py-4">
-        <div className="font-semibold text-slate-900">
-          {row.customerCode || "—"}
-        </div>
-      </td>
-
-      <td className="px-6 py-4">
-        <div className="font-medium text-slate-900">
-          {row.customerName || "—"}
-        </div>
-        <div className="mt-0.5 text-sm text-slate-500">
-          {row.phoneNumber || "—"}
-        </div>
-      </td>
-
-      <td className="px-6 py-4">
-        <div className="text-sm text-slate-700 line-clamp-2">
-          {row.address || "—"}
-        </div>
-      </td>
-
-      <td className="px-6 py-4">
-        <div className="font-medium text-slate-900">{row.staffName || "—"}</div>
-        <div className="mt-0.5 text-sm text-slate-500">
-          {row.staffCode || "—"}
-        </div>
-      </td>
-
-      <td className="px-6 py-4">
-        <ShipmentChips codes={row.shipmentCode} />
-      </td>
-    </tr>
-  );
-};
+  </div>
+);
 
 const OrderWarehouse = () => {
   const [deliveries, setDeliveries] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(50);
+  const [pageSize, setPageSize] = useState(50);
   const [totalCount, setTotalCount] = useState(0);
 
   const [selectedStatus, setSelectedStatus] = useState("CHUA_DU_DIEU_KIEN");
@@ -146,7 +76,7 @@ const OrderWarehouse = () => {
   useEffect(() => {
     fetchDeliveries();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, rowsPerPage, selectedStatus, searchCode]);
+  }, [page, pageSize, selectedStatus, searchCode]);
 
   const fetchDeliveries = async () => {
     try {
@@ -157,7 +87,7 @@ const OrderWarehouse = () => {
 
       const response = await DomesticService.getDeliveryList(
         page,
-        rowsPerPage,
+        pageSize,
         params
       );
 
@@ -181,12 +111,12 @@ const OrderWarehouse = () => {
   };
 
   const totalPages = useMemo(
-    () => Math.max(1, Math.ceil(totalCount / rowsPerPage)),
-    [totalCount, rowsPerPage]
+    () => Math.max(1, Math.ceil(totalCount / pageSize)),
+    [totalCount, pageSize]
   );
 
-  const handleChangeRowsPerPage = (e) => {
-    setRowsPerPage(parseInt(e.target.value, 10));
+  const handlePageSizeChange = (newSize) => {
+    setPageSize(newSize);
     setPage(0);
   };
 
@@ -195,8 +125,7 @@ const OrderWarehouse = () => {
     setPage(0);
   };
 
-  const handleSearch = (e) => {
-    e.preventDefault();
+  const handleSearch = () => {
     setSearchCode(searchInput.trim());
     setPage(0);
   };
@@ -207,195 +136,388 @@ const OrderWarehouse = () => {
     setPage(0);
   };
 
+  const showingFrom = totalCount ? page * pageSize + 1 : 0;
+  const showingTo = Math.min((page + 1) * pageSize, totalCount);
+
+  const totalShipments = useMemo(() => {
+    return deliveries.reduce(
+      (sum, d) => sum + (d.shipmentCode?.length || 0),
+      0
+    );
+  }, [deliveries]);
+
+  const currentStatusOption = STATUS_OPTIONS[selectedStatus];
+
   return (
-    <div className="min-h-screen ">
-      <div className="mx-auto  px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen">
+      <div className="mx-auto p-6">
         {/* Header */}
-        <div className="mb-6">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <div className="inline-flex items-center gap-2 rounded-2xl bg-white px-3 py-2 ring-1 ring-slate-200">
-                <div className="grid h-9 w-9 place-items-center rounded-xl bg-blue-50 ring-1 ring-blue-100">
-                  <Package className="h-5 w-5 text-blue-600" />
-                </div>
-                <div>
-                  <div className="text-sm font-semibold text-slate-900">
-                    Quản lý đơn hàng kho
-                  </div>
-                </div>
+        <div className="bg-blue-600 rounded-xl shadow-sm p-5 mb-6">
+          <div className="flex items-center justify-between">
+            {/* Left: Title */}
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                <Package size={22} className="text-white" />
               </div>
+              <h1 className="text-xl font-semibold text-white">
+                Quản Lý Đơn Hàng Kho
+              </h1>
             </div>
+
+            {/* Right: Reload Button */}
+            <button
+              onClick={fetchDeliveries}
+              disabled={loading}
+              className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/30 rounded-lg text-sm font-medium text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              type="button"
+            >
+              Tải lại
+            </button>
           </div>
         </div>
 
-        {/* Filters card */}
-        <div className="mb-6 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
-          {/* Tabs */}
-          <div className="flex">
-            {Object.entries(STATUS_OPTIONS).map(([key, s]) => {
-              const active = selectedStatus === key;
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          {loading ? (
+            <>
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+            </>
+          ) : (
+            <>
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600 mb-1">
+                      Tổng Đơn Hàng
+                    </p>
+                    <p className="text-3xl font-bold text-blue-600">
+                      {totalCount}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-blue-100 rounded-lg">
+                    <Package className="text-blue-600" size={24} />
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600 mb-1">
+                      Tổng Mã Vận Đơn
+                    </p>
+                    <p className="text-3xl font-bold text-green-600">
+                      {totalShipments}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-green-100 rounded-lg">
+                    <Package className="text-green-600" size={24} />
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600 mb-1">
+                      Đang Hiển Thị
+                    </p>
+                    <p className="text-3xl font-bold text-purple-600">
+                      {deliveries.length}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-purple-100 rounded-lg">
+                    <TruckIcon className="text-purple-600" size={24} />
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Status Tabs */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6">
+          <div className="grid grid-cols-2">
+            {Object.entries(STATUS_OPTIONS).map(([key, status]) => {
+              const isActive = selectedStatus === key;
+              const Icon = status.icon;
+
               return (
                 <button
                   key={key}
                   onClick={() => handleStatusChange(key)}
-                  className={`flex-1 border-b-2 px-6 py-4 text-sm font-semibold transition ${
-                    active
-                      ? `${s.tabActive}`
-                      : `border-transparent text-slate-600 ${s.tabHover}`
-                  }`}
+                  disabled={loading}
+                  className={`relative px-6 py-4 text-sm font-semibold transition-all border-b-2 ${
+                    isActive
+                      ? "border-blue-600 text-blue-700 bg-blue-50"
+                      : "border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  type="button"
                 >
-                  <span className="flex items-center justify-center gap-2">
-                    {s.label}
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-xs font-semibold ${s.badge}`}
-                      title="Tổng bản ghi theo bộ lọc hiện tại"
-                    >
-                      {active ? totalCount : "…"}
-                    </span>
-                  </span>
+                  <div className="flex items-center justify-center gap-2">
+                    <Icon size={18} />
+                    <span>{status.label}</span>
+                    {isActive && (
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-xs font-semibold ${status.badgeColor}`}
+                      >
+                        {totalCount}
+                      </span>
+                    )}
+                  </div>
                 </button>
               );
             })}
           </div>
+        </div>
 
-          {/* Controls */}
-          <div className="p-5 sm:p-6">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <form onSubmit={handleSearch} className="w-full lg:max-w-xl">
-                <div className="flex gap-2">
-                  <div className="relative flex-1">
-                    <Search
-                      size={18}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-                    />
-                    <input
-                      type="text"
-                      className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-10 pr-10 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
-                      placeholder="Tìm theo mã khách hàng…"
-                      value={searchInput}
-                      onChange={(e) => setSearchInput(e.target.value)}
-                    />
-
-                    {searchInput && (
-                      <button
-                        type="button"
-                        onClick={handleClearSearch}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-400 hover:text-slate-700"
-                        aria-label="Xóa tìm kiếm"
-                        title="Xóa"
-                      >
-                        <X size={16} />
-                      </button>
-                    )}
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-60"
-                    title="Tìm kiếm"
-                  >
-                    <Search size={16} />
-                    <span className="hidden sm:inline">Tìm kiếm</span>
-                  </button>
+        {/* Filter & Search Section */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
+          <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
+            {/* Search */}
+            <div className="flex-1 w-full lg:w-auto">
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Search
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                    size={20}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Tìm kiếm mã khách hàng ..."
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                    className="w-full pl-10 pr-10 py-2.5 border-2 border-gray-300 rounded-lg outline-none focus:ring-0 focus:border-blue-500 transition-all"
+                  />
+                  {searchInput && (
+                    <button
+                      onClick={handleClearSearch}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                      type="button"
+                    >
+                      <X size={18} />
+                    </button>
+                  )}
                 </div>
-              </form>
 
-              <div className="relative">
-                <select
-                  value={rowsPerPage}
-                  onChange={handleChangeRowsPerPage}
-                  className="w-24 appearance-none rounded-xl border pl-3 pr-9 py-2 text-sm focus:ring-2 focus:ring-blue-100"
+                <button
+                  onClick={handleSearch}
+                  disabled={loading}
+                  className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                  type="button"
                 >
-                  <option value={50}>50</option>
-                  <option value={100}>100</option>
-                  <option value={200}>200</option>
-                </select>
+                  <Search size={18} />
+                  Tìm kiếm
+                </button>
+              </div>
+            </div>
 
-                <ChevronDown
-                  size={16}
-                  className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-500"
-                />
+            {/* Page Size Selector */}
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                Hiển thị:
+              </span>
+              <div className="flex gap-2">
+                {PAGE_SIZES.map((size) => (
+                  <button
+                    key={size}
+                    onClick={() => handlePageSizeChange(size)}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                      pageSize === size
+                        ? "bg-blue-600 text-white shadow-sm"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
+                    type="button"
+                  >
+                    {size}
+                  </button>
+                ))}
               </div>
             </div>
           </div>
         </div>
 
-        {/* Table card */}
-        <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
-          <div className="overflow-x-auto">
-            <table className="min-w-full">
-              <thead className="sticky top-0 z-10 bg-white/90 backdrop-blur border-b border-slate-200">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wide text-slate-600">
-                    Mã KH
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wide text-slate-600">
-                    Khách hàng
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wide text-slate-600">
-                    Địa chỉ
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wide text-slate-600">
-                    Nhân viên
-                  </th>
-                  {/* ✅ XÓA CỘT TRẠNG THÁI */}
-                  <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wide text-slate-600">
-                    Mã vận đơn
-                  </th>
-                </tr>
-              </thead>
-
-              <tbody className="divide-y divide-slate-100">
-                {loading ? (
-                  <>
-                    <SkeletonRow />
-                    <SkeletonRow />
-                    <SkeletonRow />
-                    <SkeletonRow />
-                    <SkeletonRow />
-                  </>
-                ) : deliveries.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="px-6">
-                      <EmptyState />
-                    </td>
+        {/* Table Section */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          {loading ? (
+            <TableSkeleton rows={10} />
+          ) : deliveries.length === 0 ? (
+            <div className="p-12 text-center">
+              <Package className="mx-auto text-gray-400 mb-4" size={48} />
+              <p className="text-gray-600 font-medium">Không có đơn hàng nào</p>
+              <p className="text-sm text-gray-500 mt-1">
+                Thử thay đổi bộ lọc hoặc tìm kiếm
+              </p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
+                    <th className="px-4 py-4 text-left text-sm font-semibold whitespace-nowrap">
+                      Mã KH
+                    </th>
+                    <th className="px-4 py-4 text-left text-sm font-semibold whitespace-nowrap">
+                      Tên Khách Hàng
+                    </th>
+                    <th className="px-4 py-4 text-left text-sm font-semibold whitespace-nowrap">
+                      Số Điện Thoại
+                    </th>
+                    <th className="px-4 py-4 text-left text-sm font-semibold">
+                      Địa Chỉ
+                    </th>
+                    <th className="px-4 py-4 text-left text-sm font-semibold">
+                      Danh Sách Mã Vận Đơn
+                    </th>
                   </tr>
-                ) : (
-                  deliveries.map((row, idx) => <Row key={idx} row={row} />)
-                )}
-              </tbody>
-            </table>
-          </div>
+                </thead>
 
-          {/* Footer */}
-          <div className="flex flex-col gap-3 border-t border-slate-200 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="text-sm text-slate-500">
-              Trang{" "}
-              <span className="font-semibold text-slate-700">{page + 1}</span> /{" "}
-              <span className="font-semibold text-slate-700">{totalPages}</span>
+                <tbody>
+                  {deliveries.map((delivery, index) => (
+                    <tr
+                      key={`${delivery.customerCode}-${index}`}
+                      className={`border-b border-gray-200 hover:bg-blue-50 transition-colors ${
+                        index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                      }`}
+                    >
+                      <td className="px-4 py-4">
+                        <span className="font-semibold text-blue-700 whitespace-nowrap">
+                          {delivery.customerCode || "—"}
+                        </span>
+                      </td>
+
+                      <td className="px-4 py-4">
+                        <span className="font-medium text-gray-900">
+                          {delivery.customerName || "—"}
+                        </span>
+                      </td>
+
+                      <td className="px-4 py-4">
+                        {delivery.phoneNumber ? (
+                          <span className="text-sm text-gray-700 whitespace-nowrap">
+                            {delivery.phoneNumber}
+                          </span>
+                        ) : (
+                          <span className="text-sm text-gray-400 italic">
+                            Chưa có
+                          </span>
+                        )}
+                      </td>
+
+                      <td className="px-4 py-4">
+                        {delivery.address ? (
+                          <span className="text-sm text-gray-700">
+                            {delivery.address}
+                          </span>
+                        ) : (
+                          <span className="text-sm text-gray-400 italic">
+                            Chưa có địa chỉ
+                          </span>
+                        )}
+                      </td>
+
+                      <td className="px-4 py-4">
+                        <div className="flex flex-wrap gap-2">
+                          {delivery.shipmentCode?.length > 0 ? (
+                            delivery.shipmentCode
+                              .slice(0, 6)
+                              .map((code, idx) => (
+                                <div
+                                  key={`${delivery.customerCode}-${code}-${idx}`}
+                                  className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-50 to-white px-3 py-2 rounded-lg border border-blue-200"
+                                >
+                                  <span className="text-xs px-1.5 py-0.5 bg-blue-600 text-white rounded-full font-semibold min-w-[20px] text-center">
+                                    {idx + 1}
+                                  </span>
+                                  <span className="text-sm font-mono text-gray-800">
+                                    {code}
+                                  </span>
+                                </div>
+                              ))
+                          ) : (
+                            <span className="text-sm text-gray-400 italic">
+                              Không có
+                            </span>
+                          )}
+                          {delivery.shipmentCode?.length > 6 && (
+                            <div className="inline-flex items-center px-3 py-2 bg-blue-50 text-blue-700 rounded-lg border border-blue-200 text-sm font-semibold">
+                              +{delivery.shipmentCode.length - 6}
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
+          )}
 
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setPage((p) => Math.max(0, p - 1))}
-                disabled={page === 0 || loading}
-                className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-blue-700 transition hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Trước
-              </button>
+          {/* Pagination */}
+          {totalPages > 1 && !loading && (
+            <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="text-sm text-gray-600">
+                  Hiển thị{" "}
+                  <span className="font-semibold text-gray-900">
+                    {showingFrom}
+                  </span>{" "}
+                  -{" "}
+                  <span className="font-semibold text-gray-900">
+                    {showingTo}
+                  </span>{" "}
+                  trong tổng số{" "}
+                  <span className="font-semibold text-gray-900">
+                    {totalCount}
+                  </span>{" "}
+                  đơn hàng
+                </div>
 
-              <button
-                type="button"
-                onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-                disabled={page >= totalPages - 1 || loading}
-                className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-blue-700 transition hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Sau
-              </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setPage(0)}
+                    disabled={page === 0}
+                    className="px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    type="button"
+                  >
+                    Đầu
+                  </button>
+                  <button
+                    onClick={() => setPage((p) => Math.max(0, p - 1))}
+                    disabled={page === 0}
+                    className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    type="button"
+                  >
+                    Trước
+                  </button>
+                  <span className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold">
+                    {page + 1} / {totalPages}
+                  </span>
+                  <button
+                    onClick={() =>
+                      setPage((p) => Math.min(totalPages - 1, p + 1))
+                    }
+                    disabled={page >= totalPages - 1}
+                    className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    type="button"
+                  >
+                    Sau
+                  </button>
+                  <button
+                    onClick={() => setPage(totalPages - 1)}
+                    disabled={page >= totalPages - 1}
+                    className="px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    type="button"
+                  >
+                    Cuối
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

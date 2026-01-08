@@ -316,12 +316,12 @@ const ScanImportWarehouse = () => {
                   <div className="rounded-xl border-2 border-red-200 bg-gradient-to-br from-red-50 to-red-100/50 p-4 shadow-sm">
                     <div className="flex flex-col items-center gap-2 mb-2">
                       <div className="text-xl font-semibold text-red-700 uppercase tracking-wide">
-                        Tổng kiện hàng
+                        Chờ nhập kho
                       </div>
                     </div>
                     <div className="flex items-baseline justify-center gap-2">
                       <div className="text-3xl font-extrabold text-red-900">
-                        {checkInData.totalWarehouseInFlight ?? "—"}
+                        {checkInData.waitImport ?? "—"}
                       </div>
                       <div className="text-2xl font-medium text-red-700">
                         kiện
@@ -345,7 +345,19 @@ const ScanImportWarehouse = () => {
                     </div>
                   </div>
                 </div>
-
+                {/* Status banner */}
+                <div className="rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 p-4">
+                  <div className="flex flex-col items-center gap-3">
+                    <div>
+                      <div className="text-xl font-medium text-blue-600 mb-0.5">
+                        Tồn kho
+                      </div>
+                      <div className="text-xl font-bold text-black tracking-wide">
+                        {checkInData.inventory || "—"}
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 {/* Actions */}
                 <div className="pt-2 flex flex-col sm:flex-row gap-3 justify-center">
                   <button
