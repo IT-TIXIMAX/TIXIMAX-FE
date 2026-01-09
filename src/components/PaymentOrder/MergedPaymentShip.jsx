@@ -143,22 +143,13 @@ const MergedPaymentShip = () => {
       setOrders(data || []);
 
       if (!data || data.length === 0) {
-        // ✅ SỬA LỖI: Thay toast.info bằng toast
-        toast(
-          `Không tìm thấy đơn hàng vận chuyển nào cho khách hàng ${customerCode}`,
-          {
-            icon: "🚚",
-            duration: 4000,
-            style: {
-              background: "#3b82f6",
-              color: "#fff",
-            },
-          }
-        );
-      } else {
-        toast.success(
-          `Tìm thấy ${data.length} đơn hàng vận chuyển cho khách hàng ${customerCode}`
-        );
+        toast(`Không tìm thấy đơn hàng  ${customerCode}`, {
+          duration: 4000,
+          style: {
+            background: "#e43833ff",
+            color: "#fff",
+          },
+        });
       }
     } catch (error) {
       console.error("Error fetching customer shipping orders:", error);
@@ -185,13 +176,11 @@ const MergedPaymentShip = () => {
       );
   };
 
-  // 👉 Lấy danh sách order đã chọn (để suy ra accountId)
   const selectedOrdersData = useMemo(
     () => orders.filter((o) => selectedOrders.includes(o.orderCode)),
     [orders, selectedOrders]
   );
 
-  // 👉 Lấy các accountId duy nhất từ danh sách đơn đã chọn
   const uniqueAccountIds = useMemo(() => {
     const ids = selectedOrdersData
       .map((o) => o?.customer?.accountId)
@@ -199,10 +188,6 @@ const MergedPaymentShip = () => {
     return [...new Set(ids)];
   }, [selectedOrdersData]);
 
-  // 👉 Suy ra accountId dùng cho "CreateMergedPaymentShip"
-  // - Nếu tất cả đơn cùng 1 accountId -> dùng accountId đó
-  // - Nếu không chọn gì -> null
-  // - Nếu chọn lẫn nhiều account -> null (và hiển thị cảnh báo)
   const derivedAccountId = useMemo(() => {
     if (uniqueAccountIds.length === 1) return uniqueAccountIds[0];
     return null;

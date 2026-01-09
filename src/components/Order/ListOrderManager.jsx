@@ -19,6 +19,60 @@ import toast from "react-hot-toast";
 import createOrderPaymentService from "../../Services/Payment/createOrderPaymentService";
 import DetailPaymentOrder from "../PaymentOrder/DetailPaymentOrder";
 
+const OrderSkeleton = () => (
+  <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    {/* Header Skeleton */}
+    <div className="px-4 py-3 border-b bg-gray-50">
+      <div className="flex items-center justify-between animate-pulse">
+        <div className="flex items-center gap-3">
+          <div className="w-6 h-6 bg-gray-300 rounded-full" />
+          <div>
+            <div className="h-5 w-32 bg-gray-300 rounded mb-2" />
+            <div className="h-3 w-24 bg-gray-200 rounded" />
+          </div>
+        </div>
+        <div className="text-right">
+          <div className="h-3 w-16 bg-gray-200 rounded mb-2" />
+          <div className="h-5 w-24 bg-gray-300 rounded" />
+        </div>
+      </div>
+    </div>
+
+    {/* Content Skeleton */}
+    <div className="p-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 animate-pulse">
+        {/* Customer Info Skeleton */}
+        <div className="space-y-2">
+          <div className="h-4 w-36 bg-gray-300 rounded mb-2" />
+          <div className="bg-gray-50 rounded-lg p-3 space-y-2">
+            <div className="h-6 w-20 bg-gray-300 rounded" />
+            <div className="h-3 w-full bg-gray-200 rounded" />
+            <div className="h-3 w-3/4 bg-gray-200 rounded" />
+            <div className="h-3 w-5/6 bg-gray-200 rounded" />
+          </div>
+        </div>
+
+        {/* Order Details Skeleton */}
+        <div className="space-y-2">
+          <div className="h-4 w-32 bg-gray-300 rounded mb-2" />
+          <div className="bg-gray-50 rounded-lg p-3 space-y-2">
+            <div className="h-3 w-full bg-gray-200 rounded" />
+            <div className="h-3 w-3/4 bg-gray-200 rounded" />
+            <div className="h-3 w-5/6 bg-gray-200 rounded" />
+            <div className="h-3 w-4/5 bg-gray-200 rounded" />
+          </div>
+        </div>
+      </div>
+
+      {/* Actions Skeleton */}
+      <div className="mt-4 pt-4 border-t border-gray-200 flex justify-end gap-2 animate-pulse">
+        <div className="h-9 w-28 bg-gray-300 rounded-lg" />
+        <div className="h-9 w-32 bg-gray-300 rounded-lg" />
+      </div>
+    </div>
+  </div>
+);
+
 const ListOrderManager = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -28,7 +82,7 @@ const ListOrderManager = () => {
   const [filterDate, setFilterDate] = useState("");
   const [pagination, setPagination] = useState({
     pageNumber: 0,
-    pageSize: 15,
+    pageSize: 50,
     totalPages: 0,
     totalElements: 0,
     first: true,
@@ -57,13 +111,13 @@ const ListOrderManager = () => {
       borderColor: "border-orange-500",
     },
     {
-  key: " DAU_GIA_THANH_CONG",
-  label: "Đấu giá thành công",
-  color: "purple",
-  bgColor: "bg-purple-50",
-  textColor: "text-purple-700",
-  borderColor: "border-purple-500",
-  },
+      key: "DAU_GIA_THANH_CONG",
+      label: "Đấu giá thành công",
+      color: "purple",
+      bgColor: "bg-purple-50",
+      textColor: "text-purple-700",
+      borderColor: "border-purple-500",
+    },
     {
       key: "DA_DU_HANG",
       label: "Đã đủ đơn",
@@ -83,7 +137,7 @@ const ListOrderManager = () => {
   ];
 
   const fetchOrders = useCallback(
-    async (page = 0, size = 15) => {
+    async (page = 0, size = 50) => {
       try {
         setLoading(true);
         setError(null);
@@ -150,8 +204,19 @@ const ListOrderManager = () => {
   );
 
   const handleTabChange = (tabKey) => {
+    if (tabKey === activeTab || loading) return; // Prevent tab change while loading
+
     setActiveTab(tabKey);
-    setPagination((prev) => ({ ...prev, pageNumber: 0 }));
+    setOrders([]); // Clear old data immediately
+    setError(null); // Clear old errors
+    setSearchTerm(""); // Clear search
+    setFilterDate(""); // Clear date filter
+    setPagination((prev) => ({
+      ...prev,
+      pageNumber: 0,
+      totalPages: 0,
+      totalElements: 0,
+    }));
   };
 
   const formatDate = (dateString) => {
@@ -271,11 +336,12 @@ const ListOrderManager = () => {
               <button
                 key={tab.key}
                 onClick={() => handleTabChange(tab.key)}
+                disabled={loading}
                 className={`flex-1 min-w-[150px] px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                   activeTab === tab.key
                     ? `${tab.bgColor} ${tab.textColor} ${tab.borderColor} border-2`
                     : "bg-gray-50 text-gray-600 hover:bg-gray-100"
-                }`}
+                } ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
               >
                 {tab.label}
               </button>
@@ -284,7 +350,7 @@ const ListOrderManager = () => {
         </div>
 
         {/* Error Messages */}
-        {error && (
+        {error && !loading && (
           <div className="mb-4 p-3 bg-red-50 border-l-4 border-red-400 rounded-r-lg">
             <div className="flex items-center">
               <AlertCircle className="w-4 h-4 text-red-400 mr-2" />
@@ -301,90 +367,88 @@ const ListOrderManager = () => {
           </div>
         )}
 
-        {/* Controls */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-4">
-          <div className="flex flex-col gap-3">
-            {/* Search Box - Tìm kiếm chung */}
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="text"
-                placeholder="Tìm kiếm theo mã đơn, mã KH, tên KH, mã thanh toán..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none text-sm transition-all"
-              />
-              {searchTerm && (
-                <button
-                  onClick={() => setSearchTerm("")}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              )}
-            </div>
-
-            {/* Date Filter, Page Size and Stats */}
-            <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-              <div className="flex flex-col sm:flex-row gap-3">
-                <div className="relative">
-                  <Calendar className="absolute left-2.5 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <input
-                    type="date"
-                    value={filterDate}
-                    onChange={(e) => setFilterDate(e.target.value)}
-                    className="pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm"
-                  />
-                </div>
-
-                <select
-                  value={pagination.pageSize}
-                  onChange={handlePageSizeChange}
-                  disabled={loading}
-                  className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
-                >
-                  <option value={10}>10 / trang</option>
-                  <option value={15}>15 / trang</option>
-                  <option value={20}>20 / trang</option>
-                  <option value={30}>30 / trang</option>
-                  <option value={50}>50 / trang</option>
-                </select>
-
-                {/* Clear Filters Button */}
-                {(searchTerm || filterDate) && (
+        {/* Controls - Ẩn khi loading */}
+        {!loading && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-4">
+            <div className="flex flex-col gap-3">
+              {/* Search Box - Tìm kiếm chung */}
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type="text"
+                  placeholder="Tìm kiếm theo mã đơn, mã KH, tên KH, mã thanh toán..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none text-sm transition-all"
+                />
+                {searchTerm && (
                   <button
-                    onClick={handleClearFilters}
-                    className="flex items-center gap-1.5 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors"
+                    onClick={() => setSearchTerm("")}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   >
                     <X className="w-4 h-4" />
-                    Xóa bộ lọc
                   </button>
                 )}
               </div>
 
-              <div className="text-sm text-gray-600">
-                Tổng:{" "}
-                <span className="font-semibold">
-                  {pagination.totalElements}
-                </span>{" "}
-                đơn
-                {filteredOrders.length !== orders.length && (
-                  <span className="ml-2 text-blue-600">
-                    (Hiển thị: {filteredOrders.length})
-                  </span>
-                )}
+              {/* Date Filter, Page Size and Stats */}
+              <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <div className="relative">
+                    <Calendar className="absolute left-2.5 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <input
+                      type="date"
+                      value={filterDate}
+                      onChange={(e) => setFilterDate(e.target.value)}
+                      className="pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm"
+                    />
+                  </div>
+
+                  <select
+                    value={pagination.pageSize}
+                    onChange={handlePageSizeChange}
+                    disabled={loading}
+                    className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
+                  >
+                    <option value={50}>50 / trang</option>
+                    <option value={100}>100 / trang</option>
+                  </select>
+
+                  {/* Clear Filters Button */}
+                  {(searchTerm || filterDate) && (
+                    <button
+                      onClick={handleClearFilters}
+                      className="flex items-center gap-1.5 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors"
+                    >
+                      <X className="w-4 h-4" />
+                      Xóa bộ lọc
+                    </button>
+                  )}
+                </div>
+
+                <div className="text-sm text-gray-600">
+                  Tổng:{" "}
+                  <span className="font-semibold">
+                    {pagination.totalElements}
+                  </span>{" "}
+                  đơn
+                  {filteredOrders.length !== orders.length && (
+                    <span className="ml-2 text-blue-600">
+                      (Hiển thị: {filteredOrders.length})
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
 
-        {/* Loading State */}
+        {/* Loading State với Skeleton */}
         {loading && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
-            <div className="inline-flex items-center px-3 py-2 font-semibold text-sm text-blue-600">
-              <RefreshCw className="animate-spin -ml-1 mr-2 h-4 w-4" />
-              Đang tải dữ liệu...
-            </div>
+          <div className="space-y-3">
+            {[...Array(5)].map((_, index) => (
+              <OrderSkeleton key={index} />
+            ))}
           </div>
         )}
 
@@ -404,7 +468,7 @@ const ListOrderManager = () => {
         )}
 
         {/* Orders List */}
-        {filteredOrders.length > 0 && (
+        {!loading && filteredOrders.length > 0 && (
           <div className="space-y-3">
             {filteredOrders.map((order, index) => (
               <div
@@ -573,13 +637,13 @@ const ListOrderManager = () => {
         )}
 
         {/* Pagination */}
-        {filteredOrders.length > 0 && (
+        {!loading && filteredOrders.length > 0 && (
           <div className="flex items-center justify-between mt-4 bg-white rounded-xl shadow-sm border border-gray-200 px-4 py-3">
             <button
               onClick={() => handlePageChange(pagination.pageNumber - 1)}
-              disabled={pagination.first}
+              disabled={pagination.first || loading}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                pagination.first
+                pagination.first || loading
                   ? "text-gray-400 cursor-not-allowed"
                   : "text-gray-700 hover:bg-gray-100"
               }`}
@@ -594,15 +658,15 @@ const ListOrderManager = () => {
                 {pagination.pageNumber + 1}
               </span>
               <span className="text-xs text-gray-500">
-                / {pagination.totalPages}
+                / {pagination.totalPages || 1}
               </span>
             </div>
 
             <button
               onClick={() => handlePageChange(pagination.pageNumber + 1)}
-              disabled={pagination.last}
+              disabled={pagination.last || loading}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                pagination.last
+                pagination.last || loading
                   ? "text-gray-400 cursor-not-allowed"
                   : "text-gray-700 hover:bg-gray-100"
               }`}

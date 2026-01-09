@@ -404,7 +404,7 @@ const MergedPaymentShipConfigModal = ({
 }) => {
   const [customerVoucherId, setCustomerVoucherId] = useState(null);
   const [isUseBalance, setIsUseBalance] = useState(true);
-  const [priceShipDos, setPriceShipDos] = useState(""); // 🔹 NEW: Phí ship nội địa
+  const [priceShipDos, setPriceShipDos] = useState("");
 
   // 🔹 Theo dõi trạng thái tải voucher từ component con
   const [voucherLoading, setVoucherLoading] = useState(false);
@@ -696,24 +696,22 @@ const CreateMergedPaymentShip = ({
     if (!isCreating) setShowConfigModal(false);
   };
 
-  // Xác nhận từ modal: gọi API tạo thanh toán
   const handleConfirmMergedPayment = async (
     customerVoucherId,
     isUseBalance,
     bankId,
-    priceShipDos // 🔹 NEW: Nhận phí ship nội địa
+    priceShipDos
   ) => {
     setShowConfigModal(false);
 
     try {
       setIsCreating(true);
 
-      // Gọi API tạo thanh toán ship (gộp) với priceShipDos
       const result = await createPaymentShipService.createPaymentShipping(
         isUseBalance,
         customerVoucherId ?? null,
         bankId,
-        priceShipDos, // 🔹 Truyền priceShipDos vào API
+        priceShipDos,
         selectedOrders
       );
 

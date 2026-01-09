@@ -453,7 +453,7 @@
 // export default CreateDividePaymentShip;
 
 // src/Components/Payment/CreateDividePaymentShip.jsx
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import toast from "react-hot-toast";
 import { X, DollarSign, Copy } from "lucide-react";
 import createPaymentShipService from "../../Services/Payment/createPaymentShipService";
@@ -468,6 +468,7 @@ const getErrorMessage = (error) => {
       error.response.data?.message ||
       error.response.data?.detail ||
       error.response.data?.errors;
+
     if (be) {
       if (typeof be === "object" && !Array.isArray(be)) {
         return Object.entries(be)
@@ -477,6 +478,7 @@ const getErrorMessage = (error) => {
       if (Array.isArray(be)) return be.join(", ");
       return be;
     }
+
     return `Lỗi ${error.response.status}: ${
       error.response.statusText || "Không xác định"
     }`;
@@ -515,15 +517,33 @@ const copyToClipboard = async (text, successMsg = "Đã copy") => {
   }
 };
 
-/* ================= SIMPLE SUCCESS MODAL (clean QR) ================= */
+const onlyDigitsAndComma = (s) => /^[\d,]*$/.test(s);
+
+/** "12,300" -> 12300  | "" -> null */
+const parseMoneyInput = (s) => {
+  const raw = String(s || "")
+    .replace(/,/g, "")
+    .trim();
+  if (!raw) return null;
+  const n = Number(raw);
+  if (Number.isNaN(n)) return NaN;
+  return n;
+};
+
+const formatMoneyInput = (s) => {
+  const raw = String(s || "").replace(/,/g, "");
+  if (!raw) return "";
+  return raw.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+};
+
+/* ================= SUCCESS MODAL (clean QR) ================= */
 const PaymentSuccessModal = ({ isOpen, onClose, paymentData }) => {
   const [qrBroken, setQrBroken] = useState(false);
 
   useEffect(() => {
     if (isOpen) setQrBroken(false);
-  }, [isOpen, paymentData]);
+  }, [isOpen]);
 
-  // ESC để đóng
   useEffect(() => {
     if (!isOpen) return;
     const onKeyDown = (e) => e.key === "Escape" && onClose?.();
@@ -560,7 +580,6 @@ const PaymentSuccessModal = ({ isOpen, onClose, paymentData }) => {
       aria-modal="true"
     >
       <div className="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden max-h-[90vh] flex flex-col">
-        {/* Header (gọn) */}
         <div className="px-5 py-4 border-b">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
@@ -588,7 +607,6 @@ const PaymentSuccessModal = ({ isOpen, onClose, paymentData }) => {
             </button>
           </div>
 
-          {/* Info ngắn */}
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <span className="text-sm text-gray-700">
               Số tiền:{" "}
@@ -605,7 +623,6 @@ const PaymentSuccessModal = ({ isOpen, onClose, paymentData }) => {
           </div>
         </div>
 
-        {/* Body: QR to + actions đơn giản */}
         <div className="px-5 py-5 overflow-y-auto">
           {qr ? (
             <>
@@ -641,7 +658,6 @@ const PaymentSuccessModal = ({ isOpen, onClose, paymentData }) => {
                 </button>
               </div>
 
-              {/* Info phụ (có thì hiện) */}
               {(data?.content || data?.actionAt) && (
                 <div className="mt-5 rounded-xl border bg-gray-50 p-4 space-y-2">
                   {data?.actionAt && (
@@ -668,6 +684,7 @@ const PaymentSuccessModal = ({ isOpen, onClose, paymentData }) => {
                           Copy
                         </button>
                       </div>
+
                       <div className="mt-2 text-sm text-gray-800 bg-white border rounded-lg p-3 whitespace-pre-wrap break-words">
                         {data.content}
                       </div>
@@ -683,7 +700,6 @@ const PaymentSuccessModal = ({ isOpen, onClose, paymentData }) => {
           )}
         </div>
 
-        {/* Footer */}
         <div className="px-5 py-3 border-t bg-gray-50">
           <button
             onClick={onClose}
@@ -704,7 +720,6 @@ const DividePaymentShipConfigModal = ({
   onConfirm,
   selectedCount,
   totalAmount,
-  formatCurrency,
   isCreating,
   accountId,
   cachedBankAccounts = [],
@@ -718,9 +733,11 @@ const DividePaymentShipConfigModal = ({
   const [bankId, setBankId] = useState(null);
   const [bankLoading, setBankLoading] = useState(false);
 
-  const [priceShipDos, setPriceShipDos] = useState(undefined);
-  const [priceError, setPriceError] = useState("");
   const [voucherLoading, setVoucherLoading] = useState(false);
+
+  // ✅ input dạng string để không giật cursor
+  const [priceInput, setPriceInput] = useState("");
+  const [priceError, setPriceError] = useState("");
 
   useEffect(() => {
     if (isOpen && !bankId && cachedBankAccounts?.length > 0) {
@@ -731,58 +748,43 @@ const DividePaymentShipConfigModal = ({
   useEffect(() => {
     if (!isOpen) return;
     setPriceError("");
-    // Nếu muốn reset mỗi lần mở modal:
-    // setPriceShipDos(undefined);
+    // muốn reset mỗi lần mở:
+    // setPriceInput("");
   }, [isOpen]);
 
-  const confirmDisabled = useMemo(() => {
-    return (
-      isCreating ||
-      bankLoading ||
-      voucherLoading ||
-      !bankId ||
-      !priceShipDos ||
-      Number(priceShipDos) <= 0 ||
-      !!priceError
-    );
-  }, [
-    isCreating,
-    bankLoading,
-    voucherLoading,
-    bankId,
-    priceShipDos,
-    priceError,
-  ]);
+  const priceShipDos = useMemo(() => parseMoneyInput(priceInput), [priceInput]);
 
-  const formatNumber = (num) => {
-    if (num === null || num === undefined) return "";
-    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  };
+  const confirmDisabled =
+    isCreating ||
+    bankLoading ||
+    voucherLoading ||
+    !bankId ||
+    priceShipDos == null ||
+    Number.isNaN(priceShipDos) ||
+    Number(priceShipDos) <= 0 ||
+    !!priceError;
 
   const handlePriceChange = (e) => {
     const input = e.target.value;
-    if (input !== "" && !/^[\d,]*$/.test(input)) return;
+    if (!onlyDigitsAndComma(input)) return;
 
-    const raw = input.replace(/,/g, "");
-    if (raw === "") {
-      setPriceShipDos(undefined);
+    const formatted = formatMoneyInput(input);
+    setPriceInput(formatted);
+
+    const n = parseMoneyInput(formatted);
+    if (n == null) {
       setPriceError("Vui lòng nhập giá vận chuyển");
       return;
     }
-
-    const num = Number(raw);
-    if (Number.isNaN(num)) {
+    if (Number.isNaN(n)) {
       setPriceError("Vui lòng nhập số hợp lệ");
       return;
     }
-    if (num <= 0) {
-      setPriceShipDos(num);
+    if (n < 0) {
       setPriceError("Giá vận chuyển phải > 0");
       return;
     }
-
     setPriceError("");
-    setPriceShipDos(num);
   };
 
   if (!isOpen) return null;
@@ -810,7 +812,7 @@ const DividePaymentShipConfigModal = ({
             <div className="flex justify-between pt-2 border-t border-blue-200 text-sm text-gray-700">
               <span>Tổng phí ước tính</span>
               <span className="font-bold text-blue-600">
-                {formatCurrency(totalAmount)}
+                {formatVnd(totalAmount || 0)}
               </span>
             </div>
           </div>
@@ -819,15 +821,14 @@ const DividePaymentShipConfigModal = ({
             <label className="block text-sm font-medium mb-2">
               Giá vận chuyển nội địa <span className="text-red-500">*</span>
             </label>
-            <div className="relative">
-              <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <div>
               <input
                 type="text"
                 inputMode="numeric"
-                value={formatNumber(priceShipDos)}
+                value={priceInput}
                 onChange={handlePriceChange}
                 disabled={isCreating}
-                className={`w-full pl-10 pr-4 py-3 rounded-xl border-2 focus:outline-none ${
+                className={`w-full px-4 py-3 rounded-xl border-2 focus:outline-none text-left ${
                   priceError
                     ? "border-red-400 focus:border-red-500"
                     : "border-gray-300 focus:border-blue-500"
@@ -887,7 +888,7 @@ const DividePaymentShipConfigModal = ({
                 customerVoucherId: customerVoucherId ?? null,
                 isUseBalance,
                 bankId,
-                priceShipDos,
+                priceShipDos: Number(priceShipDos),
               })
             }
             className="flex-1 bg-blue-600 text-white rounded-xl py-2 disabled:bg-gray-400 hover:bg-blue-700 transition-colors"
@@ -904,7 +905,7 @@ const DividePaymentShipConfigModal = ({
 const CreateDividePaymentShip = ({
   selectedShipmentCodes,
   totalAmount,
-  formatCurrency,
+  formatCurrency, // giữ prop để tương thích (không bắt buộc dùng)
   onSuccess,
   onError,
   disabled = false,
@@ -920,7 +921,7 @@ const CreateDividePaymentShip = ({
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [paymentResponse, setPaymentResponse] = useState(null);
 
-  // IMPORTANT: lưu callback refresh để chạy sau khi user đóng modal
+  // ✅ Defer refresh tới lúc đóng modal success
   const [pendingAfterClose, setPendingAfterClose] = useState(null);
 
   const openModal = () => {
@@ -931,47 +932,47 @@ const CreateDividePaymentShip = ({
     setShowConfigModal(true);
   };
 
-  const handleConfirmDividePayment = async (payload) => {
-    if (!payload?.bankId) {
-      toast.error("Vui lòng chọn tài khoản ngân hàng");
-      return;
-    }
-    if (!payload?.priceShipDos || Number(payload.priceShipDos) <= 0) {
-      toast.error("Vui lòng nhập giá vận chuyển nội địa hợp lệ");
-      setShowConfigModal(true);
-      return;
-    }
+  const handleConfirmDividePayment = useCallback(
+    async (payload) => {
+      if (!payload?.bankId) {
+        toast.error("Vui lòng chọn tài khoản ngân hàng");
+        return;
+      }
+      if (!payload?.priceShipDos || Number(payload.priceShipDos) <= 0) {
+        toast.error("Vui lòng nhập giá vận chuyển nội địa hợp lệ");
+        return;
+      }
 
-    setShowConfigModal(false);
+      setShowConfigModal(false);
 
-    try {
-      setIsCreating(true);
+      try {
+        setIsCreating(true);
 
-      const res = await createPaymentShipService.createPartialShipment(
-        payload.isUseBalance,
-        payload.bankId,
-        payload.customerVoucherId,
-        payload.priceShipDos,
-        selectedShipmentCodes
-      );
+        const res = await createPaymentShipService.createPartialShipment(
+          payload.isUseBalance,
+          payload.bankId,
+          payload.customerVoucherId,
+          payload.priceShipDos,
+          selectedShipmentCodes
+        );
 
-      // ✅ Normalize nếu service trả AxiosResponse
-      const data = res?.data ?? res;
+        const data = res?.data ?? res;
 
-      // ✅ Show modal success trước (KHÔNG refresh ngay)
-      setPaymentResponse(data);
-      setShowSuccessModal(true);
-      toast.success("Tạo thanh toán thành công!");
+        setPaymentResponse(data);
+        setShowSuccessModal(true);
+        toast.success("Tạo thanh toán thành công!");
 
-      // ✅ defer onSuccess đến lúc đóng modal
-      setPendingAfterClose(() => () => onSuccess?.(data));
-    } catch (err) {
-      toast.error(getErrorMessage(err));
-      onError?.(err);
-    } finally {
-      setIsCreating(false);
-    }
-  };
+        // defer refresh
+        setPendingAfterClose(() => () => onSuccess?.(data));
+      } catch (err) {
+        toast.error(getErrorMessage(err));
+        onError?.(err);
+      } finally {
+        setIsCreating(false);
+      }
+    },
+    [onSuccess, onError, selectedShipmentCodes]
+  );
 
   const handleCloseSuccessModal = async () => {
     setShowSuccessModal(false);
@@ -980,7 +981,6 @@ const CreateDividePaymentShip = ({
     setPendingAfterClose(null);
     setPaymentResponse(null);
 
-    // chạy refresh sau khi modal đã đóng
     if (typeof fn === "function") {
       try {
         await fn();
@@ -1006,7 +1006,6 @@ const CreateDividePaymentShip = ({
         onConfirm={handleConfirmDividePayment}
         selectedCount={selectedShipmentCodes?.length || 0}
         totalAmount={totalAmount || 0}
-        formatCurrency={formatCurrency}
         isCreating={isCreating}
         accountId={accountId}
         cachedBankAccounts={cachedBankAccounts}
