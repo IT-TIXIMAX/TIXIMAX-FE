@@ -28,6 +28,8 @@ import {
   UserStar,
   ChevronLeft,
   ChevronRight,
+  MapPinHouse,
+  ListChecks,
 } from "lucide-react";
 import Logout from "../../Page/Logout";
 import profileService from "../../Services/SharedService/profileService";
@@ -42,6 +44,7 @@ const StaffSaleSidebar = () => {
   const [isQuotationDropdownOpen, setIsQuotationDropdownOpen] = useState(false);
   const [isPaymentSupportDropdownOpen, setIsPaymentSupportDropdownOpen] =
     useState(false);
+  const [isWarehouseDropdownOpen, setIsWarehouseDropdownOpen] = useState(false);
   const [profile, setProfile] = useState(null);
 
   useEffect(() => {
@@ -128,7 +131,7 @@ const StaffSaleSidebar = () => {
           label: "Theo dõi thanh toán",
           dropdownItems: [
             {
-              to: "/staff-sale/order-payment",
+              to: "/staff-sale/order-payment-list",
               icon: Banknote,
               label: "Quy trình thanh toán",
             },
@@ -157,15 +160,16 @@ const StaffSaleSidebar = () => {
           label: "Quản lý khách hàng",
           dropdownItems: [
             {
-              to: "/staff-sale/customers",
-              icon: Users,
-              label: "Danh sách khách hàng",
-            },
-            {
-              to: "/staff-sale/createaccountuser",
+              to: "/staff-sale/create-customer",
               icon: UserPlus,
               label: "Tạo khách hàng",
             },
+            {
+              to: "/staff-sale/list-customers",
+              icon: Users,
+              label: "Danh sách khách hàng",
+            },
+
             {
               to: "/staff-sale/prospects",
               icon: UserStar,
@@ -181,14 +185,14 @@ const StaffSaleSidebar = () => {
           label: "Quản lý đơn hàng",
           dropdownItems: [
             {
-              to: "/staff-sale/orders",
+              to: "/staff-sale/list-orders",
               icon: Package,
               label: "Tất cả đơn hàng",
             },
             {
-              to: "/staff-sale/orders/pending",
+              to: "/staff-sale/status-orders",
               icon: PackageSearch,
-              label: "Đang xử lý",
+              label: "Quản lý trạng thái đơn",
             },
           ],
           isOpen: isOrderDropdownOpen,
@@ -196,16 +200,40 @@ const StaffSaleSidebar = () => {
         },
         {
           type: "dropdown",
+          icon: Warehouse,
+          label: "Theo dõi kho hàng",
+          dropdownItems: [
+            {
+              to: "/staff-sale/warehouses",
+              icon: Warehouse,
+              label: "Kho hàng",
+            },
+            {
+              to: "/staff-sale/confirm-shipping",
+              icon: MapPinHouse,
+              label: "Xác nhận địa chỉ giao",
+            },
+            {
+              to: "/staff-sale/list-order-shipping",
+              icon: ListChecks,
+              label: "Danh sách địa chỉ giao",
+            },
+          ],
+          isOpen: isWarehouseDropdownOpen,
+          onToggle: () => setIsWarehouseDropdownOpen(!isWarehouseDropdownOpen),
+        },
+        {
+          type: "dropdown",
           icon: Truck,
           label: "Theo dõi vận chuyển",
           dropdownItems: [
             {
-              to: "/staff-sale/shipping/domestic",
+              to: "/staff-sale/add-shipping-order",
               icon: Truck,
               label: "Thêm mã vận đơn",
             },
             {
-              to: "/staff-sale/shipping/international",
+              to: "/staff-sale/shipping-history",
               icon: History,
               label: "Lịch sử vận chuyển",
             },
@@ -218,11 +246,7 @@ const StaffSaleSidebar = () => {
           isOpen: isShippingDropdownOpen,
           onToggle: () => setIsShippingDropdownOpen(!isShippingDropdownOpen),
         },
-        {
-          to: "/staff-sale/warehouses",
-          icon: Warehouse,
-          label: "Kho hàng",
-        },
+
         {
           to: "/staff-sale/telesale",
           icon: Phone,

@@ -1,11 +1,7 @@
-// src/Components/LeadSale/OrderList.jsx
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Search,
   Package,
-  ChevronLeft,
-  ChevronRight,
-  Calendar,
   RefreshCw,
   Eye,
   User,
@@ -14,214 +10,230 @@ import {
   FileText,
   AlertCircle,
   X,
+  Calendar,
+  TruckIcon,
+  Clock,
+  CheckCircle,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import createOrderPaymentService from "../../Services/Payment/createOrderPaymentService";
 import DetailPaymentOrder from "../PaymentOrder/DetailPaymentOrder";
 
-const OrderSkeleton = () => (
-  <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-    {/* Header Skeleton */}
-    <div className="px-4 py-3 border-b bg-gray-50">
-      <div className="flex items-center justify-between animate-pulse">
+const PAGE_SIZES = [50, 100, 200];
+
+/* ===================== Skeletons ===================== */
+const StatCardSkeleton = () => (
+  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 animate-pulse">
+    <div className="flex items-center justify-between">
+      <div className="space-y-2">
+        <div className="h-4 w-28 bg-gray-200 rounded" />
+        <div className="h-8 w-20 bg-gray-200 rounded" />
+      </div>
+      <div className="h-12 w-12 bg-gray-200 rounded-lg" />
+    </div>
+  </div>
+);
+
+const OrderCardSkeleton = () => (
+  <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden animate-pulse">
+    <div className="px-4 py-3 bg-gray-50 border-b">
+      <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-6 h-6 bg-gray-300 rounded-full" />
+          <div className="w-6 h-6 bg-gray-200 rounded-full" />
           <div>
-            <div className="h-5 w-32 bg-gray-300 rounded mb-2" />
-            <div className="h-3 w-24 bg-gray-200 rounded" />
+            <div className="h-5 w-32 bg-gray-200 rounded mb-2" />
+            <div className="h-3 w-24 bg-gray-100 rounded" />
           </div>
         </div>
-        <div className="text-right">
-          <div className="h-3 w-16 bg-gray-200 rounded mb-2" />
-          <div className="h-5 w-24 bg-gray-300 rounded" />
-        </div>
+        <div className="h-5 w-24 bg-gray-200 rounded" />
       </div>
     </div>
-
-    {/* Content Skeleton */}
-    <div className="p-4">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 animate-pulse">
-        {/* Customer Info Skeleton */}
-        <div className="space-y-2">
-          <div className="h-4 w-36 bg-gray-300 rounded mb-2" />
-          <div className="bg-gray-50 rounded-lg p-3 space-y-2">
-            <div className="h-6 w-20 bg-gray-300 rounded" />
-            <div className="h-3 w-full bg-gray-200 rounded" />
-            <div className="h-3 w-3/4 bg-gray-200 rounded" />
-            <div className="h-3 w-5/6 bg-gray-200 rounded" />
-          </div>
-        </div>
-
-        {/* Order Details Skeleton */}
-        <div className="space-y-2">
-          <div className="h-4 w-32 bg-gray-300 rounded mb-2" />
-          <div className="bg-gray-50 rounded-lg p-3 space-y-2">
-            <div className="h-3 w-full bg-gray-200 rounded" />
-            <div className="h-3 w-3/4 bg-gray-200 rounded" />
-            <div className="h-3 w-5/6 bg-gray-200 rounded" />
-            <div className="h-3 w-4/5 bg-gray-200 rounded" />
-          </div>
-        </div>
-      </div>
-
-      {/* Actions Skeleton */}
-      <div className="mt-4 pt-4 border-t border-gray-200 flex justify-end gap-2 animate-pulse">
-        <div className="h-9 w-28 bg-gray-300 rounded-lg" />
-        <div className="h-9 w-32 bg-gray-300 rounded-lg" />
+    <div className="p-4 space-y-3">
+      <div className="h-20 bg-gray-50 rounded-lg" />
+      <div className="h-20 bg-gray-50 rounded-lg" />
+      <div className="flex justify-end gap-2 pt-3 border-t">
+        <div className="h-9 w-28 bg-gray-200 rounded-lg" />
+        <div className="h-9 w-32 bg-gray-200 rounded-lg" />
       </div>
     </div>
   </div>
 );
 
 const ListOrderManager = () => {
-  const [orders, setOrders] = useState([]);
+  // State lưu data cho TẤT CẢ các trạng thái
+  const [allOrdersData, setAllOrdersData] = useState({
+    DA_XAC_NHAN: { content: [], totalElements: 0, loaded: false, pageSize: 50 },
+    CHO_THANH_TOAN: {
+      content: [],
+      totalElements: 0,
+      loaded: false,
+      pageSize: 50,
+    },
+    DAU_GIA_THANH_CONG: {
+      content: [],
+      totalElements: 0,
+      loaded: false,
+      pageSize: 50,
+    },
+    DA_DU_HANG: { content: [], totalElements: 0, loaded: false, pageSize: 50 },
+    CHO_THANH_TOAN_SHIP: {
+      content: [],
+      totalElements: 0,
+      loaded: false,
+      pageSize: 50,
+    },
+  });
+
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("DA_XAC_NHAN");
   const [searchTerm, setSearchTerm] = useState("");
   const [filterDate, setFilterDate] = useState("");
-  const [pagination, setPagination] = useState({
-    pageNumber: 0,
-    pageSize: 50,
-    totalPages: 0,
-    totalElements: 0,
-    first: true,
-    last: true,
-  });
+  const [pageSize, setPageSize] = useState(100);
 
   // State dialog thanh toán
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   const [selectedPaymentCode, setSelectedPaymentCode] = useState(null);
 
-  const tabs = [
-    {
-      key: "DA_XAC_NHAN",
-      label: "Đã xác nhận",
-      color: "green",
-      bgColor: "bg-green-50",
-      textColor: "text-green-700",
-      borderColor: "border-green-500",
-    },
-    {
-      key: "CHO_THANH_TOAN",
-      label: "Chờ thanh toán",
-      color: "orange",
-      bgColor: "bg-orange-50",
-      textColor: "text-orange-700",
-      borderColor: "border-orange-500",
-    },
-    {
-      key: "DAU_GIA_THANH_CONG",
-      label: "Đấu giá thành công",
-      color: "purple",
-      bgColor: "bg-purple-50",
-      textColor: "text-purple-700",
-      borderColor: "border-purple-500",
-    },
-    {
-      key: "DA_DU_HANG",
-      label: "Đã đủ đơn",
-      color: "blue",
-      bgColor: "bg-blue-50",
-      textColor: "text-blue-700",
-      borderColor: "border-blue-500",
-    },
-    {
-      key: "CHO_THANH_TOAN_SHIP",
-      label: "Chờ thanh toán ship",
-      color: "yellow",
-      bgColor: "bg-yellow-50",
-      textColor: "text-yellow-700",
-      borderColor: "border-yellow-500",
-    },
-  ];
+  const tabs = useMemo(
+    () => [
+      { key: "DA_XAC_NHAN", label: "Đã xác nhận", color: "green" },
+      { key: "CHO_THANH_TOAN", label: "Chờ thanh toán", color: "orange" },
+      {
+        key: "DAU_GIA_THANH_CONG",
+        label: "Đấu giá thành công",
+        color: "purple",
+      },
+      { key: "DA_DU_HANG", label: "Đã đủ đơn", color: "blue" },
+      {
+        key: "CHO_THANH_TOAN_SHIP",
+        label: "Chờ thanh toán ship",
+        color: "yellow",
+      },
+    ],
+    []
+  );
 
-  const fetchOrders = useCallback(
-    async (page = 0, size = 50) => {
-      try {
-        setLoading(true);
-        setError(null);
+  // Fetch TẤT CẢ trạng thái cùng lúc với page size mặc định (50)
+  const fetchAllStatuses = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-        const response = await createOrderPaymentService.getOrdersByStatus(
-          activeTab,
-          page,
-          size
-        );
+      // Gọi API cho TẤT CẢ 5 trạng thái đồng thời với page size 50
+      const promises = tabs.map((tab) =>
+        createOrderPaymentService
+          .getOrdersByStatus(tab.key, 0, 100)
+          .then((response) => ({
+            status: tab.key,
+            data: response,
+          }))
+          .catch((error) => ({
+            status: tab.key,
+            error: error,
+          }))
+      );
 
-        if (response?.content) {
-          setOrders(response.content);
-          setPagination({
-            pageNumber: response.number ?? page,
-            pageSize: response.size ?? size,
-            totalPages: response.totalPages ?? 0,
-            totalElements: response.totalElements ?? 0,
-            first: response.first ?? page === 0,
-            last: response.last ?? true,
-          });
-        } else {
-          setOrders([]);
-          setPagination((prev) => ({
-            ...prev,
+      const results = await Promise.all(promises);
+
+      // Tổ chức data theo trạng thái
+      const newData = {};
+      results.forEach((result) => {
+        if (result.error) {
+          console.error(`Error fetching ${result.status}:`, result.error);
+          newData[result.status] = {
+            content: [],
             totalElements: 0,
-            totalPages: 0,
-          }));
+            loaded: false,
+            pageSize: 100,
+          };
+        } else {
+          newData[result.status] = {
+            content: result.data?.content || [],
+            totalElements: result.data?.totalElements || 0,
+            loaded: true,
+            pageSize: 100,
+          };
         }
-      } catch (error) {
-        const errorMessage =
-          error?.response?.data?.message ||
-          error?.message ||
-          "Không thể tải danh sách đơn hàng";
-        setError(errorMessage);
-        toast.error(errorMessage);
-        setOrders([]);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [activeTab]
-  );
+      });
 
+      setAllOrdersData(newData);
+      setInitialLoading(false);
+    } catch (error) {
+      const errorMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Không thể tải danh sách đơn hàng";
+      setError(errorMessage);
+      toast.error(errorMessage);
+      setInitialLoading(false);
+    } finally {
+      setLoading(false);
+    }
+  }, [tabs]);
+
+  // Fetch một trạng thái cụ thể với page size tùy chỉnh
+  const fetchSingleStatus = useCallback(async (status, size = 100) => {
+    try {
+      setLoading(true);
+      const response = await createOrderPaymentService.getOrdersByStatus(
+        status,
+        0,
+        size
+      );
+
+      setAllOrdersData((prev) => ({
+        ...prev,
+        [status]: {
+          content: response?.content || [],
+          totalElements: response?.totalElements || 0,
+          loaded: true,
+          pageSize: size,
+        },
+      }));
+
+      toast.success("Đã cập nhật dữ liệu!");
+    } catch (error) {
+      const errorMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Không thể tải dữ liệu";
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Load tất cả khi component mount
   useEffect(() => {
-    fetchOrders();
-  }, [fetchOrders]);
+    fetchAllStatuses();
+  }, [fetchAllStatuses]);
 
-  const handlePageChange = useCallback(
-    (newPage) => {
-      if (
-        newPage >= 0 &&
-        newPage < pagination.totalPages &&
-        newPage !== pagination.pageNumber
-      ) {
-        fetchOrders(newPage, pagination.pageSize);
-      }
-    },
-    [
-      fetchOrders,
-      pagination.pageNumber,
-      pagination.pageSize,
-      pagination.totalPages,
-    ]
-  );
+  // Get orders cho tab hiện tại
+  const currentOrders = useMemo(() => {
+    return allOrdersData[activeTab]?.content || [];
+  }, [allOrdersData, activeTab]);
 
   const handleTabChange = (tabKey) => {
-    if (tabKey === activeTab || loading) return; // Prevent tab change while loading
+    if (tabKey === activeTab) return;
+
+    // Khi chuyển tab, kiểm tra xem tab đó đã load với page size hiện tại chưa
+    const targetTabData = allOrdersData[tabKey];
 
     setActiveTab(tabKey);
-    setOrders([]); // Clear old data immediately
-    setError(null); // Clear old errors
-    setSearchTerm(""); // Clear search
-    setFilterDate(""); // Clear date filter
-    setPagination((prev) => ({
-      ...prev,
-      pageNumber: 0,
-      totalPages: 0,
-      totalElements: 0,
-    }));
+    setSearchTerm("");
+    setFilterDate("");
+
+    // Nếu tab đích chưa load hoặc page size khác với page size hiện tại, fetch lại
+    if (!targetTabData.loaded || targetTabData.pageSize !== pageSize) {
+      fetchSingleStatus(tabKey, pageSize);
+    }
   };
 
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleString("vi-VN", {
+    return new Date(dateString).toLocaleDateString("vi-VN", {
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
@@ -245,65 +257,89 @@ const ListOrderManager = () => {
     const texts = {
       MUA_HO: "Mua hộ",
       DAU_GIA: "Đấu giá",
+      CHUYEN_TIEN: "Chuyển tiền",
     };
     return texts[type] || type;
   };
 
-  // Filter orders - Tìm kiếm trên nhiều trường
-  const filteredOrders = orders.filter((order) => {
-    // Filter by search term (tìm kiếm chung)
-    if (searchTerm) {
-      const lowerSearchTerm = searchTerm.toLowerCase();
-      const matchesOrderCode = order.orderCode
-        ?.toLowerCase()
-        .includes(lowerSearchTerm);
-      const matchesCustomerCode = order.customer?.customerCode
-        ?.toLowerCase()
-        .includes(lowerSearchTerm);
-      const matchesCustomerName = order.customer?.name
-        ?.toLowerCase()
-        .includes(lowerSearchTerm);
-      const matchesPaymentCode = order.paymentCode
-        ?.toLowerCase()
-        .includes(lowerSearchTerm);
+  // Filter orders - client side filtering
+  const filteredOrders = useMemo(() => {
+    return currentOrders.filter((order) => {
+      // Filter by search term
+      if (searchTerm) {
+        const lowerSearchTerm = searchTerm.toLowerCase();
+        const matchesOrderCode = order.orderCode
+          ?.toLowerCase()
+          .includes(lowerSearchTerm);
+        const matchesCustomerCode = order.customer?.customerCode
+          ?.toLowerCase()
+          .includes(lowerSearchTerm);
+        const matchesCustomerName = order.customer?.name
+          ?.toLowerCase()
+          .includes(lowerSearchTerm);
+        const matchesPaymentCode = order.paymentCode
+          ?.toLowerCase()
+          .includes(lowerSearchTerm);
 
-      // Nếu không match bất kỳ trường nào thì filter ra
+        if (
+          !matchesOrderCode &&
+          !matchesCustomerCode &&
+          !matchesCustomerName &&
+          !matchesPaymentCode
+        ) {
+          return false;
+        }
+      }
+
+      // Filter by Date
       if (
-        !matchesOrderCode &&
-        !matchesCustomerCode &&
-        !matchesCustomerName &&
-        !matchesPaymentCode
+        filterDate &&
+        new Date(order.createdAt).toISOString().slice(0, 10) !== filterDate
       ) {
         return false;
       }
+
+      return true;
+    });
+  }, [currentOrders, searchTerm, filterDate]);
+
+  // Pagination - client side
+  const [currentPage, setCurrentPage] = useState(0);
+
+  const paginatedOrders = useMemo(() => {
+    const startIndex = currentPage * pageSize;
+    const endIndex = startIndex + pageSize;
+    return filteredOrders.slice(startIndex, endIndex);
+  }, [filteredOrders, currentPage, pageSize]);
+
+  const totalPages = Math.ceil(filteredOrders.length / pageSize);
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 0 && newPage < totalPages) {
+      setCurrentPage(newPage);
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
-
-    // Filter by Date
-    if (
-      filterDate &&
-      new Date(order.createdAt).toISOString().slice(0, 10) !== filterDate
-    ) {
-      return false;
-    }
-
-    return true;
-  });
-
-  const handlePageSizeChange = (e) => {
-    const newSize = parseInt(e.target.value);
-    setPagination((prev) => ({ ...prev, pageSize: newSize }));
-    fetchOrders(0, newSize);
   };
 
-  // Xóa tất cả filters
+  // Reset page khi đổi tab hoặc filter
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [activeTab, searchTerm, filterDate, pageSize]);
+
+  // Handle page size change - CHỈ fetch lại tab hiện tại
+  const handlePageSizeChange = (newSize) => {
+    setPageSize(newSize);
+    setCurrentPage(0);
+
+    // CHỈ fetch lại trạng thái hiện tại với page size mới
+    fetchSingleStatus(activeTab, newSize);
+  };
+
   const handleClearFilters = () => {
     setSearchTerm("");
     setFilterDate("");
   };
 
-  const currentTab = tabs.find((tab) => tab.key === activeTab);
-
-  // Mở dialog thanh toán
   const openPaymentDialog = (order) => {
     if (!order.paymentCode) {
       toast.error("Đơn hàng này chưa có mã thanh toán");
@@ -313,128 +349,317 @@ const ListOrderManager = () => {
     setIsPaymentDialogOpen(true);
   };
 
-  // Đóng dialog
   const closePaymentDialog = () => {
     setIsPaymentDialogOpen(false);
     setSelectedPaymentCode(null);
   };
 
-  return (
-    <div className="min-h-screen p-4 sm:p-6">
-      <div className="mx-auto">
-        {/* Header */}
-        <div className="mb-4">
-          <h1 className="text-xl font-bold text-gray-800">
-            Quản Lý Đơn Hàng Thanh Toán
-          </h1>
-        </div>
+  const currentTab = tabs.find((tab) => tab.key === activeTab);
+  const showingFrom = filteredOrders.length ? currentPage * pageSize + 1 : 0;
+  const showingTo = Math.min(
+    (currentPage + 1) * pageSize,
+    filteredOrders.length
+  );
 
-        {/* Tabs */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-2 mb-4">
-          <div className="flex flex-wrap gap-2">
-            {tabs.map((tab) => (
+  // Total statistics từ tất cả trạng thái
+  const totalAllOrders = useMemo(() => {
+    return Object.values(allOrdersData).reduce(
+      (sum, data) => sum + data.totalElements,
+      0
+    );
+  }, [allOrdersData]);
+
+  return (
+    <div className="min-h-screen">
+      <div className="mx-auto p-6">
+        {/* Header */}
+        <div className="bg-blue-600 rounded-xl shadow-sm p-5 mb-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                <Package size={22} className="text-white" />
+              </div>
+              <div>
+                <h1 className="text-xl font-semibold text-white">
+                  Quản Lý Đơn Hàng Thanh Toán
+                </h1>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
               <button
-                key={tab.key}
-                onClick={() => handleTabChange(tab.key)}
+                onClick={() => fetchSingleStatus(activeTab, pageSize)}
                 disabled={loading}
-                className={`flex-1 min-w-[150px] px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  activeTab === tab.key
-                    ? `${tab.bgColor} ${tab.textColor} ${tab.borderColor} border-2`
-                    : "bg-gray-50 text-gray-600 hover:bg-gray-100"
-                } ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
+                className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/30 rounded-lg text-sm font-medium text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                type="button"
+                title="Tải lại tab hiện tại"
               >
-                {tab.label}
+                <RefreshCw
+                  size={16}
+                  className={loading ? "animate-spin" : ""}
+                />
+                Tab này
               </button>
-            ))}
+              <button
+                onClick={fetchAllStatuses}
+                disabled={loading}
+                className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/30 rounded-lg text-sm font-medium text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                type="button"
+                title="Tải lại tất cả với page size 50"
+              >
+                <RefreshCw
+                  size={16}
+                  className={loading ? "animate-spin" : ""}
+                />
+                Tất cả (50)
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Error Messages */}
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          {initialLoading ? (
+            <>
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+            </>
+          ) : (
+            <>
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600 mb-1">
+                      Tổng Tất Cả
+                    </p>
+                    <p className="text-3xl font-bold text-blue-600">
+                      {totalAllOrders}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-blue-100 rounded-lg">
+                    <Package className="text-blue-600" size={24} />
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600 mb-1">
+                      Đã Xác Nhận
+                    </p>
+                    <p className="text-3xl font-bold text-green-600">
+                      {allOrdersData.DA_XAC_NHAN.totalElements}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-green-100 rounded-lg">
+                    <CheckCircle className="text-green-600" size={24} />
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600 mb-1">
+                      Chờ Thanh Toán
+                    </p>
+                    <p className="text-3xl font-bold text-purple-600">
+                      {allOrdersData.CHO_THANH_TOAN.totalElements}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-purple-100 rounded-lg">
+                    <Clock className="text-purple-600" size={24} />
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600 mb-1">
+                      Tab Hiện Tại
+                    </p>
+                    <p className="text-3xl font-bold text-orange-600">
+                      {allOrdersData[activeTab].totalElements}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Loaded: {allOrdersData[activeTab].content.length}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-orange-100 rounded-lg">
+                    <TruckIcon className="text-orange-600" size={24} />
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Status Tabs */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6">
+          <div className="p-4">
+            <div className="flex flex-wrap gap-2">
+              {tabs.map((tab) => {
+                const tabData = allOrdersData[tab.key];
+                const needsReload = tabData.pageSize !== pageSize;
+
+                return (
+                  <button
+                    key={tab.key}
+                    onClick={() => handleTabChange(tab.key)}
+                    disabled={loading}
+                    className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 ${
+                      activeTab === tab.key
+                        ? "bg-blue-600 text-white shadow-sm"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
+                    type="button"
+                  >
+                    {tab.label}
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+                        activeTab === tab.key
+                          ? "bg-white/20 text-white"
+                          : "bg-gray-200 text-gray-700"
+                      }`}
+                    >
+                      {tabData.totalElements}
+                    </span>
+                    {needsReload && (
+                      <span className="text-xs opacity-60">
+                        ({tabData.pageSize})
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Error Alert */}
         {error && !loading && (
-          <div className="mb-4 p-3 bg-red-50 border-l-4 border-red-400 rounded-r-lg">
-            <div className="flex items-center">
-              <AlertCircle className="w-4 h-4 text-red-400 mr-2" />
-              <div>
-                <p className="text-red-700 text-sm">{error}</p>
-                <button
-                  onClick={() => fetchOrders()}
-                  className="text-red-600 hover:text-red-800 text-xs underline mt-1"
-                >
-                  Thử lại
-                </button>
+          <div className="mb-6 bg-red-50 border-2 border-red-200 rounded-xl p-4">
+            <div className="flex items-start">
+              <div className="flex-shrink-0">
+                <AlertCircle className="h-5 w-5 text-red-400" />
+              </div>
+              <div className="ml-3 flex-1">
+                <h3 className="text-sm font-medium text-red-800">
+                  Có lỗi xảy ra
+                </h3>
+                <div className="mt-2 text-sm text-red-700">
+                  <p>{error}</p>
+                </div>
+                <div className="mt-4">
+                  <button
+                    onClick={fetchAllStatuses}
+                    className="bg-red-100 hover:bg-red-200 text-red-800 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                  >
+                    Thử lại
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* Controls - Ẩn khi loading */}
-        {!loading && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-4">
-            <div className="flex flex-col gap-3">
-              {/* Search Box - Tìm kiếm chung */}
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <input
-                  type="text"
-                  placeholder="Tìm kiếm theo mã đơn, mã KH, tên KH, mã thanh toán..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none text-sm transition-all"
-                />
-                {searchTerm && (
-                  <button
-                    onClick={() => setSearchTerm("")}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
-
-              {/* Date Filter, Page Size and Stats */}
-              <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-                <div className="flex flex-col sm:flex-row gap-3">
+        {/* Search & Filter Section */}
+        {!initialLoading && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
+            <div className="flex flex-col gap-4">
+              {/* Search Input */}
+              <div className="flex flex-col lg:flex-row gap-3">
+                <div className="flex-1">
                   <div className="relative">
-                    <Calendar className="absolute left-2.5 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Search
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                      size={20}
+                    />
+                    <input
+                      type="text"
+                      placeholder="Tìm kiếm theo mã đơn, mã KH, tên KH, mã thanh toán..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full pl-10 pr-10 py-2.5 border-2 border-gray-300 rounded-lg outline-none focus:ring-0 focus:border-blue-500 transition-all"
+                    />
+                    {searchTerm && (
+                      <button
+                        onClick={() => setSearchTerm("")}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                        type="button"
+                      >
+                        <X size={18} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex-1 max-w-xs">
+                  <div className="relative">
+                    <Calendar
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                      size={20}
+                    />
                     <input
                       type="date"
                       value={filterDate}
                       onChange={(e) => setFilterDate(e.target.value)}
-                      className="pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm"
+                      className="w-full pl-10 pr-4 py-2.5 border-2 border-gray-300 rounded-lg outline-none focus:ring-0 focus:border-blue-500 transition-all"
                     />
                   </div>
+                </div>
 
-                  <select
-                    value={pagination.pageSize}
-                    onChange={handlePageSizeChange}
-                    disabled={loading}
-                    className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
+                {(searchTerm || filterDate) && (
+                  <button
+                    onClick={handleClearFilters}
+                    className="px-4 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium transition-all flex items-center gap-2 whitespace-nowrap"
+                    type="button"
                   >
-                    <option value={50}>50 / trang</option>
-                    <option value={100}>100 / trang</option>
-                  </select>
+                    <X size={18} />
+                    Xóa lọc
+                  </button>
+                )}
+              </div>
 
-                  {/* Clear Filters Button */}
-                  {(searchTerm || filterDate) && (
-                    <button
-                      onClick={handleClearFilters}
-                      className="flex items-center gap-1.5 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors"
-                    >
-                      <X className="w-4 h-4" />
-                      Xóa bộ lọc
-                    </button>
+              {/* Page Size Selector */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                    Hiển thị:
+                  </span>
+                  <div className="flex gap-2">
+                    {PAGE_SIZES.map((size) => (
+                      <button
+                        key={size}
+                        onClick={() => handlePageSizeChange(size)}
+                        disabled={loading}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all disabled:opacity-50 ${
+                          pageSize === size
+                            ? "bg-blue-600 text-white shadow-sm"
+                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        }`}
+                        type="button"
+                      >
+                        {size}
+                      </button>
+                    ))}
+                  </div>
+                  {loading && (
+                    <span className="text-sm text-blue-600 font-medium flex items-center gap-2">
+                      <RefreshCw size={14} className="animate-spin" />
+                      Đang tải {pageSize} items...
+                    </span>
                   )}
                 </div>
 
                 <div className="text-sm text-gray-600">
-                  Tổng:{" "}
-                  <span className="font-semibold">
-                    {pagination.totalElements}
-                  </span>{" "}
-                  đơn
-                  {filteredOrders.length !== orders.length && (
-                    <span className="ml-2 text-blue-600">
-                      (Hiển thị: {filteredOrders.length})
+                  {filteredOrders.length !== currentOrders.length && (
+                    <span className="font-medium text-blue-600">
+                      Hiển thị: {filteredOrders.length} / {currentOrders.length}
                     </span>
                   )}
                 </div>
@@ -443,75 +668,73 @@ const ListOrderManager = () => {
           </div>
         )}
 
-        {/* Loading State với Skeleton */}
-        {loading && (
-          <div className="space-y-3">
+        {/* Loading State */}
+        {(initialLoading || loading) && (
+          <div className="space-y-4">
             {[...Array(5)].map((_, index) => (
-              <OrderSkeleton key={index} />
+              <OrderCardSkeleton key={index} />
             ))}
           </div>
         )}
 
         {/* Empty State */}
-        {!loading && !error && filteredOrders.length === 0 && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
-            <Package className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-            <h3 className="text-base font-medium text-gray-900 mb-2">
-              Không có đơn hàng nào
-            </h3>
-            <p className="text-gray-500 text-sm">
-              {searchTerm || filterDate
-                ? "Không tìm thấy kết quả phù hợp với bộ lọc."
-                : `Chưa có đơn hàng ${currentTab?.label.toLowerCase()}.`}
-            </p>
-          </div>
-        )}
+        {!initialLoading &&
+          !loading &&
+          !error &&
+          filteredOrders.length === 0 && (
+            <div className="p-12 text-center bg-white rounded-xl shadow-sm border border-gray-200">
+              <Package className="mx-auto text-gray-400 mb-4" size={48} />
+              <p className="text-gray-600 font-medium">Không có đơn hàng nào</p>
+              <p className="text-sm text-gray-500 mt-1">
+                {searchTerm || filterDate
+                  ? "Không tìm thấy kết quả phù hợp với bộ lọc."
+                  : `Chưa có đơn hàng ${currentTab?.label.toLowerCase()}.`}
+              </p>
+            </div>
+          )}
 
         {/* Orders List */}
-        {!loading && filteredOrders.length > 0 && (
-          <div className="space-y-3">
-            {filteredOrders.map((order, index) => (
+        {!initialLoading && !loading && paginatedOrders.length > 0 && (
+          <div className="space-y-4">
+            {paginatedOrders.map((order, index) => (
               <div
                 key={order.orderId}
                 className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow"
               >
                 {/* Order Header */}
-                <div className={`px-4 py-3 border-b ${currentTab?.bgColor}`}>
+                <div className="bg-gradient-to-r from-blue-50 to-blue-100/50 px-4 py-3 border-b border-blue-200">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div
-                        className={`w-6 h-6 ${currentTab?.bgColor} rounded-full flex items-center justify-center border ${currentTab?.borderColor}`}
-                      >
-                        <span
-                          className={`text-xs font-semibold ${currentTab?.textColor}`}
-                        >
-                          {pagination.pageNumber * pagination.pageSize +
-                            index +
-                            1}
+                      <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                        <span className="text-sm font-semibold text-white">
+                          {currentPage * pageSize + index + 1}
                         </span>
                       </div>
                       <div>
-                        <h3 className="text-base font-semibold text-gray-900 flex items-center gap-2">
-                          {order.orderCode}
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-base font-semibold text-gray-900">
+                            {order.orderCode}
+                          </h3>
                           <span
-                            className={`px-2 py-0.5 rounded-full text-xs font-medium ${getOrderTypeColor(
+                            className={`px-2 py-0.5 rounded-full text-xs font-semibold ${getOrderTypeColor(
                               order.orderType
                             )}`}
                           >
                             {getOrderTypeText(order.orderType)}
                           </span>
-                        </h3>
-                        <div className="text-xs text-gray-600 mt-1">
+                        </div>
+                        <div className="text-xs text-gray-600 mt-0.5 flex items-center gap-1">
+                          <Calendar size={12} />
                           {formatDate(order.createdAt)}
                         </div>
                       </div>
                     </div>
 
                     <div className="text-right">
-                      <div className="text-xs font-medium text-gray-500">
+                      <div className="text-xs font-medium text-gray-600">
                         Tổng tiền
                       </div>
-                      <div className="text-base font-bold text-gray-900">
+                      <div className="text-lg font-bold text-blue-700">
                         {formatCurrency(order.finalPriceOrder)} ₫
                       </div>
                     </div>
@@ -522,37 +745,33 @@ const ListOrderManager = () => {
                 <div className="p-4">
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     {/* Customer Info */}
-                    <div className="space-y-2">
-                      <h4 className="text-sm font-medium text-gray-700 flex items-center gap-1.5 mb-2">
+                    <div>
+                      <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-2 mb-3">
                         <User className="w-4 h-4 text-blue-600" />
                         Thông tin khách hàng
                       </h4>
-                      <div className="bg-gray-50 rounded-lg p-3 space-y-2">
+                      <div className="bg-gray-50 rounded-lg p-3 border border-gray-200 space-y-2">
                         <div className="flex items-center gap-2">
-                          <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-semibold">
+                          <span className="px-2.5 py-1 bg-blue-100 text-blue-700 rounded-lg text-xs font-semibold">
                             {order.customer?.customerCode || "N/A"}
                           </span>
                         </div>
-                        <div className="flex items-start gap-2 text-sm">
-                          <User className="w-4 h-4 text-gray-500 mt-0.5" />
-                          <div>
-                            <div className="font-medium text-gray-900">
-                              {order.customer?.name || "Chưa có tên"}
-                            </div>
-                          </div>
+                        <div className="flex items-center gap-2 text-sm">
+                          <User className="w-4 h-4 text-gray-500" />
+                          <span className="font-medium text-gray-900">
+                            {order.customer?.name || "Chưa có tên"}
+                          </span>
                         </div>
                         {order.customer?.email && (
-                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                          <div className="flex items-center gap-2 text-xs text-gray-600">
                             <Mail className="w-4 h-4 text-gray-500" />
-                            <span className="text-xs">
-                              {order.customer.email}
-                            </span>
+                            <span>{order.customer.email}</span>
                           </div>
                         )}
                         {order.customer?.phone && (
-                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                          <div className="flex items-center gap-2 text-xs text-gray-600">
                             <Phone className="w-4 h-4 text-gray-500" />
-                            <span className="text-xs font-medium">
+                            <span className="font-medium">
                               {order.customer.phone}
                             </span>
                           </div>
@@ -561,23 +780,21 @@ const ListOrderManager = () => {
                     </div>
 
                     {/* Order Details */}
-                    <div className="space-y-2">
-                      <h4 className="text-sm font-medium text-gray-700 flex items-center gap-1.5 mb-2">
+                    <div>
+                      <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-2 mb-3">
                         <FileText className="w-4 h-4 text-green-600" />
                         Chi tiết đơn hàng
                       </h4>
-                      <div className="bg-gray-50 rounded-lg p-3 space-y-2 text-sm">
+                      <div className="bg-gray-50 rounded-lg p-3 border border-gray-200 space-y-2 text-sm">
                         <div className="flex justify-between">
                           <span className="text-gray-600">Tổng tiền:</span>
-                          <span className="font-medium text-gray-900">
+                          <span className="font-semibold text-gray-900">
                             {formatCurrency(order.finalPriceOrder)} ₫
                           </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">
-                            Tổng trọng lượng:
-                          </span>
-                          <span className="font-medium text-gray-900">
+                          <span className="text-gray-600">Trọng lượng:</span>
+                          <span className="font-semibold text-gray-900">
                             {order.totalWeight} kg
                           </span>
                         </div>
@@ -586,7 +803,7 @@ const ListOrderManager = () => {
                             <span className="text-gray-600">
                               Mã thanh toán:
                             </span>
-                            <span className="font-medium text-blue-600">
+                            <span className="font-semibold text-blue-600">
                               {order.paymentCode}
                             </span>
                           </div>
@@ -594,7 +811,7 @@ const ListOrderManager = () => {
                         {order.leftoverMoney && (
                           <div className="flex justify-between">
                             <span className="text-gray-600">Tiền thừa:</span>
-                            <span className="font-medium text-green-600">
+                            <span className="font-semibold text-green-600">
                               {formatCurrency(order.leftoverMoney)} ₫
                             </span>
                           </div>
@@ -615,7 +832,10 @@ const ListOrderManager = () => {
 
                   {/* Actions */}
                   <div className="mt-4 pt-4 border-t border-gray-200 flex justify-end gap-2">
-                    <button className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
+                    <button
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-2"
+                      type="button"
+                    >
                       <Eye className="w-4 h-4" />
                       Xem chi tiết
                     </button>
@@ -623,7 +843,8 @@ const ListOrderManager = () => {
                     {order.paymentCode && (
                       <button
                         onClick={() => openPaymentDialog(order)}
-                        className="flex items-center gap-1.5 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
+                        className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors flex items-center gap-2"
+                        type="button"
                       >
                         <FileText className="w-4 h-4" />
                         Xem thanh toán
@@ -637,69 +858,103 @@ const ListOrderManager = () => {
         )}
 
         {/* Pagination */}
-        {!loading && filteredOrders.length > 0 && (
-          <div className="flex items-center justify-between mt-4 bg-white rounded-xl shadow-sm border border-gray-200 px-4 py-3">
-            <button
-              onClick={() => handlePageChange(pagination.pageNumber - 1)}
-              disabled={pagination.first || loading}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                pagination.first || loading
-                  ? "text-gray-400 cursor-not-allowed"
-                  : "text-gray-700 hover:bg-gray-100"
-              }`}
-            >
-              <ChevronLeft className="w-4 h-4" />
-              Trang trước
-            </button>
+        {!initialLoading &&
+          !loading &&
+          filteredOrders.length > 0 &&
+          totalPages > 1 && (
+            <div className="px-6 py-4 bg-white rounded-xl shadow-sm border border-gray-200 mt-6">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="text-sm text-gray-600">
+                  Hiển thị{" "}
+                  <span className="font-semibold text-gray-900">
+                    {showingFrom}
+                  </span>{" "}
+                  -{" "}
+                  <span className="font-semibold text-gray-900">
+                    {showingTo}
+                  </span>{" "}
+                  trong tổng số{" "}
+                  <span className="font-semibold text-gray-900">
+                    {filteredOrders.length}
+                  </span>{" "}
+                  đơn hàng
+                </div>
 
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs text-gray-500">Trang</span>
-              <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-lg text-sm font-semibold">
-                {pagination.pageNumber + 1}
-              </span>
-              <span className="text-xs text-gray-500">
-                / {pagination.totalPages || 1}
-              </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handlePageChange(0)}
+                    disabled={currentPage === 0}
+                    className="px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    type="button"
+                  >
+                    Đầu
+                  </button>
+                  <button
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 0}
+                    className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    type="button"
+                  >
+                    Trước
+                  </button>
+                  <span className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold">
+                    {currentPage + 1} / {totalPages}
+                  </span>
+                  <button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage >= totalPages - 1}
+                    className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    type="button"
+                  >
+                    Sau
+                  </button>
+                  <button
+                    onClick={() => handlePageChange(totalPages - 1)}
+                    disabled={currentPage >= totalPages - 1}
+                    className="px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    type="button"
+                  >
+                    Cuối
+                  </button>
+                </div>
+              </div>
             </div>
-
-            <button
-              onClick={() => handlePageChange(pagination.pageNumber + 1)}
-              disabled={pagination.last || loading}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                pagination.last || loading
-                  ? "text-gray-400 cursor-not-allowed"
-                  : "text-gray-700 hover:bg-gray-100"
-              }`}
-            >
-              Trang sau
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-        )}
+          )}
       </div>
 
-      {/* Dialog thanh toán */}
+      {/* Payment Dialog */}
       {isPaymentDialogOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
           onClick={closePaymentDialog}
         >
           <div
-            className="bg-white rounded-2xl shadow-xl max-w-5xl w-[95%] max-h-[90vh] overflow-y-auto p-4 sm:p-6 relative"
+            className="bg-white rounded-xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between mb-3">
+            <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                  <FileText className="text-white" size={16} />
+                </div>
+                <h3 className="text-lg font-semibold text-white">
+                  Chi Tiết Thanh Toán
+                </h3>
+              </div>
               <button
                 onClick={closePaymentDialog}
-                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100"
+                className="text-white/80 hover:text-white transition-colors"
+                type="button"
               >
-                <X className="w-6 h-6 text-red-500" />
+                <X size={24} />
               </button>
             </div>
 
-            {selectedPaymentCode && (
-              <DetailPaymentOrder codeFromProp={selectedPaymentCode} />
-            )}
+            <div className="overflow-y-auto max-h-[calc(90vh-80px)]">
+              {selectedPaymentCode && (
+                <DetailPaymentOrder codeFromProp={selectedPaymentCode} />
+              )}
+            </div>
           </div>
         </div>
       )}

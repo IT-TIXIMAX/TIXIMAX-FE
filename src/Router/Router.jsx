@@ -126,7 +126,6 @@ import ListOrderManager from "../components/Order/ListOrderManager";
 import ExportOrder from "../components/WarehouseDomestic/ExportOrder";
 import UpdateShipmentCodeAuctionList from "../components/StaffPurchaser/UpdateShipmentCodeAuctionList";
 import DashboardManager from "../components/Manager/DashboardManager";
-import ExportPacking from "../components/Packing/ExportPacking";
 import CreatePackingJapan from "../components/WarehouseForeign/CreatePackingJapan";
 import PolicyPage from "../Page/Navigattion/PolicyPage";
 import SecurityPage from "../Page/Navigattion/SecurityPage";
@@ -156,6 +155,8 @@ import DashboardKPI from "../components/Manager/DashboardKPI";
 import PendingWarehouse from "../components/WarehouseDomestic/PendingWarehouse";
 import ExportWarehouseShip from "../components/WarehouseDomestic/ExportWarehouseShip";
 import OrderWarehouse from "../components/StaffSale/OrderWarehouse";
+import OrderShippingAddress from "../components/Warehouse/OrderShippingAddress";
+import ShippingAddressList from "../components/Warehouse/ShippingAddressList";
 const Router = createBrowserRouter([
   // const Router = createHashRouter([
   {
@@ -357,25 +358,27 @@ const Router = createBrowserRouter([
       { path: "auction", element: <CreateAuctionForm /> },
       { path: "exchange-order", element: <ExchangeOrderForm /> },
       // { path: "comfirm-payment", element: <PaymentOrderList /> },
-      { path: "order-payment", element: <ListOrderManager /> },
+      { path: "order-payment-list", element: <ListOrderManager /> },
       // { path: "ship-payment", element: <PaymentShipList /> },
       { path: "createpaymentsupport", element: <MergedPaymentOrder /> },
       { path: "createpaymentshipping", element: <MergedPaymentShip /> },
-      { path: "orders/pending", element: <ManagerOrder /> },
-      { path: "createaccountuser", element: <CreateAccountUser /> },
-      { path: "customers", element: <CustomerStaffList /> },
+      { path: "status-orders", element: <ManagerOrder /> },
+      { path: "create-customer", element: <CreateAccountUser /> },
+      { path: "list-customers", element: <CustomerStaffList /> },
       { path: "auction-payment", element: <AuctionPayment /> },
       { path: "divide-payment", element: <DividePaymentOrder /> },
       { path: "prospects", element: <NotFound /> },
-      { path: "orders", element: <OrderList /> },
+      { path: "list-orders", element: <OrderList /> },
       { path: "orders/pending", element: <NotFound /> }, // Chưa triển khai
-      { path: "shipping/domestic", element: <RelateOrder /> }, // Chưa triển khai
-      { path: "shipping/international", element: <NotFound /> }, // Chưa triển khai
+      { path: "add-shipping-order", element: <RelateOrder /> },
       { path: "tracking", element: <Tracking /> }, // Chưa triển khai
       { path: "warehouses", element: <OrderWarehouse /> }, // Chưa triển khai
+      { path: "confirm-shipping", element: <OrderShippingAddress /> },
+      { path: "list-order-shipping", element: <ShippingAddressList /> },
+      { path: "shipping-history", element: <NotFound /> },
       // { path: "telesale", element: <PerformnanceMy /> }, // Chưa triển khai
       { path: "telesale", element: <NotFound /> },
-      { path: "knowledge", element: <ExportPacking /> }, // Chưa triển khai
+      { path: "knowledge", element: <NotFound /> }, // Chưa triển khai
       { path: "schedule", element: <NotFound /> }, // Chưa triển khai
       { path: "dashboard", element: <DashboardSale /> },
       // { path: "performance", element: <PerformanceStaff /> },
