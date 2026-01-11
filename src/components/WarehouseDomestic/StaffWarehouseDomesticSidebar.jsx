@@ -70,25 +70,20 @@ const StaffWarehouseDomesticSidebar = () => {
       path: "/staff-warehouse-domestic/pending-payments",
       title: "Quản lý đơn hàng chưa thanh toán vận chuyển",
     },
-    {
-      text: "Đơn đủ điều kiện",
-      icon: <PackageCheck className="w-6 h-6" />,
-      path: "/staff-warehouse-domestic/eligible-exports",
-      title: "Quản lý đơn hàng đủ điều kiện xuất kho",
-    },
+
     {
       text: "Xuất kho đơn nội địa",
       icon: <FolderInput className="w-6 h-6" />,
-      path: "/staff-warehouse-domestic/exports",
+      path: "/staff-warehouse-domestic/order-export",
       title: "Quản lý đơn hàng nội địa sẵn sàng giao",
     },
-
     {
       text: "Tra cứu đơn xuất kho",
       icon: <Search className="w-6 h-6" />,
-      path: "/staff-warehouse-domestic/order-search",
+      path: "/staff-warehouse-domestic/exports",
       title: "Tra cứu theo mã đơn hàng, mã vận đơn",
     },
+
     {
       text: "In mã vận đơn",
       icon: <FileSpreadsheet className="w-6 h-6" />,
@@ -107,6 +102,12 @@ const StaffWarehouseDomesticSidebar = () => {
       path: "/staff-warehouse-domestic/inventorys-check",
       title:
         "Hỗ trợ kiểm kê định kỳ hoặc đột xuất, quét mã và báo cáo chênh lệch",
+    },
+    {
+      text: "Đơn đủ điều kiện",
+      icon: <PackageCheck className="w-6 h-6" />,
+      path: "/staff-warehouse-domestic/eligible-exports",
+      title: "Quản lý đơn hàng đủ điều kiện xuất kho",
     },
   ];
 

@@ -28,7 +28,7 @@ const draftWarehouseService = {
       queryParams.append("customerCode", params.customerCode);
     if (params.shipmentCode)
       queryParams.append("shipmentCode", params.shipmentCode);
-
+    if (params.lock !== undefined) queryParams.append("lock", params.lock);
     const queryString = queryParams.toString();
     const url = `/draft-domestics/${page}/${size}${
       queryString ? `?${queryString}` : ""
@@ -53,6 +53,12 @@ const draftWarehouseService = {
       {
         shippingCodes,
       }
+    );
+    return data;
+  },
+  scanVNPost: async (trackingCode, shipCode) => {
+    const { data } = await api.post(
+      `/domestics/scan-vnpost/${trackingCode}/${shipCode}`
     );
     return data;
   },

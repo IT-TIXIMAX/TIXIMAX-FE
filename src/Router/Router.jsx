@@ -123,7 +123,6 @@ import GuideList from "../Page/Navigattion/GuideList";
 import PurchaserList from "../components/StaffPurchaser/PurchaserList";
 import TrackingCodeList from "../components/WarehouseDomestic/TrackingCodeList";
 import ListOrderManager from "../components/Order/ListOrderManager";
-import ExportOrder from "../components/WarehouseDomestic/ExportOrder";
 import UpdateShipmentCodeAuctionList from "../components/StaffPurchaser/UpdateShipmentCodeAuctionList";
 import DashboardManager from "../components/Manager/DashboardManager";
 import CreatePackingJapan from "../components/WarehouseForeign/CreatePackingJapan";
@@ -157,6 +156,7 @@ import ExportWarehouseShip from "../components/WarehouseDomestic/ExportWarehouse
 import OrderWarehouse from "../components/StaffSale/OrderWarehouse";
 import OrderShippingAddress from "../components/Warehouse/OrderShippingAddress";
 import ShippingAddressList from "../components/Warehouse/ShippingAddressList";
+import ExportWarehouseShipList from "../components/Warehouse/ExportWarehouseShipList";
 const Router = createBrowserRouter([
   // const Router = createHashRouter([
   {
@@ -453,9 +453,8 @@ const Router = createBrowserRouter([
       { path: "pending-payments", element: <PendingWarehouse /> },
       { path: "eligible-exports", element: <ExportWarehouseShip /> },
       { path: "exports", element: <ExportWarehouse /> },
-      // { path: "eligible-packings", element: <PackingEligibleList /> },
+      { path: "order-export", element: <ExportWarehouseShipList /> },
       { path: "check", element: <ScanImportWarehouse /> },
-      { path: "order-search", element: <ExportOrder /> },
       { path: "reports", element: <TrackingCodeList /> },
       { path: "importsjp", element: <ImportDomesticPacking /> },
       { path: "inventorys-check", element: <InventoryWarehouse /> },
