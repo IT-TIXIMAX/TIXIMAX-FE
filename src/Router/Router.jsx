@@ -90,11 +90,9 @@ import AuctionPayment from "../components/PaymentOrder/AuctionPayment";
 import ManagerTeam from "../components/LeadSale/ManagerTeam";
 import AuthCallback from "../Services/Auth/AuthCallback";
 import DashboardPurchase from "../components/StaffPurchaser/DashboardPurchase";
-import ImportProduct from "../components/WarehouseForeign/ImportProduct";
 import DashboardWarehouse from "../components/WarehouseDomestic/DashboardWarehouse";
 import StaffProfile from "../components/common/StaffProfile";
 import ManagerPromotion from "../components/Manager/ManagerPromotion";
-import ImportPacking from "../components/WarehouseForeign/ImportPacking";
 import ResetPassword from "../Page/ResetPassword";
 import InventoryWarehouse from "../Services/Warehouse/InventoryWarehouse";
 import RefundOrder from "../components/Order/RefundOrder";
@@ -376,12 +374,10 @@ const Router = createBrowserRouter([
       { path: "confirm-shipping", element: <OrderShippingAddress /> },
       { path: "list-order-shipping", element: <ShippingAddressList /> },
       { path: "shipping-history", element: <NotFound /> },
-      // { path: "telesale", element: <PerformnanceMy /> }, // Chưa triển khai
       { path: "telesale", element: <NotFound /> },
       { path: "knowledge", element: <NotFound /> }, // Chưa triển khai
       { path: "schedule", element: <NotFound /> }, // Chưa triển khai
       { path: "dashboard", element: <DashboardSale /> },
-      // { path: "performance", element: <PerformanceStaff /> },
       { path: "performance", element: <NotFound /> },
     ],
   },
@@ -421,7 +417,7 @@ const Router = createBrowserRouter([
       // { path: "dashboard", element: <DashboardWarehouse /> },
       { path: "dashboard", element: <PendingReceive /> },
       { path: "warehouse", element: <WarehouseList /> },
-      { path: "importproduct", element: <ImportPacking /> },
+      { path: "importproduct", element: <NotFound /> },
       { path: "imports", element: <WarehouseShipment /> },
       { path: "packings", element: <CreatePacking /> },
       { path: "outbound/packingeligible", element: <PackingEligibleList /> },
@@ -430,7 +426,7 @@ const Router = createBrowserRouter([
       { path: "outbound/packinginwarehouse", element: <NotFound /> },
       { path: "stock/serial", element: <NotFound /> },
       { path: "stock/location", element: <PackingProblem /> },
-      { path: "audit/check", element: <ImportProduct /> },
+      { path: "audit/check", element: <NotFound /> },
       { path: "audit/reconcile", element: <NotFound /> },
       { path: "reports/dashboard", element: <CreatePackingJapan /> },
       { path: "reports/performances", element: <WarehouseJapan /> },

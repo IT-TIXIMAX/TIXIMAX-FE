@@ -473,6 +473,63 @@ const PendingWarehouse = () => {
             </div>
           )}
         </div>
+
+        {/* Footer Navigation */}
+        {totalPages > 1 && !loading && (
+          <div className="mt-6 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-700">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="text-sm text-white">
+                  <span className="font-bold">{totalPages}</span> • Hiển thị{" "}
+                  <span className="font-bold">
+                    {showingFrom}-{showingTo}
+                  </span>{" "}
+                  / {totalElements} đơn hàng
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setPage(0)}
+                    disabled={page === 0}
+                    className="px-3 py-2 bg-white/10 hover:bg-white/20 border border-white/30 rounded-lg text-sm font-medium text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    type="button"
+                  >
+                    Đầu
+                  </button>
+                  <button
+                    onClick={() => setPage((p) => Math.max(0, p - 1))}
+                    disabled={page === 0}
+                    className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/30 rounded-lg text-sm font-medium text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    type="button"
+                  >
+                    ← Trước
+                  </button>
+                  <span className="px-4 py-2 bg-white text-blue-700 rounded-lg text-sm font-bold">
+                    {page + 1} / {totalPages}
+                  </span>
+                  <button
+                    onClick={() =>
+                      setPage((p) => Math.min(totalPages - 1, p + 1))
+                    }
+                    disabled={page >= totalPages - 1}
+                    className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/30 rounded-lg text-sm font-medium text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    type="button"
+                  >
+                    Sau →
+                  </button>
+                  <button
+                    onClick={() => setPage(totalPages - 1)}
+                    disabled={page >= totalPages - 1}
+                    className="px-3 py-2 bg-white/10 hover:bg-white/20 border border-white/30 rounded-lg text-sm font-medium text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    type="button"
+                  >
+                    Cuối
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

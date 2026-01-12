@@ -51,9 +51,10 @@ const CustomerStaffList = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Filter states
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedSource, setSelectedSource] = useState("ALL");
+  // ✅ input đang gõ
+  const [searchInput, setSearchInput] = useState("");
+  // ✅ term đã apply (chỉ set khi bấm Search / Enter)
+  const [appliedSearch, setAppliedSearch] = useState("");
 
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [openDetailModal, setOpenDetailModal] = useState(false);
@@ -64,40 +65,12 @@ const CustomerStaffList = () => {
   const [totalElements, setTotalElements] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
 
-  // Giá trị đặc biệt cho KH không có source
-  const EMPTY_SOURCE_VALUE = "__EMPTY__";
-
-  // Build nguồn từ dữ liệu
-  const availableSources = useMemo(() => {
-    const raw = customerList.map((c) =>
-      c.source && c.source.trim() !== "" ? c.source : EMPTY_SOURCE_VALUE
-    );
-
-    const unique = [...new Set(raw)];
-
-    return unique.sort((a, b) => {
-      if (a === EMPTY_SOURCE_VALUE) return 1;
-      if (b === EMPTY_SOURCE_VALUE) return -1;
-      return a.localeCompare(b, "vi");
-    });
-  }, [customerList]);
-
-  const getSourceLabel = (value) => {
-    if (!value || value === EMPTY_SOURCE_VALUE) return "(Không có nguồn)";
-    return value;
-  };
-
-  // Fetch my customers
   const fetchMyCustomers = useCallback(
-    async (page = 0, size = pageSize) => {
+    async (page = 0, size = pageSize, term = appliedSearch) => {
       setError(null);
       setLoading(true);
       try {
-        const response = await userService.getMyCustomers(
-          page,
-          size,
-          searchTerm
-        );
+        const response = await userService.getMyCustomers(page, size, term);
 
         setCustomerList(response?.content || []);
         setTotalElements(response?.totalElements || 0);
@@ -110,64 +83,31 @@ const CustomerStaffList = () => {
         setLoading(false);
       }
     },
-    [pageSize, searchTerm]
+    [pageSize, appliedSearch]
   );
 
+  // ✅ Load lần đầu
   useEffect(() => {
-    fetchMyCustomers(0, pageSize);
-  }, [fetchMyCustomers, pageSize]);
+    fetchMyCustomers(0, pageSize, "");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pageSize]);
 
-  // Filter logic
-  const filteredCustomers = useMemo(() => {
-    let filtered = [...customerList];
-
-    // Search filter
-    if (searchTerm) {
-      const search = searchTerm.toLowerCase();
-      filtered = filtered.filter(
-        (customer) =>
-          customer.username?.toLowerCase().includes(search) ||
-          customer.name?.toLowerCase().includes(search) ||
-          customer.email?.toLowerCase().includes(search) ||
-          customer.phone?.includes(search) ||
-          customer.customerCode?.toLowerCase().includes(search) ||
-          customer.address?.toLowerCase().includes(search)
-      );
-    }
-
-    // Source filter
-    if (selectedSource !== "ALL") {
-      if (selectedSource === EMPTY_SOURCE_VALUE) {
-        filtered = filtered.filter(
-          (customer) => !customer.source || customer.source.trim() === ""
-        );
-      } else {
-        filtered = filtered.filter(
-          (customer) => customer.source === selectedSource
-        );
-      }
-    }
-
-    return filtered;
-  }, [customerList, searchTerm, selectedSource]);
-
-  // Handlers
   const handlePageChange = useCallback(
     (newPage) => {
       if (newPage >= 0 && newPage < totalPages && !loading) {
-        fetchMyCustomers(newPage, pageSize);
+        fetchMyCustomers(newPage, pageSize, appliedSearch);
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
     },
-    [totalPages, pageSize, loading, fetchMyCustomers]
+    [totalPages, pageSize, loading, fetchMyCustomers, appliedSearch]
   );
 
   const handlePageSizeChange = useCallback(
     (newSize) => {
       setPageSize(newSize);
-      fetchMyCustomers(0, newSize);
+      fetchMyCustomers(0, newSize, appliedSearch);
     },
-    [fetchMyCustomers]
+    [fetchMyCustomers, appliedSearch]
   );
 
   const handleViewCustomer = (customer) => {
@@ -175,12 +115,26 @@ const CustomerStaffList = () => {
     setOpenDetailModal(true);
   };
 
-  const handleClearSearch = () => {
-    setSearchTerm("");
-    setSelectedSource("ALL");
-  };
+  const handleApplySearch = useCallback(() => {
+    const term = (searchInput || "").trim();
+    setAppliedSearch(term);
+    fetchMyCustomers(0, pageSize, term);
+  }, [searchInput, fetchMyCustomers, pageSize]);
 
-  const hasActiveFilter = searchTerm || selectedSource !== "ALL";
+  const handleSearchKeyDown = useCallback(
+    (e) => {
+      if (e.key === "Enter") handleApplySearch();
+    },
+    [handleApplySearch]
+  );
+
+  useEffect(() => {
+    if (searchInput === "" && appliedSearch !== "") {
+      setAppliedSearch("");
+      fetchMyCustomers(0, pageSize, "");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchInput]);
 
   const getSourceColor = useCallback((source) => {
     const colorMap = {
@@ -189,24 +143,27 @@ const CustomerStaffList = () => {
       Website: "bg-purple-100 text-purple-800",
       "Giới thiệu": "bg-green-100 text-green-800",
     };
-    if (!source || source === EMPTY_SOURCE_VALUE) {
-      return "bg-gray-100 text-gray-800";
-    }
+    if (!source || source.trim() === "") return "bg-gray-100 text-gray-800";
     return colorMap[source] || "bg-gray-100 text-gray-800";
   }, []);
 
   const showingFrom = totalElements ? currentPage * pageSize + 1 : 0;
   const showingTo = Math.min((currentPage + 1) * pageSize, totalElements);
 
-  // Source stats
   const sourceStats = useMemo(() => {
     const stats = {};
     customerList.forEach((customer) => {
-      const source = customer.source || EMPTY_SOURCE_VALUE;
+      const source = customer.source || "__EMPTY__";
       stats[source] = (stats[source] || 0) + 1;
     });
     return stats;
   }, [customerList]);
+
+  const EMPTY_SOURCE_VALUE = "__EMPTY__";
+  const getSourceLabel = (value) => {
+    if (!value || value === EMPTY_SOURCE_VALUE) return "(Không có nguồn)";
+    return value;
+  };
 
   return (
     <div className="min-h-screen">
@@ -224,7 +181,9 @@ const CustomerStaffList = () => {
             </div>
 
             <button
-              onClick={() => fetchMyCustomers(currentPage, pageSize)}
+              onClick={() =>
+                fetchMyCustomers(currentPage, pageSize, appliedSearch)
+              }
               disabled={loading}
               className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/30 rounded-lg text-sm font-medium text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
               type="button"
@@ -301,7 +260,7 @@ const CustomerStaffList = () => {
                       Đang Hiển Thị
                     </p>
                     <p className="text-3xl font-bold text-orange-600">
-                      {filteredCustomers.length}
+                      {customerList.length}
                     </p>
                   </div>
                   <div className="p-3 bg-orange-100 rounded-lg">
@@ -313,10 +272,9 @@ const CustomerStaffList = () => {
           )}
         </div>
 
-        {/* Filter & Search Section */}
+        {/* Search Section */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
           <div className="flex flex-col gap-4">
-            {/* Search Inputs */}
             <div className="flex flex-col lg:flex-row gap-3">
               <div className="flex-1">
                 <div className="relative">
@@ -326,16 +284,18 @@ const CustomerStaffList = () => {
                   />
                   <input
                     type="text"
-                    placeholder="Tìm kiếm tên, email, SĐT, mã KH..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Tìm kiếm tên, sđt, email, mã khách hàng..."
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                    onKeyDown={handleSearchKeyDown}
                     className="w-full pl-10 pr-10 py-2.5 border-2 border-gray-300 rounded-lg outline-none focus:ring-0 focus:border-blue-500 transition-all"
                   />
-                  {searchTerm && (
+                  {searchInput && (
                     <button
-                      onClick={() => setSearchTerm("")}
+                      onClick={() => setSearchInput("")}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                       type="button"
+                      title="Xóa text"
                     >
                       <X size={18} />
                     </button>
@@ -343,32 +303,15 @@ const CustomerStaffList = () => {
                 </div>
               </div>
 
-              <div className="flex-1 max-w-xs">
-                <select
-                  value={selectedSource}
-                  onChange={(e) => setSelectedSource(e.target.value)}
-                  className="w-full px-4 py-2.5 border-2 border-gray-300 rounded-lg outline-none focus:ring-0 focus:border-blue-500 transition-all bg-white"
-                >
-                  <option value="ALL">Tất cả nguồn</option>
-                  {availableSources.map((sourceValue) => (
-                    <option key={sourceValue} value={sourceValue}>
-                      {getSourceLabel(sourceValue)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {hasActiveFilter && (
-                <button
-                  onClick={handleClearSearch}
-                  disabled={loading}
-                  className="px-4 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
-                  type="button"
-                >
-                  <X size={18} />
-                  Xóa lọc
-                </button>
-              )}
+              <button
+                onClick={handleApplySearch}
+                disabled={loading}
+                className="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                type="button"
+              >
+                <Search size={18} />
+                Search
+              </button>
             </div>
 
             {/* Page Size Selector */}
@@ -422,9 +365,12 @@ const CustomerStaffList = () => {
                 </div>
                 <div className="mt-4">
                   <button
-                    onClick={() => fetchMyCustomers(currentPage, pageSize)}
+                    onClick={() =>
+                      fetchMyCustomers(currentPage, pageSize, appliedSearch)
+                    }
                     disabled={loading}
                     className="bg-red-100 hover:bg-red-200 text-red-800 px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    type="button"
                   >
                     {loading ? "Đang tải..." : "Thử lại"}
                   </button>
@@ -438,16 +384,16 @@ const CustomerStaffList = () => {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           {loading ? (
             <TableSkeleton rows={10} />
-          ) : filteredCustomers.length === 0 ? (
+          ) : customerList.length === 0 ? (
             <div className="p-12 text-center">
               <UserCircle className="mx-auto text-gray-400 mb-4" size={48} />
               <p className="text-gray-600 font-medium">
                 Không tìm thấy khách hàng
               </p>
               <p className="text-sm text-gray-500 mt-1">
-                {customerList.length === 0
-                  ? "Chưa có khách hàng nào được phân công cho bạn"
-                  : "Thử thay đổi điều kiện lọc"}
+                {appliedSearch
+                  ? "Không có kết quả phù hợp với từ khóa"
+                  : "Chưa có khách hàng nào được phân công cho bạn"}
               </p>
             </div>
           ) : (
@@ -480,7 +426,7 @@ const CustomerStaffList = () => {
                 </thead>
 
                 <tbody>
-                  {filteredCustomers.map((customer, index) => {
+                  {customerList.map((customer, index) => {
                     const mainAddress =
                       customer.addresses?.[0]?.addressName || "—";
 
@@ -564,7 +510,7 @@ const CustomerStaffList = () => {
                           ) : (
                             <span
                               className={`inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-full ${getSourceColor(
-                                EMPTY_SOURCE_VALUE
+                                ""
                               )}`}
                             >
                               {getSourceLabel(EMPTY_SOURCE_VALUE)}
@@ -574,7 +520,10 @@ const CustomerStaffList = () => {
 
                         <td className="px-4 py-4">
                           <button
-                            onClick={() => handleViewCustomer(customer)}
+                            onClick={() =>
+                              setOpenDetailModal(true) ||
+                              setSelectedCustomer(customer)
+                            }
                             className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-all flex items-center gap-2 mx-auto text-sm"
                             type="button"
                             title="Xem chi tiết"
@@ -658,7 +607,6 @@ const CustomerStaffList = () => {
       {openDetailModal && selectedCustomer && (
         <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50 p-4">
           <div className="bg-white w-full max-w-3xl rounded-xl shadow-2xl overflow-hidden">
-            {/* HEADER */}
             <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
@@ -677,11 +625,8 @@ const CustomerStaffList = () => {
               </button>
             </div>
 
-            {/* BODY */}
             <div className="px-6 py-6 space-y-4 max-h-[calc(90vh-140px)] overflow-y-auto">
-              {/* GRID 2 CỘT */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Mã KH */}
                 <div className="p-4 border-2 border-gray-200 rounded-lg bg-gray-50">
                   <p className="text-sm font-medium text-gray-600 mb-1">
                     Mã khách hàng
@@ -691,7 +636,6 @@ const CustomerStaffList = () => {
                   </p>
                 </div>
 
-                {/* Tên */}
                 <div className="p-4 border-2 border-gray-200 rounded-lg bg-gray-50">
                   <p className="text-sm font-medium text-gray-600 mb-1">
                     Tên khách hàng
@@ -701,7 +645,6 @@ const CustomerStaffList = () => {
                   </p>
                 </div>
 
-                {/* SĐT */}
                 <div className="p-4 border-2 border-gray-200 rounded-lg bg-gray-50">
                   <p className="text-sm font-medium text-gray-600 mb-1">
                     Số điện thoại
@@ -714,7 +657,6 @@ const CustomerStaffList = () => {
                   </div>
                 </div>
 
-                {/* Email */}
                 <div className="p-4 border-2 border-gray-200 rounded-lg bg-gray-50">
                   <p className="text-sm font-medium text-gray-600 mb-1">
                     Email
@@ -727,7 +669,6 @@ const CustomerStaffList = () => {
                   </div>
                 </div>
 
-                {/* Trạng thái */}
                 <div className="p-4 border-2 border-gray-200 rounded-lg bg-gray-50">
                   <p className="text-sm font-medium text-gray-600 mb-1">
                     Trạng thái
@@ -745,7 +686,6 @@ const CustomerStaffList = () => {
                   </p>
                 </div>
 
-                {/* Nguồn */}
                 <div className="p-4 border-2 border-gray-200 rounded-lg bg-gray-50">
                   <p className="text-sm font-medium text-gray-600 mb-1">
                     Nguồn
@@ -755,13 +695,11 @@ const CustomerStaffList = () => {
                       selectedCustomer.source
                     )}`}
                   >
-                    {selectedCustomer.source ||
-                      getSourceLabel(EMPTY_SOURCE_VALUE)}
+                    {selectedCustomer.source || getSourceLabel("__EMPTY__")}
                   </span>
                 </div>
               </div>
 
-              {/* ĐỊA CHỈ */}
               <div className="p-4 border-2 border-gray-200 rounded-lg bg-gray-50">
                 <div className="flex items-center gap-2 mb-3">
                   <MapPin className="text-blue-600" size={16} />
@@ -789,7 +727,6 @@ const CustomerStaffList = () => {
               </div>
             </div>
 
-            {/* FOOTER */}
             <div className="bg-gray-50 px-6 py-4 flex justify-end border-t border-gray-200">
               <button
                 className="px-6 py-2.5 bg-blue-600 text-white rounded-lg font-medium shadow-sm hover:bg-blue-700 transition-colors"
