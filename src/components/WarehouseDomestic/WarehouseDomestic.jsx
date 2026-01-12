@@ -28,7 +28,7 @@ const STATUS_OPTIONS = [
   { value: "CHO_TRUNG_CHUYEN", label: "Chờ trung chuyển" },
   { value: "CHO_GIAO", label: "Chờ giao" },
   { value: "DANG_GIAO", label: "Đang giao" },
-  { value: "DA_GIAO", label: "Đã giao" },
+  // { value: "DA_GIAO", label: "Đã giao" },
 ];
 
 const PAGE_SIZES = [50, 100, 200];

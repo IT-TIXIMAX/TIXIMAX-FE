@@ -35,7 +35,7 @@ const CodeList = () => {
   };
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen print:p-0">
+    <div className="p-6 min-h-screen print:p-0">
       <style>
         {`
           @media print {
