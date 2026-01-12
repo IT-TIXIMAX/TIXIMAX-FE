@@ -1,18 +1,15 @@
-import api from "../../config/api.js"; // ← THAY ĐỔI: import api thay vì axios
-
+import api from "../../config/api.js";
 const paymentService = {
   // Create payment
   createPayment: async (orderCode, paymentData = null) => {
-    // ← THAY ĐỔI: đổi thành method của object
     try {
       if (!orderCode) {
         throw new Error("Order code is required");
       }
 
-      // ← BỎ: token check và manual headers - api tự động xử lý
       const response = await api.post(
         `/payments/${orderCode}`,
-        paymentData || {} // ← SỬA: dùng {} thay vì "" cho consistent
+        paymentData || {}
       );
 
       return response.data;
@@ -91,7 +88,6 @@ const paymentService = {
         throw new Error("Payment code is required");
       }
 
-      // Ví dụ: /payments/code/MG-CCBE11
       const response = await api.get(`/payments/code/${paymentCode}`);
       return response.data;
     } catch (error) {
@@ -102,10 +98,15 @@ const paymentService = {
       throw error;
     }
   },
+  refundBalance: async (id, { image = "", amount = 0 } = {}) => {
+    if (!id) throw new Error("Account ID is required");
+    const { data } = await api.get(`/accounts/refund-balance/${id}`, {
+      params: { image, amount },
+    });
+    return data;
+  },
 };
 
-// Export both object and backward compatibility function
 export default paymentService;
 
-// ← BACKWARD COMPATIBILITY: giữ function cũ để không break existing code
 export const createPaymentService = paymentService.createPayment;

@@ -10,6 +10,9 @@ import {
   Phone,
   Mail,
   MapPin,
+  Loader2,
+  Weight,
+  Wallet,
 } from "lucide-react";
 import userService from "../../Services/Manager/userService";
 
@@ -46,14 +49,27 @@ const TableSkeleton = ({ rows = 10 }) => (
   </div>
 );
 
+/* ===================== Format helpers ===================== */
+const formatWeight = (w) => {
+  const n = Number(w);
+  if (!Number.isFinite(n)) return "0 kg";
+  // nếu bạn muốn 2 chữ số thập phân: n.toFixed(2)
+  return `${n.toLocaleString("vi-VN")} kg`;
+};
+
+const formatMoney = (v) => {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return "0 ₫";
+  return `${n.toLocaleString("vi-VN")} ₫`;
+};
+
 const CustomerStaffList = () => {
   const [customerList, setCustomerList] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [detailLoading, setDetailLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // ✅ input đang gõ
   const [searchInput, setSearchInput] = useState("");
-  // ✅ term đã apply (chỉ set khi bấm Search / Enter)
   const [appliedSearch, setAppliedSearch] = useState("");
 
   const [selectedCustomer, setSelectedCustomer] = useState(null);
@@ -65,32 +81,30 @@ const CustomerStaffList = () => {
   const [totalElements, setTotalElements] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
 
-  const fetchMyCustomers = useCallback(
-    async (page = 0, size = pageSize, term = appliedSearch) => {
-      setError(null);
-      setLoading(true);
-      try {
-        const response = await userService.getMyCustomers(page, size, term);
+  const fetchMyCustomers = useCallback(async (page, size, term) => {
+    setError(null);
+    setLoading(true);
+    try {
+      const res = await userService.getMyCustomers(page, size, term);
 
-        setCustomerList(response?.content || []);
-        setTotalElements(response?.totalElements || 0);
-        setTotalPages(response?.totalPages || 0);
-        setCurrentPage(page);
-      } catch (err) {
-        setError(err.message || "Không thể tải danh sách khách hàng của bạn");
-        setCustomerList([]);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [pageSize, appliedSearch]
-  );
+      setCustomerList(res?.content || []);
+      setTotalElements(res?.totalElements || 0);
+      setTotalPages(res?.totalPages || 0);
+      setCurrentPage(page);
+    } catch (err) {
+      setError(err?.message || "Không thể tải danh sách khách hàng của bạn");
+      setCustomerList([]);
+      setTotalElements(0);
+      setTotalPages(0);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  // ✅ Load lần đầu
+  // ✅ Load list: chạy khi pageSize / appliedSearch đổi
   useEffect(() => {
-    fetchMyCustomers(0, pageSize, "");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pageSize]);
+    fetchMyCustomers(0, pageSize, appliedSearch);
+  }, [pageSize, appliedSearch, fetchMyCustomers]);
 
   const handlePageChange = useCallback(
     (newPage) => {
@@ -102,24 +116,16 @@ const CustomerStaffList = () => {
     [totalPages, pageSize, loading, fetchMyCustomers, appliedSearch]
   );
 
-  const handlePageSizeChange = useCallback(
-    (newSize) => {
-      setPageSize(newSize);
-      fetchMyCustomers(0, newSize, appliedSearch);
-    },
-    [fetchMyCustomers, appliedSearch]
-  );
-
-  const handleViewCustomer = (customer) => {
-    setSelectedCustomer(customer);
-    setOpenDetailModal(true);
-  };
+  const handlePageSizeChange = useCallback((newSize) => {
+    setPageSize(newSize);
+    setCurrentPage(0); // effect sẽ tự fetch
+  }, []);
 
   const handleApplySearch = useCallback(() => {
     const term = (searchInput || "").trim();
-    setAppliedSearch(term);
-    fetchMyCustomers(0, pageSize, term);
-  }, [searchInput, fetchMyCustomers, pageSize]);
+    setAppliedSearch(term); // effect sẽ tự fetch page 0
+    setCurrentPage(0);
+  }, [searchInput]);
 
   const handleSearchKeyDown = useCallback(
     (e) => {
@@ -128,42 +134,65 @@ const CustomerStaffList = () => {
     [handleApplySearch]
   );
 
+  // ✅ Nếu user xóa input về rỗng -> reset appliedSearch (effect lo)
   useEffect(() => {
     if (searchInput === "" && appliedSearch !== "") {
       setAppliedSearch("");
-      fetchMyCustomers(0, pageSize, "");
+      setCurrentPage(0);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchInput]);
+  }, [searchInput, appliedSearch]);
 
   const getSourceColor = useCallback((source) => {
     const colorMap = {
       Facebook: "bg-blue-100 text-blue-800",
       Zalo: "bg-cyan-100 text-cyan-800",
-      Website: "bg-purple-100 text-purple-800",
-      "Giới thiệu": "bg-green-100 text-green-800",
+      Website: "bg-indigo-100 text-indigo-800",
+      "Giới thiệu": "bg-sky-100 text-sky-800",
     };
     if (!source || source.trim() === "") return "bg-gray-100 text-gray-800";
     return colorMap[source] || "bg-gray-100 text-gray-800";
   }, []);
-
-  const showingFrom = totalElements ? currentPage * pageSize + 1 : 0;
-  const showingTo = Math.min((currentPage + 1) * pageSize, totalElements);
-
-  const sourceStats = useMemo(() => {
-    const stats = {};
-    customerList.forEach((customer) => {
-      const source = customer.source || "__EMPTY__";
-      stats[source] = (stats[source] || 0) + 1;
-    });
-    return stats;
-  }, [customerList]);
 
   const EMPTY_SOURCE_VALUE = "__EMPTY__";
   const getSourceLabel = (value) => {
     if (!value || value === EMPTY_SOURCE_VALUE) return "(Không có nguồn)";
     return value;
   };
+
+  const showingFrom = totalElements ? currentPage * pageSize + 1 : 0;
+  const showingTo = Math.min((currentPage + 1) * pageSize, totalElements);
+
+  // ⚠️ stats theo trang hiện tại (vì backend paging)
+  const sourceStats = useMemo(() => {
+    const stats = {};
+    customerList.forEach((c) => {
+      const source = c?.source || "__EMPTY__";
+      stats[source] = (stats[source] || 0) + 1;
+    });
+    return stats;
+  }, [customerList]);
+
+  // ✅ Lấy thêm thông tin khi bấm Xem (detail endpoint)
+  const handleViewCustomer = useCallback(async (customer) => {
+    setSelectedCustomer(customer);
+    setOpenDetailModal(true);
+
+    setDetailLoading(true);
+    try {
+      const detail = await userService.getCustomerDetail(customer?.id);
+      setSelectedCustomer((prev) => ({ ...prev, ...detail }));
+    } catch (e) {
+      // vẫn xem được data list, chỉ thiếu thêm field
+    } finally {
+      setDetailLoading(false);
+    }
+  }, []);
+
+  const closeModal = useCallback(() => {
+    setOpenDetailModal(false);
+    setSelectedCustomer(null);
+    setDetailLoading(false);
+  }, []);
 
   return (
     <div className="min-h-screen">
@@ -227,12 +256,12 @@ const CustomerStaffList = () => {
                     <p className="text-sm font-medium text-gray-600 mb-1">
                       Facebook
                     </p>
-                    <p className="text-3xl font-bold text-green-600">
+                    <p className="text-3xl font-bold text-blue-600">
                       {sourceStats.Facebook || 0}
                     </p>
                   </div>
-                  <div className="p-3 bg-green-100 rounded-lg">
-                    <UserCircle className="text-green-600" size={24} />
+                  <div className="p-3 bg-blue-100 rounded-lg">
+                    <UserCircle className="text-blue-600" size={24} />
                   </div>
                 </div>
               </div>
@@ -243,12 +272,12 @@ const CustomerStaffList = () => {
                     <p className="text-sm font-medium text-gray-600 mb-1">
                       Zalo
                     </p>
-                    <p className="text-3xl font-bold text-purple-600">
+                    <p className="text-3xl font-bold text-blue-600">
                       {sourceStats.Zalo || 0}
                     </p>
                   </div>
-                  <div className="p-3 bg-purple-100 rounded-lg">
-                    <UserCircle className="text-purple-600" size={24} />
+                  <div className="p-3 bg-blue-100 rounded-lg">
+                    <UserCircle className="text-blue-600" size={24} />
                   </div>
                 </div>
               </div>
@@ -259,12 +288,12 @@ const CustomerStaffList = () => {
                     <p className="text-sm font-medium text-gray-600 mb-1">
                       Đang Hiển Thị
                     </p>
-                    <p className="text-3xl font-bold text-orange-600">
+                    <p className="text-3xl font-bold text-blue-600">
                       {customerList.length}
                     </p>
                   </div>
-                  <div className="p-3 bg-orange-100 rounded-lg">
-                    <Filter className="text-orange-600" size={24} />
+                  <div className="p-3 bg-blue-100 rounded-lg">
+                    <Filter className="text-blue-600" size={24} />
                   </div>
                 </div>
               </div>
@@ -413,6 +442,12 @@ const CustomerStaffList = () => {
                     <th className="px-4 py-4 text-left text-sm font-semibold whitespace-nowrap">
                       Email
                     </th>
+                    <th className="px-4 py-4 text-left text-sm font-semibold whitespace-nowrap">
+                      Tổng cân
+                    </th>
+                    <th className="px-4 py-4 text-left text-sm font-semibold whitespace-nowrap">
+                      Số dư
+                    </th>
                     <th className="px-4 py-4 text-left text-sm font-semibold">
                       Địa Chỉ
                     </th>
@@ -428,13 +463,17 @@ const CustomerStaffList = () => {
                 <tbody>
                   {customerList.map((customer, index) => {
                     const mainAddress =
-                      customer.addresses?.[0]?.addressName || "—";
+                      customer?.addresses?.[0]?.addressName?.trim() || "—";
+
+                    const emailText = customer?.email || "—";
+                    const phoneText = customer?.phone || "—";
+                    const subText = customer?.username || "—";
 
                     return (
                       <tr
                         key={
-                          customer.accountId ??
-                          customer.customerCode ??
+                          customer?.id ??
+                          customer?.customerCode ??
                           `customer-${index}`
                         }
                         className={`border-b border-gray-200 hover:bg-blue-50 transition-colors ${
@@ -443,17 +482,18 @@ const CustomerStaffList = () => {
                       >
                         <td className="px-4 py-4">
                           <div className="flex items-center gap-3">
-                            <div className="flex-shrink-0 h-10 w-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
+                            <div className="flex-shrink-0 h-10 w-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center">
                               <span className="text-white font-semibold text-sm">
-                                {customer.name?.charAt(0).toUpperCase() || "?"}
+                                {customer?.name?.charAt(0)?.toUpperCase() ||
+                                  "?"}
                               </span>
                             </div>
                             <div>
                               <div className="text-sm font-semibold text-gray-900">
-                                {customer.name}
+                                {customer?.name || "—"}
                               </div>
                               <div className="text-xs text-gray-500">
-                                {customer.username}
+                                {subText}
                               </div>
                             </div>
                           </div>
@@ -461,37 +501,44 @@ const CustomerStaffList = () => {
 
                         <td className="px-4 py-4">
                           <span className="text-sm font-medium text-blue-600">
-                            {customer.customerCode}
+                            {customer?.customerCode || "—"}
                           </span>
                         </td>
 
                         <td className="px-4 py-4">
                           <div className="flex items-center gap-2">
-                            <Phone className="text-gray-400" size={14} />
                             <span className="text-sm text-gray-900">
-                              {customer.phone}
+                              {phoneText}
                             </span>
                           </div>
                         </td>
 
                         <td className="px-4 py-4">
                           <div className="flex items-center gap-2 max-w-xs">
-                            <Mail
-                              className="text-gray-400 flex-shrink-0"
-                              size={14}
-                            />
                             <span className="text-sm text-gray-900 truncate">
-                              {customer.email}
+                              {emailText}
+                            </span>
+                          </div>
+                        </td>
+
+                        <td className="px-4 py-4">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-gray-900">
+                              {formatWeight(customer?.totalWeight)}
+                            </span>
+                          </div>
+                        </td>
+
+                        <td className="px-4 py-4">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-gray-900">
+                              {formatMoney(customer?.balance)}
                             </span>
                           </div>
                         </td>
 
                         <td className="px-4 py-4">
                           <div className="flex items-center gap-2 max-w-xs">
-                            <MapPin
-                              className="text-gray-400 flex-shrink-0"
-                              size={14}
-                            />
                             <span className="text-sm text-gray-900 truncate">
                               {mainAddress}
                             </span>
@@ -499,7 +546,7 @@ const CustomerStaffList = () => {
                         </td>
 
                         <td className="px-4 py-4">
-                          {customer.source ? (
+                          {customer?.source ? (
                             <span
                               className={`inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-full ${getSourceColor(
                                 customer.source
@@ -520,10 +567,7 @@ const CustomerStaffList = () => {
 
                         <td className="px-4 py-4">
                           <button
-                            onClick={() =>
-                              setOpenDetailModal(true) ||
-                              setSelectedCustomer(customer)
-                            }
+                            onClick={() => handleViewCustomer(customer)}
                             className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-all flex items-center gap-2 mx-auto text-sm"
                             type="button"
                             title="Xem chi tiết"
@@ -618,7 +662,7 @@ const CustomerStaffList = () => {
               </div>
               <button
                 className="text-white/80 hover:text-white transition-colors"
-                onClick={() => setOpenDetailModal(false)}
+                onClick={closeModal}
                 type="button"
               >
                 <X size={24} />
@@ -626,13 +670,20 @@ const CustomerStaffList = () => {
             </div>
 
             <div className="px-6 py-6 space-y-4 max-h-[calc(90vh-140px)] overflow-y-auto">
+              {detailLoading && (
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Loader2 className="animate-spin" size={16} />
+                  Đang tải thêm thông tin...
+                </div>
+              )}
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="p-4 border-2 border-gray-200 rounded-lg bg-gray-50">
                   <p className="text-sm font-medium text-gray-600 mb-1">
                     Mã khách hàng
                   </p>
                   <p className="font-semibold text-gray-900 text-lg">
-                    {selectedCustomer.customerCode}
+                    {selectedCustomer?.customerCode || "—"}
                   </p>
                 </div>
 
@@ -641,7 +692,7 @@ const CustomerStaffList = () => {
                     Tên khách hàng
                   </p>
                   <p className="font-semibold text-gray-900 text-lg">
-                    {selectedCustomer.name}
+                    {selectedCustomer?.name || "—"}
                   </p>
                 </div>
 
@@ -652,7 +703,7 @@ const CustomerStaffList = () => {
                   <div className="flex items-center gap-2">
                     <Phone className="text-blue-600" size={16} />
                     <p className="font-semibold text-gray-900">
-                      {selectedCustomer.phone}
+                      {selectedCustomer?.phone || "—"}
                     </p>
                   </div>
                 </div>
@@ -664,7 +715,33 @@ const CustomerStaffList = () => {
                   <div className="flex items-center gap-2">
                     <Mail className="text-blue-600 flex-shrink-0" size={16} />
                     <p className="text-gray-900 break-words">
-                      {selectedCustomer.email}
+                      {selectedCustomer?.email || "—"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* ✅ Added: totalWeight */}
+                <div className="p-4 border-2 border-gray-200 rounded-lg bg-gray-50">
+                  <p className="text-sm font-medium text-gray-600 mb-1">
+                    Tổng cân nặng
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <Weight className="text-blue-600" size={16} />
+                    <p className="font-semibold text-gray-900 text-lg">
+                      {formatWeight(selectedCustomer?.totalWeight)}
+                    </p>
+                  </div>
+                </div>
+
+                {/* ✅ Added: balance */}
+                <div className="p-4 border-2 border-gray-200 rounded-lg bg-gray-50">
+                  <p className="text-sm font-medium text-gray-600 mb-1">
+                    Số dư
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <Wallet className="text-blue-600" size={16} />
+                    <p className="font-semibold text-gray-900 text-lg">
+                      {formatMoney(selectedCustomer?.balance)}
                     </p>
                   </div>
                 </div>
@@ -675,12 +752,12 @@ const CustomerStaffList = () => {
                   </p>
                   <p
                     className={`font-semibold ${
-                      selectedCustomer.status === "HOAT_DONG"
-                        ? "text-green-600"
-                        : "text-red-600"
+                      selectedCustomer?.status === "HOAT_DONG"
+                        ? "text-blue-600"
+                        : "text-gray-600"
                     }`}
                   >
-                    {selectedCustomer.status === "HOAT_DONG"
+                    {selectedCustomer?.status === "HOAT_DONG"
                       ? "Hoạt động"
                       : "Không hoạt động"}
                   </p>
@@ -692,10 +769,10 @@ const CustomerStaffList = () => {
                   </p>
                   <span
                     className={`inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-full ${getSourceColor(
-                      selectedCustomer.source
+                      selectedCustomer?.source || ""
                     )}`}
                   >
-                    {selectedCustomer.source || getSourceLabel("__EMPTY__")}
+                    {selectedCustomer?.source || getSourceLabel("__EMPTY__")}
                   </span>
                 </div>
               </div>
@@ -705,21 +782,27 @@ const CustomerStaffList = () => {
                   <MapPin className="text-blue-600" size={16} />
                   <p className="text-sm font-medium text-gray-600">Địa chỉ</p>
                 </div>
+
                 <div className="flex flex-col gap-2">
-                  {selectedCustomer.addresses?.length > 0 ? (
-                    selectedCustomer.addresses.map((a, i) => (
-                      <div
-                        key={i}
-                        className="flex items-start gap-2 p-3 bg-white rounded-lg border border-gray-200"
-                      >
-                        <span className="inline-flex items-center justify-center w-6 h-6 bg-blue-100 text-blue-600 rounded-full text-xs font-semibold flex-shrink-0">
-                          {i + 1}
-                        </span>
-                        <span className="text-sm text-gray-900">
-                          {a.addressName}
-                        </span>
-                      </div>
-                    ))
+                  {Array.isArray(selectedCustomer?.addresses) &&
+                  selectedCustomer.addresses.filter(
+                    (a) => (a?.addressName || "").trim() !== ""
+                  ).length > 0 ? (
+                    selectedCustomer.addresses
+                      .filter((a) => (a?.addressName || "").trim() !== "")
+                      .map((a, i) => (
+                        <div
+                          key={a?.id ?? i}
+                          className="flex items-start gap-2 p-3 bg-white rounded-lg border border-gray-200"
+                        >
+                          <span className="inline-flex items-center justify-center w-6 h-6 bg-blue-100 text-blue-600 rounded-full text-xs font-semibold flex-shrink-0">
+                            {i + 1}
+                          </span>
+                          <span className="text-sm text-gray-900">
+                            {a?.addressName}
+                          </span>
+                        </div>
+                      ))
                   ) : (
                     <p className="text-sm text-gray-500">Chưa có địa chỉ</p>
                   )}
@@ -730,7 +813,7 @@ const CustomerStaffList = () => {
             <div className="bg-gray-50 px-6 py-4 flex justify-end border-t border-gray-200">
               <button
                 className="px-6 py-2.5 bg-blue-600 text-white rounded-lg font-medium shadow-sm hover:bg-blue-700 transition-colors"
-                onClick={() => setOpenDetailModal(false)}
+                onClick={closeModal}
                 type="button"
               >
                 Đóng
