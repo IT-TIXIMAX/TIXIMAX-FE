@@ -100,23 +100,23 @@ const StaffSaleSidebar = () => {
           label: "Thanh toán",
           dropdownItems: [
             {
-              to: "/staff-sale/createpaymentsupport",
+              to: "/staff-sale/payments-orders",
               icon: Package,
               label: "Thanh toán đơn hàng",
             },
 
             {
-              to: "/staff-sale/createpaymentshipping",
+              to: "/staff-sale/payments-ship",
               icon: Truck,
               label: "Thanh toán vận chuyển",
             },
             {
-              to: "/staff-sale/divide-payment",
+              to: "/staff-sale/payments-divide",
               icon: Rows2,
               label: "Thanh toán tách đơn ",
             },
             {
-              to: "/staff-sale/auction-payment",
+              to: "/staff-sale/payments-auction",
               icon: Wallet,
               label: "Thanh toán sau đấu giá ",
             },

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import mergedPaymentService from "../../Services/Payment/mergedPaymentService";
-import { CreditCard as PaymentIcon, X, Info, Edit2, Check } from "lucide-react";
+import { X, Loader2 } from "lucide-react";
 import BankOrderList from "./BankOrderList";
 
 /** Helper: bóc tách lỗi backend */
@@ -44,19 +44,25 @@ const MergedPaymentConfigModal = ({
   totalAmount,
   formatCurrency,
   isCreating,
-  cachedBankAccounts = [], // ✅ THÊM prop
-  bankAccountsLoading = false, // ✅ THÊM prop
+  cachedBankAccounts = [],
+  bankAccountsLoading = false,
 }) => {
   const [depositPercent, setDepositPercent] = useState(100);
   const [isUseBalance, setIsUseBalance] = useState(false);
   const [errors, setErrors] = useState({});
-  const [isEditingDeposit, setIsEditingDeposit] = useState(false);
 
   // Bank chọn để thanh toán
   const [bankId, setBankId] = useState(null);
   const [bankLoading, setBankLoading] = useState(false);
 
-  // ✅ THÊM: Auto-set bank đầu tiên khi có cached data
+  const clampPercent = (v) => {
+    if (v === "" || v === null || v === undefined) return "";
+    const n = Number(v);
+    if (!Number.isFinite(n)) return 0;
+    return Math.min(100, Math.max(0, Math.trunc(n)));
+  };
+
+  // Auto-set bank đầu tiên khi có cached data
   useEffect(() => {
     if (
       cachedBankAccounts &&
@@ -65,16 +71,22 @@ const MergedPaymentConfigModal = ({
       isOpen
     ) {
       setBankId(String(cachedBankAccounts[0].id));
-      // Clear error nếu có
       if (errors.bankId) {
         setErrors((p) => ({ ...p, bankId: undefined }));
       }
     }
-  }, [cachedBankAccounts, isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cachedBankAccounts, isOpen]);
 
-  const validateForm = () => {
+  const validateForm = (finalPercent) => {
     const newErrors = {};
-    const numValue = depositPercent === "" ? 0 : Number(depositPercent);
+
+    const numValue =
+      finalPercent !== undefined
+        ? Number(finalPercent)
+        : depositPercent === ""
+        ? 0
+        : Number(depositPercent);
 
     if (numValue < 0) newErrors.depositPercent = "Phần trăm cọc không thể âm";
     if (numValue > 100)
@@ -86,24 +98,16 @@ const MergedPaymentConfigModal = ({
   };
 
   const handleSubmit = () => {
-    if (validateForm()) {
-      const finalDepositPercent =
-        depositPercent === "" ? 0 : Number(depositPercent);
-      onConfirm(finalDepositPercent, isUseBalance, bankId);
-      setIsEditingDeposit(false);
-    }
-  };
+    // ✅ clamp chắc chắn trước khi submit
+    const finalDepositPercent =
+      depositPercent === "" ? 0 : clampPercent(depositPercent);
 
-  const handleDepositPercentChange = (e) => {
-    const value = e.target.value;
-    if (value === "") {
-      setDepositPercent("");
-    } else {
-      const numValue = parseInt(value, 10);
-      if (!isNaN(numValue)) setDepositPercent(numValue);
+    // đồng bộ lại state để UI hiển thị đúng
+    setDepositPercent(finalDepositPercent);
+
+    if (validateForm(finalDepositPercent)) {
+      onConfirm(finalDepositPercent, isUseBalance, bankId);
     }
-    if (errors.depositPercent)
-      setErrors((p) => ({ ...p, depositPercent: undefined }));
   };
 
   const calculateDepositAmount = () =>
@@ -112,117 +116,133 @@ const MergedPaymentConfigModal = ({
     100;
 
   const handleClose = () => {
-    setIsEditingDeposit(false);
-    onClose();
+    if (!isCreating) onClose();
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
-        {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-200">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full">
+        {/* Header - Gradient Blue */}
+        <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 rounded-t-xl">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">
-              Thanh toán {selectedCount > 1 ? "gộp" : ""}
+            <h3 className="text-xl font-semibold text-white">
+              Cấu Hình Thanh Toán
             </h3>
             <button
               onClick={handleClose}
               disabled={isCreating}
-              className="text-gray-400 hover:text-gray-500 disabled:opacity-50"
+              className="text-white/80 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              type="button"
             >
-              <X className="w-5 h-5" />
+              <X className="w-6 h-6" />
             </button>
           </div>
         </div>
 
         {/* Body */}
-        <div className="px-6 py-4">
-          {/* Info */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-            <div className="flex items-start">
-              <Info className="w-5 h-5 text-blue-600 mt-0.5 mr-2 flex-shrink-0" />
-              <div className="text-sm text-blue-800">
-                <p className="font-semibold mb-1">
-                  Bạn đã chọn {selectedCount} đơn hàng
-                </p>
-                <p>
-                  Tổng giá trị: {formatCurrency?.(totalAmount) ?? totalAmount}
-                </p>
-              </div>
+        <div className="px-6 py-6 space-y-5">
+          {/* Summary Info - 1 hàng */}
+          <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-semibold text-blue-700">
+                Tổng giá trị:
+              </p>
+              <p className="text-2xl font-bold text-blue-900">
+                {formatCurrency?.(totalAmount) ?? totalAmount}
+              </p>
             </div>
           </div>
 
-          {/* Deposit percent */}
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center justify-between">
-              <span>
-                Phần trăm tiền cọc <span className="text-red-500">*</span>
-              </span>
-              <button
-                type="button"
-                onClick={() => setIsEditingDeposit((v) => !v)}
-                disabled={isCreating}
-                className={`flex items-center space-x-1 px-2 py-1 rounded-md text-xs transition-colors ${
-                  isEditingDeposit
-                    ? "bg-green-100 text-green-700 hover:bg-green-200"
-                    : "bg-blue-100 text-blue-700 hover:bg-blue-200"
-                } disabled:opacity-50`}
-                title={isEditingDeposit ? "Xác nhận" : "Chỉnh sửa"}
-              >
-                {isEditingDeposit ? (
-                  <>
-                    <Check className="w-3.5 h-3.5" />
-                    <span>Xác nhận</span>
-                  </>
-                ) : (
-                  <>
-                    <Edit2 className="w-3.5 h-3.5" />
-                    <span>Sửa</span>
-                  </>
-                )}
-              </button>
+          {/* Deposit Percent */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-900 mb-2">
+              Phần trăm tiền cọc <span className="text-red-500">*</span>
             </label>
+
             <div className="relative">
               <input
                 type="number"
-                min="0"
-                max="100"
+                inputMode="numeric"
+                min={0}
+                max={100}
+                step={1}
                 value={depositPercent}
-                onChange={handleDepositPercentChange}
-                disabled={isCreating || !isEditingDeposit}
-                className={`w-full px-3 py-2 pr-8 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                  !isEditingDeposit
-                    ? "bg-gray-50 cursor-not-allowed"
-                    : "bg-white"
-                } ${isCreating ? "bg-gray-100 cursor-not-allowed" : ""} ${
-                  errors.depositPercent
-                    ? "border-red-300 focus:ring-red-500 focus:border-red-500"
-                    : "border-gray-300"
-                }`}
-                placeholder="Nhập phần trăm tiền cọc (0-100)"
+                // ✅ chặn ký tự âm/float/scientific
+                onKeyDown={(e) => {
+                  if (["-", "+", "e", "E", ".", ","].includes(e.key)) {
+                    e.preventDefault();
+                  }
+                }}
+                // ✅ clamp ngay khi nhập để không vượt 0-100
+                onChange={(e) => {
+                  const v = e.target.value;
+
+                  // cho phép rỗng để user xóa rồi nhập lại
+                  if (v === "") {
+                    setDepositPercent("");
+                    if (errors.depositPercent)
+                      setErrors((p) => ({ ...p, depositPercent: undefined }));
+                    return;
+                  }
+
+                  const next = clampPercent(v);
+                  setDepositPercent(next);
+
+                  if (errors.depositPercent)
+                    setErrors((p) => ({ ...p, depositPercent: undefined }));
+                }}
+                // ✅ khi blur: nếu rỗng => 0, còn lại clamp
+                onBlur={() => {
+                  setDepositPercent((prev) =>
+                    prev === "" ? 0 : clampPercent(prev)
+                  );
+                }}
+                disabled={isCreating}
+                className={`w-full px-4 py-2.5 pr-10 border-2 rounded-lg text-lg font-medium transition-all
+                  ${
+                    isCreating
+                      ? "bg-gray-100 cursor-not-allowed"
+                      : "bg-white hover:border-blue-400"
+                  }
+                  ${
+                    errors.depositPercent
+                      ? "border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                      : "border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  }
+                `}
+                placeholder="0-100"
               />
-              <span className="absolute right-3 top-2.5 text-gray-500">%</span>
+              <span className="absolute right-4 top-2.5 text-xl font-semibold text-gray-500">
+                %
+              </span>
             </div>
+
             {errors.depositPercent && (
-              <p className="mt-1 text-sm text-red-600">
+              <p className="mt-1.5 text-sm text-red-600 font-medium">
                 {errors.depositPercent}
               </p>
             )}
 
+            {/* Calculation Display */}
             {(depositPercent === "" || depositPercent > 0) && (
-              <div className="mt-2 p-3 bg-gray-50 rounded-lg">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Số tiền cọc:</span>
-                  <span className="font-semibold text-gray-900">
+              <div className="mt-3 bg-gray-50 border-2 border-gray-200 rounded-lg p-4 space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-gray-600">
+                    Số tiền cọc:
+                  </span>
+                  <span className="text-lg font-bold text-blue-600">
                     {formatCurrency?.(calculateDepositAmount()) ??
                       calculateDepositAmount()}
                   </span>
                 </div>
-                <div className="flex justify-between text-sm mt-1">
-                  <span className="text-gray-600">Còn lại:</span>
-                  <span className="font-semibold text-gray-900">
+                <div className="h-px bg-gray-300"></div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-gray-600">
+                    Còn lại:
+                  </span>
+                  <span className="text-lg font-bold text-gray-900">
                     {formatCurrency?.(totalAmount - calculateDepositAmount()) ??
                       totalAmount - calculateDepositAmount()}
                   </span>
@@ -231,78 +251,72 @@ const MergedPaymentConfigModal = ({
             )}
           </div>
 
-          {/* Bank select (Revenue) */}
-          <div className="mb-4">
+          {/* Bank Select */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-900 mb-2">
+              Tài khoản nhận cước <span className="text-red-500">*</span>
+            </label>
             <BankOrderList
               disabled={isCreating}
               value={bankId}
               onChange={setBankId}
-              label="Chọn tài khoản nhận cước (bắt buộc)"
-              className="mb-2"
               onLoadingChange={setBankLoading}
               autoSelectFirst={true}
-              cachedAccounts={cachedBankAccounts} // ✅ THÊM: Truyền cached data
-              initialLoading={bankAccountsLoading} // ✅ THÊM: Loading từ parent
+              cachedAccounts={cachedBankAccounts}
+              initialLoading={bankAccountsLoading}
             />
             {(errors.bankId || bankLoading) && (
-              <div className="text-xs mt-1">
+              <p className="mt-1.5 text-sm font-medium">
                 {bankLoading ? (
                   <span className="text-gray-500">
-                    Đang tải tài khoản ngân hàng…
+                    Đang tải tài khoản ngân hàng...
                   </span>
                 ) : (
-                  <span className="text-amber-600">{errors.bankId}</span>
+                  <span className="text-red-600">{errors.bankId}</span>
                 )}
-              </div>
+              </p>
             )}
           </div>
 
-          {/* Use balance */}
-          <div className="mb-4">
-            <label className="flex items-center space-x-3 cursor-pointer">
+          {/* Use Balance Checkbox */}
+          <div className="bg-gray-50 border-2 border-gray-200 rounded-lg p-4">
+            <label className="flex items-start space-x-3 cursor-pointer">
               <input
                 type="checkbox"
                 checked={isUseBalance}
                 onChange={(e) => setIsUseBalance(e.target.checked)}
                 disabled={isCreating}
-                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-5 h-5 mt-0.5 text-blue-600 border-2 border-gray-300 rounded focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
               />
-              <div>
-                <span className="text-sm font-medium text-gray-700">
+              <div className="flex-1">
+                <span className="text-sm font-semibold text-gray-900 block">
                   Sử dụng số dư tài khoản
                 </span>
-                <p className="text-xs text-gray-500 mt-0.5">
-                  Sử dụng số dư có sẵn trong tài khoản để thanh toán
-                </p>
               </div>
             </label>
           </div>
 
-          {/* Summary */}
-          <div className="border-t pt-4">
-            <h4 className="text-sm font-semibold text-gray-700 mb-2">
-              Thông tin xác nhận:
+          {/* Confirmation Summary */}
+          <div className="bg-gradient-to-r from-blue-50 to-blue-100 border-2 border-blue-200 rounded-lg p-4">
+            <h4 className="text-sm font-bold text-blue-900 mb-3">
+              Xác nhận thông tin:
             </h4>
-            <div className="space-y-1 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Số đơn hàng:</span>
-                <span className="font-medium">{selectedCount}</span>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-blue-700">Số đơn hàng:</span>
+                <span className="text-sm font-bold text-blue-900">
+                  {selectedCount}
+                </span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Phần trăm cọc:</span>
-                <span className="font-medium">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-blue-700">Phần trăm cọc:</span>
+                <span className="text-sm font-bold text-blue-900">
                   {depositPercent === "" ? 0 : depositPercent}%
                 </span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Tài khoản nhận cước:</span>
-                <span className="font-medium">
-                  {bankId ? "Đã chọn" : "Chưa chọn"}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Sử dụng số dư:</span>
-                <span className="font-medium">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-blue-700">Sử dụng số dư:</span>
+                <span className="text-sm font-bold text-blue-900">
                   {isUseBalance ? "Có" : "Không"}
                 </span>
               </div>
@@ -311,23 +325,25 @@ const MergedPaymentConfigModal = ({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
+        <div className="px-6 py-4 bg-gray-50 border-t-2 border-gray-200 rounded-b-xl flex justify-end space-x-3">
           <button
             onClick={handleClose}
             disabled={isCreating}
-            className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-5 py-2.5 text-gray-700 bg-white border-2 border-gray-300 rounded-lg font-medium hover:bg-gray-50 hover:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            type="button"
           >
             Hủy
           </button>
           <button
             onClick={handleSubmit}
             disabled={isCreating || bankLoading || !bankId}
-            className="px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center"
+            className="px-6 py-2.5 text-white bg-blue-600 rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all flex items-center shadow-sm"
+            type="button"
             title={
               isCreating
-                ? "Đang tạo…"
+                ? "Đang tạo..."
                 : bankLoading
-                ? "Đang tải tài khoản ngân hàng…"
+                ? "Đang tải tài khoản ngân hàng..."
                 : !bankId
                 ? "Vui lòng chọn tài khoản nhận cước"
                 : "Xác nhận tạo thanh toán"
@@ -335,11 +351,11 @@ const MergedPaymentConfigModal = ({
           >
             {isCreating ? (
               <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 Đang tạo...
               </>
             ) : (
-              `Xác nhận tạo thanh toán${selectedCount > 1 ? " gộp" : ""}`
+              `Xác nhận thanh toán (${selectedCount})`
             )}
           </button>
         </div>
@@ -350,14 +366,14 @@ const MergedPaymentConfigModal = ({
 
 /** Nút tạo thanh toán gộp */
 const CreateMergedPaymentOrder = ({
-  selectedOrders, // string[] hoặc id thanh toán
+  selectedOrders,
   totalAmount,
   formatCurrency,
   onSuccess,
   onError,
   disabled = false,
-  cachedBankAccounts = [], // ✅ THÊM prop
-  bankAccountsLoading = false, // ✅ THÊM prop
+  cachedBankAccounts = [],
+  bankAccountsLoading = false,
 }) => {
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
@@ -382,15 +398,14 @@ const CreateMergedPaymentOrder = ({
         depositPercent,
         isUseBalance,
         bankId,
-        selectedOrders // body: danh sách paymentIds
+        selectedOrders
       );
 
       toast.success(
         `Tạo thanh toán ${
           selectedOrders.length > 1 ? "gộp " : ""
-        }thành công! Mã thanh toán: ${
-          result?.paymentCode || result?.id || "N/A"
-        }`
+        }thành công! Mã: ${result?.paymentCode || result?.id || "N/A"}`,
+        { duration: 4000 }
       );
 
       setShowConfigModal(false);
@@ -413,20 +428,16 @@ const CreateMergedPaymentOrder = ({
         disabled={
           disabled || isCreating || !selectedOrders || selectedOrders.length < 1
         }
-        className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center"
+        className="bg-blue-600 text-white font-semibold px-5 py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all flex items-center shadow-sm"
+        type="button"
       >
         {isCreating ? (
           <>
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
             Đang tạo...
           </>
         ) : (
-          <>
-            <PaymentIcon className="w-4 h-4 mr-2" />
-            {selectedOrders?.length > 1
-              ? "Tạo thanh toán gộp"
-              : "Tạo thanh toán"}
-          </>
+          <>Tạo thanh toán ({selectedOrders?.length || 0})</>
         )}
       </button>
 
@@ -438,8 +449,8 @@ const CreateMergedPaymentOrder = ({
         totalAmount={totalAmount || 0}
         formatCurrency={formatCurrency || ((v) => v)}
         isCreating={isCreating}
-        cachedBankAccounts={cachedBankAccounts} // ✅ THÊM
-        bankAccountsLoading={bankAccountsLoading} // ✅ THÊM
+        cachedBankAccounts={cachedBankAccounts}
+        bankAccountsLoading={bankAccountsLoading}
       />
     </>
   );

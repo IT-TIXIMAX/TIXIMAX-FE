@@ -358,13 +358,14 @@ const Router = createBrowserRouter([
       // { path: "comfirm-payment", element: <PaymentOrderList /> },
       { path: "order-payment-list", element: <ListOrderManager /> },
       // { path: "ship-payment", element: <PaymentShipList /> },
-      { path: "createpaymentsupport", element: <MergedPaymentOrder /> },
-      { path: "createpaymentshipping", element: <MergedPaymentShip /> },
+      { path: "payments-orders", element: <MergedPaymentOrder /> },
+      { path: "payments-ship", element: <MergedPaymentShip /> },
+      { path: "payments-auction", element: <AuctionPayment /> },
+      { path: "payments-divide", element: <DividePaymentOrder /> },
       { path: "status-orders", element: <ManagerOrder /> },
       { path: "create-customer", element: <CreateAccountUser /> },
       { path: "list-customers", element: <CustomerStaffList /> },
-      { path: "auction-payment", element: <AuctionPayment /> },
-      { path: "divide-payment", element: <DividePaymentOrder /> },
+
       { path: "prospects", element: <NotFound /> },
       { path: "list-orders", element: <OrderList /> },
       { path: "orders/pending", element: <NotFound /> }, // Chưa triển khai

@@ -1,18 +1,19 @@
 // /src/Components/Bank/BankOrderList.jsx
 import React, { useEffect, useState, useMemo } from "react";
 import managerBankAccountService from "../../Services/Manager/managerBankAccountService";
+import { Loader2, AlertCircle } from "lucide-react";
 
 const BankOrderList = ({
   disabled = false,
   value = null,
   onChange,
   className = "",
-  label = "Chọn tài khoản thanh toán (Proxy)",
+  label = "",
   onLoadingChange,
   onAccountsChange,
   autoSelectFirst = false,
-  cachedAccounts = [], // ✅ THÊM: Nhận cached data từ parent
-  initialLoading = false, // ✅ THÊM: Loading state từ parent
+  cachedAccounts = [],
+  initialLoading = false,
 }) => {
   const [loading, setLoading] = useState(initialLoading);
   const [accounts, setAccounts] = useState(cachedAccounts);
@@ -79,53 +80,83 @@ const BankOrderList = ({
 
   return (
     <div className={className}>
-      <label
-        htmlFor={id}
-        className="block text-sm font-medium text-gray-700 mb-1"
-      >
-        {label}
-        {loading && (
-          <span className="ml-2 text-xs text-gray-500">Đang tải…</span>
-        )}
-      </label>
+      {/* Label */}
+      {label && (
+        <label
+          htmlFor={id}
+          className="block text-sm font-semibold text-gray-900 mb-2"
+        >
+          {label}
+          {loading && (
+            <span className="ml-2 inline-flex items-center text-xs text-gray-500">
+              <Loader2 className="w-3 h-3 animate-spin mr-1" />
+              Đang tải...
+            </span>
+          )}
+        </label>
+      )}
 
+      {/* Error Alert */}
       {error && (
         <div
           role="alert"
-          className="mb-2 text-xs text-red-700 bg-red-50 p-2 rounded border border-red-200 flex items-center justify-between"
+          className="mb-3 bg-red-50 border-2 border-red-200 rounded-lg p-3 flex items-start gap-3"
         >
-          <span>⚠️ {error}</span>
+          <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="text-sm font-medium text-red-800">{error}</p>
+          </div>
           <button
             type="button"
             onClick={fetchAccounts}
-            className="underline text-red-700 ml-2 shrink-0"
+            className="text-sm font-semibold text-red-700 hover:text-red-900 underline flex-shrink-0"
           >
             Thử lại
           </button>
         </div>
       )}
 
+      {/* Empty State */}
       {accounts.length === 0 && !loading && !error ? (
-        <div className="text-sm text-gray-500 italic">
-          Không có tài khoản Proxy khả dụng
+        <div className="bg-gray-50 border-2 border-gray-200 rounded-lg p-4 text-center">
+          <p className="text-sm font-medium text-gray-600">
+            Không có tài khoản Proxy khả dụng
+          </p>
         </div>
       ) : (
+        /* Select Dropdown */
         <select
           id={id}
           value={value ?? ""}
           onChange={handleSelect}
           disabled={disabled || loading}
           aria-invalid={Boolean(error)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed transition-colors"
+          className={`w-full px-4 py-2.5 border-2 rounded-lg font-medium text-gray-900 transition-all
+            ${
+              disabled || loading
+                ? "bg-gray-100 cursor-not-allowed opacity-60"
+                : "bg-white hover:border-blue-400 cursor-pointer"
+            }
+            ${
+              error
+                ? "border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                : "border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            }
+          `}
         >
-          <option value="">Chưa chọn tài khoản</option>
+          <option value="" className="text-gray-500">
+            -- Chọn tài khoản ngân hàng --
+          </option>
           {accounts.map((acc) => {
             const optionValue = String(acc.id);
             const holder = acc.accountHolder || "Chưa rõ tên";
-            const number = acc.accountNumber || "—";
+            const number = acc.accountNumber || "N/A";
+            const bankName = acc.bankName || "";
+
             return (
               <option key={optionValue} value={optionValue}>
-                {holder} — {number}
+                {holder} • {number}
+                {bankName ? ` (${bankName})` : ""}
               </option>
             );
           })}

@@ -9,14 +9,17 @@ import {
   User,
   Calendar,
   CreditCard,
-  Search,
   CheckSquare,
   Square,
   Truck,
   Weight,
   AlertTriangle,
+  RefreshCw,
+  Loader2,
+  Package,
+  DollarSign,
+  Search,
 } from "lucide-react";
-import ListOrderManager from "../Order/ListOrderManager";
 
 // Helper function to extract error message from backend
 const getErrorMessage = (error) => {
@@ -47,6 +50,45 @@ const getErrorMessage = (error) => {
   }
   return error.message || "Đã xảy ra lỗi không xác định";
 };
+
+/* ===================== Skeletons ===================== */
+const StatCardSkeleton = () => (
+  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 animate-pulse">
+    <div className="flex items-center justify-between">
+      <div className="space-y-2">
+        <div className="h-4 w-28 bg-gray-200 rounded" />
+        <div className="h-8 w-20 bg-gray-200 rounded" />
+      </div>
+      <div className="h-12 w-12 bg-gray-200 rounded-lg" />
+    </div>
+  </div>
+);
+
+const OrdersListSkeleton = () => (
+  <div className="p-4 animate-pulse">
+    <div className="space-y-3">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <div key={i} className="bg-white border border-gray-200 rounded-xl p-6">
+          <div className="flex items-start gap-4">
+            <div className="h-5 w-5 bg-gray-200 rounded" />
+            <div className="flex-1 space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="h-6 w-32 bg-gray-200 rounded" />
+                <div className="h-6 w-24 bg-gray-200 rounded-full" />
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="h-4 w-24 bg-gray-200 rounded" />
+                <div className="h-4 w-32 bg-gray-200 rounded" />
+                <div className="h-4 w-28 bg-gray-200 rounded" />
+              </div>
+            </div>
+            <div className="h-8 w-32 bg-gray-200 rounded" />
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
 
 const MergedPaymentShip = () => {
   const [selectedCustomer, setSelectedCustomer] = useState(null);
@@ -88,7 +130,7 @@ const MergedPaymentShip = () => {
 
   // Select all orders
   const handleSelectAll = () => {
-    if (selectedOrders.length === orders.length) {
+    if (selectedOrders.length === orders.length && orders.length > 0) {
       setSelectedOrders([]);
     } else {
       setSelectedOrders(orders.map((order) => order.orderCode));
@@ -99,7 +141,6 @@ const MergedPaymentShip = () => {
   const handlePaymentCreated = async (payment) => {
     setPaymentDialog({ open: true, payment });
     setSelectedOrders([]);
-    // Refresh orders list
     if (selectedCustomer) {
       await fetchCustomerShippingOrders(selectedCustomer.customerCode);
     }
@@ -108,7 +149,6 @@ const MergedPaymentShip = () => {
   // Handle payment creation error
   const handlePaymentError = (error) => {
     console.error("Merged payment ship error:", error);
-    // Error is already handled in CreateMergedPaymentShip component
   };
 
   // Close payment dialog
@@ -131,7 +171,7 @@ const MergedPaymentShip = () => {
       const token = localStorage.getItem("jwt");
 
       if (!token) {
-        toast.error("Không tìm thấy token xác thực lỗi ở mergedPayment");
+        toast.error("Không tìm thấy token xác thực");
         return;
       }
 
@@ -143,13 +183,17 @@ const MergedPaymentShip = () => {
       setOrders(data || []);
 
       if (!data || data.length === 0) {
-        toast(`Không tìm thấy đơn hàng  ${customerCode}`, {
+        toast(`Không tìm thấy đơn ${customerCode}`, {
           duration: 4000,
           style: {
-            background: "#e43833ff",
+            background: "#f63b3b",
             color: "#fff",
           },
         });
+      } else {
+        toast.success(
+          `Tìm thấy ${data.length} đơn hàng vận chuyển cho KH ${customerCode}`
+        );
       }
     } catch (error) {
       console.error("Error fetching customer shipping orders:", error);
@@ -174,6 +218,25 @@ const MergedPaymentShip = () => {
           (Number(order.leftoverMoney) || 0),
         0
       );
+  };
+
+  // Calculate total amount of all orders
+  const calculateTotalAmount = () => {
+    return orders.reduce(
+      (total, order) =>
+        total +
+        (Number(order.finalPriceOrder) || 0) +
+        (Number(order.leftoverMoney) || 0),
+      0
+    );
+  };
+
+  // Calculate total weight
+  const calculateTotalWeight = () => {
+    return orders.reduce(
+      (total, order) => total + (Number(order.totalNetWeight) || 0),
+      0
+    );
   };
 
   const selectedOrdersData = useMemo(
@@ -270,282 +333,389 @@ const MergedPaymentShip = () => {
   };
 
   return (
-    <div className="mx-auto p-6">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center">
-          Thanh toán vận chuyển
-        </h1>
-      </div>
+    <div className="min-h-screen">
+      <div className="mx-auto p-6">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-sm p-5 mb-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                <Truck size={22} className="text-white" />
+              </div>
+              <h1 className="text-xl font-semibold text-white">
+                Thanh Toán Vận Chuyển
+              </h1>
+            </div>
 
-      {/* Customer Search */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-        <div className="flex items-center mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">
-            Tìm kiếm khách hàng
-          </h2>
+            <button
+              onClick={() => {
+                if (selectedCustomer) {
+                  fetchCustomerShippingOrders(selectedCustomer.customerCode);
+                }
+              }}
+              disabled={loading || !selectedCustomer}
+              className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/30 rounded-lg text-sm font-medium text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+              type="button"
+            >
+              <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+              Tải lại
+            </button>
+          </div>
         </div>
 
-        <div className="max-w-md">
-          <AccountSearch
-            onSelectAccount={handleSelectCustomer}
-            onClear={handleClearCustomer}
-            value={
-              selectedCustomer
-                ? `${selectedCustomer.customerCode} - ${selectedCustomer.name}`
-                : ""
-            }
-          />
-        </div>
-
-        {/* Selected Customer Info */}
-        {selectedCustomer && (
-          <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <div className="flex items-center space-x-3">
-              <div className="flex-shrink-0">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                  <User className="w-6 h-6 text-blue-600" />
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          {loading && !hasSearched ? (
+            <>
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+            </>
+          ) : (
+            <>
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600 mb-1">
+                      Tổng Đơn Hàng
+                    </p>
+                    <p className="text-3xl font-bold text-blue-600">
+                      {orders.length}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-blue-100 rounded-lg">
+                    <Package className="text-blue-600" size={24} />
+                  </div>
                 </div>
               </div>
-              <div className="flex-1">
-                <h3 className="text-lg font-medium text-blue-900">
-                  {selectedCustomer.name}
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-2 text-sm text-blue-700">
-                  <div>
-                    <span className="font-medium">Mã KH:</span>{" "}
-                    {selectedCustomer.customerCode}
-                  </div>
 
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                <div className="flex items-center justify-between">
                   <div>
-                    <span className="font-medium">Email:</span>{" "}
-                    {selectedCustomer.email}
+                    <p className="text-sm font-medium text-gray-600 mb-1">
+                      Đã Chọn
+                    </p>
+                    <p className="text-3xl font-bold text-blue-600">
+                      {selectedOrders.length}
+                    </p>
                   </div>
+                  <div className="p-3 bg-blue-100 rounded-lg">
+                    <CheckSquare className="text-blue-600" size={24} />
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                <div className="flex items-center justify-between">
                   <div>
-                    <span className="font-medium">SĐT:</span>{" "}
-                    {selectedCustomer.phone}
+                    <p className="text-sm font-medium text-gray-600 mb-1">
+                      Tổng Giá Trị
+                    </p>
+                    <p className="text-xl font-bold text-blue-600">
+                      {formatCurrency(calculateTotalAmount())}
+                    </p>
                   </div>
-                  <div className="inline-flex items-center gap-1 bg-red-50 border border-red-200 rounded-md px-2 py-1 text-sm font-semibold text-red-700 shadow-sm w-auto max-w-max">
-                    <span className="font-medium">Số dư:</span>{" "}
-                    {new Intl.NumberFormat("vi-VN").format(
-                      selectedCustomer.balance
-                    )}{" "}
-                    VND
+                  <div className="p-3 bg-blue-100 rounded-lg">
+                    <DollarSign className="text-blue-600" size={24} />
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600 mb-1">
+                      Tổng Cân Nặng
+                    </p>
+                    <p className="text-xl font-bold text-blue-600">
+                      {calculateTotalWeight().toFixed(2)} kg
+                    </p>
+                  </div>
+                  <div className="p-3 bg-blue-100 rounded-lg">
+                    <Weight className="text-blue-600" size={24} />
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Customer Search */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+          <div className="flex items-center mb-4">
+            <h2 className="text-lg font-semibold text-gray-900">
+              Tìm Kiếm Khách Hàng
+            </h2>
+          </div>
+
+          <div className="max-w-2xl">
+            <AccountSearch
+              onSelectAccount={handleSelectCustomer}
+              onClear={handleClearCustomer}
+              value={
+                selectedCustomer
+                  ? `${selectedCustomer.customerCode} - ${selectedCustomer.name}`
+                  : ""
+              }
+            />
+          </div>
+
+          {/* Selected Customer Info */}
+          {selectedCustomer && (
+            <div className="mt-6 p-5 bg-gradient-to-r from-blue-50 to-blue-100 border-2 border-blue-200 rounded-xl">
+              <div className="flex items-center space-x-4">
+                <div className="flex-shrink-0">
+                  <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center shadow-lg">
+                    <span className="text-white font-bold text-xl">
+                      {selectedCustomer.name?.charAt(0)?.toUpperCase() || "?"}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold text-blue-900 mb-2">
+                    {selectedCustomer.name}
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className="font-semibold text-blue-800">
+                        Mã KH:
+                      </span>
+                      <span className="text-blue-700">
+                        {selectedCustomer.customerCode}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className="font-semibold text-blue-800">
+                        Email:
+                      </span>
+                      <span className="text-blue-700 truncate">
+                        {selectedCustomer.email}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className="font-semibold text-blue-800">SĐT:</span>
+                      <span className="text-blue-700">
+                        {selectedCustomer.phone}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 bg-red-200 border-2 border-red-300 rounded-lg px-3 py-1.5 shadow-sm">
+                      <span className="text-sm font-semibold text-black">
+                        Số dư:
+                      </span>
+                      <span className="text-sm font-bold text-black">
+                        {new Intl.NumberFormat("vi-VN").format(
+                          selectedCustomer.balance
+                        )}{" "}
+                        ₫
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
-      </div>
-
-      {/* Payment Dialog */}
-      <PaymentDialog
-        open={paymentDialog.open}
-        payment={paymentDialog.payment}
-        onClose={handleClosePaymentDialog}
-        onCopyCode={handleCopyPaymentCode}
-        formatCurrency={formatCurrency}
-        formatDate={formatDate}
-      />
-
-      {/* Loading State */}
-      {loading && (
-        <div className="flex justify-center items-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <span className="ml-3 text-gray-600">
-            Đang tải đơn hàng vận chuyển...
-          </span>
+          )}
         </div>
-      )}
 
-      {/* Orders List */}
-      {!loading && hasSearched && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        {/* Payment Dialog */}
+        <PaymentDialog
+          open={paymentDialog.open}
+          payment={paymentDialog.payment}
+          onClose={handleClosePaymentDialog}
+          onCopyCode={handleCopyPaymentCode}
+          formatCurrency={formatCurrency}
+          formatDate={formatDate}
+        />
+
+        {/* Orders List Section */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           {/* Header with Bulk Actions */}
-          <div className="px-6 py-4 border-b border-gray-200">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-gray-900 flex items-center">
-                Danh sách thanh toán vận chuyển
-                {orders.length > 0 && (
-                  <span className="ml-2 text-sm font-normal text-gray-600">
-                    ({orders.length} đơn hàng)
-                  </span>
-                )}
+          <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <h2 className="text-xl font-semibold text-white flex items-center">
+                Danh Sách Đơn Vận Chuyển
+                <span className="ml-2 text-xl font-normal text-blue-100">
+                  ({orders.length} đơn hàng)
+                </span>
               </h2>
 
-              {orders.length > 0 && (
-                <div className="flex items-center space-x-4">
-                  <button
-                    onClick={handleSelectAll}
-                    className="flex items-center text-sm text-blue-600 hover:text-blue-800"
-                  >
-                    {selectedOrders.length === orders.length ? (
-                      <CheckSquare className="w-4 h-4 mr-1" />
-                    ) : (
-                      <Square className="w-4 h-4 mr-1" />
-                    )}
-                    {selectedOrders.length === orders.length
-                      ? "Bỏ chọn tất cả"
-                      : "Chọn tất cả"}
-                  </button>
-
-                  {selectedOrders.length > 0 && (
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm text-gray-600">
-                        Đã chọn: {selectedOrders.length} đơn hàng
-                      </span>
-                      <span className="text-sm font-medium text-gray-900">
-                        Tổng: {formatCurrency(calculateSelectedTotal())}
-                      </span>
-                      {/* Cảnh báo nếu chọn đơn từ nhiều accountId khác nhau */}
-                      {uniqueAccountIds.length > 1 && (
-                        <span className="inline-flex items-center gap-1 text-xs font-medium text-red-700 bg-red-50 border border-red-200 px-2 py-1 rounded">
-                          <AlertTriangle className="w-3 h-3" />
-                          Đang chọn nhiều tài khoản (accountId khác nhau)
-                        </span>
-                      )}
-
-                      {/* Use CreateMergedPaymentShip Component */}
-                      <CreateMergedPaymentShip
-                        selectedOrders={selectedOrders}
-                        totalAmount={calculateSelectedTotal()}
-                        formatCurrency={formatCurrency}
-                        onSuccess={handlePaymentCreated}
-                        onError={handlePaymentError}
-                        accountId={derivedAccountId}
-                      />
-                    </div>
+              <div className="flex items-center space-x-4">
+                <button
+                  onClick={handleSelectAll}
+                  disabled={orders.length === 0}
+                  className="flex items-center text-sm text-white/90 hover:text-white font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  type="button"
+                >
+                  {selectedOrders.length === orders.length &&
+                  orders.length > 0 ? (
+                    <CheckSquare className="w-4 h-4 mr-1" />
+                  ) : (
+                    <Square className="w-4 h-4 mr-1" />
                   )}
+                  {selectedOrders.length === orders.length && orders.length > 0
+                    ? "Chọn tất cả"
+                    : "Chọn tất cả"}
+                </button>
+
+                <div
+                  className={`flex items-center space-x-3 bg-white/50 px-4 py-2 rounded-lg transition-opacity ${
+                    selectedOrders.length > 0 ? "opacity-100" : "opacity-50"
+                  }`}
+                >
+                  <span className="text-xl font-bold text-black">
+                    Đã chọn: {selectedOrders.length}
+                  </span>
+                  <span className="text-xl font-bold text-black">
+                    {formatCurrency(calculateSelectedTotal())}
+                  </span>
+
+                  {/* Cảnh báo nhiều accountId */}
+                  {uniqueAccountIds.length > 1 && selectedOrders.length > 0 && (
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-red-700 bg-red-100 border border-red-200 px-2 py-1 rounded">
+                      <AlertTriangle className="w-3 h-3" />
+                      Nhiều tài khoản
+                    </span>
+                  )}
+
+                  <CreateMergedPaymentShip
+                    selectedOrders={selectedOrders}
+                    totalAmount={calculateSelectedTotal()}
+                    formatCurrency={formatCurrency}
+                    onSuccess={handlePaymentCreated}
+                    onError={handlePaymentError}
+                    accountId={derivedAccountId}
+                  />
                 </div>
-              )}
+              </div>
             </div>
           </div>
 
           {/* Orders Content */}
-          {orders.length === 0 ? (
-            <div className="text-center py-12">
-              <Truck className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                Không có đơn hàng vận chuyển
+          {loading ? (
+            <OrdersListSkeleton />
+          ) : orders.length === 0 ? (
+            <div className="text-center py-16">
+              <div className="flex justify-center mb-4">
+                <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center">
+                  <Truck className="w-10 h-10 text-gray-400" />
+                </div>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                {hasSearched
+                  ? "Không Có Đơn Vận Chuyển"
+                  : "Chưa Tìm Kiếm Khách Hàng"}
               </h3>
               <p className="text-gray-500">
-                Khách hàng này chưa có đơn hàng vận chuyển nào cần thanh toán
+                {hasSearched
+                  ? "Khách hàng này chưa có đơn vận chuyển nào cần thanh toán"
+                  : "Vui lòng tìm kiếm và chọn khách hàng ở trên để xem danh sách đơn vận chuyển"}
               </p>
             </div>
           ) : (
-            <div className="divide-y divide-gray-200">
-              {orders.map((order) => (
-                <div
-                  key={order.orderCode}
-                  className={`p-6 hover:bg-gray-50 transition-colors ${
-                    selectedOrders.includes(order.orderCode)
-                      ? "bg-blue-50 border-l-4 border-blue-500"
-                      : ""
-                  }`}
-                >
-                  <div className="flex items-start justify-between">
-                    {/* Checkbox */}
-                    <div className="flex items-start space-x-4">
-                      <button
-                        onClick={() =>
-                          handleOrderSelection(
-                            order.orderCode,
-                            !selectedOrders.includes(order.orderCode)
-                          )
-                        }
-                        className="mt-1 text-blue-600 hover:text-blue-800"
-                      >
-                        {selectedOrders.includes(order.orderCode) ? (
-                          <CheckSquare className="w-5 h-5" />
-                        ) : (
-                          <Square className="w-5 h-5" />
-                        )}
-                      </button>
-
-                      {/* Order Info */}
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-4 mb-3">
-                          <h3 className="text-lg font-semibold text-gray-900">
-                            {order.orderCode}
-                          </h3>
-                          {getStatusBadge(order.status)}
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                            {getOrderTypeDisplay(order.orderType)}
-                          </span>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
-                          <div className="flex items-center">
-                            <Calendar className="w-4 h-4 mr-2" />
-                            <span>{formatDate(order.createdAt)}</span>
-                          </div>
-                          {order.paymentCode && (
-                            <div className="flex items-center">
-                              <CreditCard className="w-4 h-4 mr-2" />
-                              <span>Mã GD: {order.paymentCode}</span>
-                            </div>
+            <div className="p-4">
+              <div className="space-y-3">
+                {orders.map((order, index) => (
+                  <div
+                    key={order.orderCode}
+                    className={`border-2 rounded-xl p-5 transition-all ${
+                      selectedOrders.includes(order.orderCode)
+                        ? "bg-blue-50 border-blue-500 shadow-md"
+                        : index % 2 === 0
+                        ? "bg-white border-gray-200 hover:border-blue-300 hover:bg-blue-50/50"
+                        : "bg-gray-50 border-gray-200 hover:border-blue-300 hover:bg-blue-50/50"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start space-x-4 flex-1">
+                        {/* Checkbox */}
+                        <button
+                          onClick={() =>
+                            handleOrderSelection(
+                              order.orderCode,
+                              !selectedOrders.includes(order.orderCode)
+                            )
+                          }
+                          className="mt-1 text-blue-600 hover:text-blue-800 transition-colors"
+                          type="button"
+                        >
+                          {selectedOrders.includes(order.orderCode) ? (
+                            <CheckSquare className="w-5 h-5" />
+                          ) : (
+                            <Square className="w-5 h-5" />
                           )}
-                          {order.totalNetWeight && (
-                            <div className="flex items-center">
-                              <Weight className="w-4 h-4 mr-2" />
-                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-400 text-white">
-                                Tổng ký: {order.totalNetWeight}kg
+                        </button>
+
+                        {/* Order Info */}
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3 mb-3">
+                            <h3 className="text-lg font-bold text-gray-900">
+                              {order.orderCode}
+                            </h3>
+                            {getStatusBadge(order.status)}
+                            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+                              {getOrderTypeDisplay(order.orderType)}
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                            <div className="flex items-center text-gray-600">
+                              <Calendar className="w-4 h-4 mr-2 text-blue-600" />
+                              <span className="font-medium">
+                                {formatDate(order.createdAt)}
                               </span>
                             </div>
+                            {order.paymentCode && (
+                              <div className="flex items-center text-gray-600">
+                                <CreditCard className="w-4 h-4 mr-2 text-blue-600" />
+                                <span>Mã GD: {order.paymentCode}</span>
+                              </div>
+                            )}
+                            {order.totalNetWeight && (
+                              <div className="flex items-center">
+                                <Weight className="w-4 h-4 mr-2 text-blue-600" />
+                                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-orange-100 text-orange-800">
+                                  {order.totalNetWeight} kg
+                                </span>
+                              </div>
+                            )}
+                          </div>
+
+                          {order.note && (
+                            <div className="mt-3 p-3 bg-yellow-50 border-2 border-yellow-200 rounded-lg">
+                              <p className="text-sm text-yellow-800">
+                                <span className="font-semibold">Ghi chú:</span>{" "}
+                                {order.note}
+                              </p>
+                            </div>
                           )}
                         </div>
+                      </div>
 
-                        {order.note && (
-                          <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-                            <p className="text-sm text-yellow-800">
-                              <span className="font-medium">Ghi chú:</span>{" "}
-                              {order.note}
-                            </p>
+                      {/* Total Amount */}
+                      <div className="text-right ml-6 space-y-2">
+                        <div>
+                          <div className="text-xl font-bold text-blue-600">
+                            {formatCurrency(order.finalPriceOrder)}
                           </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Total Amount */}
-                    <div className="text-right ml-6">
-                      <div className="text-2xl font-bold text-gray-900">
-                        {formatCurrency(order.finalPriceOrder)}
-                      </div>
-                      <div className="text-sm text-gray-500 mt-1">
-                        Phí vận chuyển
-                      </div>
-                      <div className="text-base font-bold text-gray-900">
-                        {formatCurrency(order.leftoverMoney)}
-                      </div>
-                      <div className="text-xs text-gray-500 mt-1">
-                        Tiền thiếu
+                          <div className="text-xs text-gray-500 font-medium">
+                            Phí vận chuyển
+                          </div>
+                        </div>
+                        <div className="pt-2 border-t border-gray-300">
+                          <div className="text-lg font-bold text-red-600">
+                            {formatCurrency(order.leftoverMoney)}
+                          </div>
+                          <div className="text-xs text-gray-500 font-medium">
+                            Tiền thiếu
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           )}
-        </div>
-      )}
-
-      {/* Empty State - No Search Yet */}
-      {!hasSearched && !loading && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 text-center py-12">
-          <Search className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
-            Chọn khách hàng để xem đơn hàng vận chuyển
-          </h3>
-          <p className="text-gray-500">
-            Sử dụng ô tìm kiếm ở trên để tìm và chọn khách hàng
-          </p>
-        </div>
-      )}
-      {/* 👇 THÊM PHẦN NÀY - ListOrderManager component */}
-      <div className="mt-8">
-        <div className="border-t border-gray-300 pt-8">
-          <ListOrderManager />
         </div>
       </div>
     </div>
