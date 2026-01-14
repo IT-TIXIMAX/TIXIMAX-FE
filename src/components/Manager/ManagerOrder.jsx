@@ -51,8 +51,10 @@ const ManagerOrder = () => {
   const [orders, setOrders] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+
   const [activeStatus, setActiveStatus] = useState("DA_XAC_NHAN");
   const [pageSize, setPageSize] = useState(50);
+
   const [pagination, setPagination] = useState({
     currentPage: 1,
     totalElements: 0,
@@ -61,7 +63,9 @@ const ManagerOrder = () => {
     last: false,
   });
 
-  const [searchTerm, setSearchTerm] = useState("");
+  // ✅ Search: input đang gõ + term đã apply (lọc chỉ chạy khi bấm Search / Enter)
+  const [searchInput, setSearchInput] = useState("");
+  const [appliedSearch, setAppliedSearch] = useState("");
 
   // Detail modal states
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -95,7 +99,13 @@ const ManagerOrder = () => {
           last: response.last,
         });
       } catch (err) {
-        setError(err.message || "Không thể tải danh sách đơn hàng");
+        setOrders([]);
+        setPagination((p) => ({
+          ...p,
+          totalElements: 0,
+          totalPages: 0,
+        }));
+        setError(err?.message || "Không thể tải danh sách đơn hàng");
       } finally {
         setLoading(false);
       }
@@ -103,11 +113,32 @@ const ManagerOrder = () => {
     [activeStatus, pageSize]
   );
 
-  // Filter orders based on search term
-  const filteredOrders = useMemo(() => {
-    if (!searchTerm) return orders;
+  useEffect(() => {
+    fetchOrders(1, activeStatus, pageSize);
+  }, [fetchOrders, activeStatus, pageSize]);
 
-    const search = searchTerm.toLowerCase().trim();
+  // ✅ Apply search (button/enter)
+  const handleApplySearch = useCallback(() => {
+    setAppliedSearch(searchInput.trim());
+  }, [searchInput]);
+
+  const handleSearchKeyDown = useCallback(
+    (e) => {
+      if (e.key === "Enter") handleApplySearch();
+    },
+    [handleApplySearch]
+  );
+
+  // ✅ Auto clear applied khi input trống (không cần nút xóa lọc)
+  useEffect(() => {
+    if (!searchInput.trim() && appliedSearch) setAppliedSearch("");
+  }, [searchInput, appliedSearch]);
+
+  // Filter orders based on appliedSearch
+  const filteredOrders = useMemo(() => {
+    if (!appliedSearch) return orders;
+
+    const search = appliedSearch.toLowerCase().trim();
     return orders.filter(
       (order) =>
         order.orderCode?.toLowerCase().includes(search) ||
@@ -115,7 +146,7 @@ const ManagerOrder = () => {
         order.customer?.name?.toLowerCase().includes(search) ||
         order.orderId?.toString().includes(search)
     );
-  }, [orders, searchTerm]);
+  }, [orders, appliedSearch]);
 
   // Fetch order detail
   const fetchOrderDetail = useCallback(async (orderId) => {
@@ -126,8 +157,8 @@ const ManagerOrder = () => {
       setSelectedOrder(orderDetail);
       setShowDetailModal(true);
     } catch (err) {
-      setDetailError(err.message || "Failed to fetch order detail");
-      alert("Không thể tải chi tiết đơn hàng: " + err.message);
+      setDetailError(err?.message || "Failed to fetch order detail");
+      alert("Không thể tải chi tiết đơn hàng: " + (err?.message || ""));
     }
   }, []);
 
@@ -144,16 +175,16 @@ const ManagerOrder = () => {
     setDetailError(null);
   }, []);
 
-  useEffect(() => {
-    fetchOrders(1, activeStatus, pageSize);
-  }, [activeStatus, pageSize]);
-
   // Status change handler
   const handleStatusChange = useCallback(
     (status) => {
       if (status === activeStatus) return;
       setActiveStatus(status);
-      setSearchTerm("");
+
+      // ✅ reset search khi đổi tab
+      setSearchInput("");
+      setAppliedSearch("");
+
       fetchOrders(1, status, pageSize);
     },
     [activeStatus, pageSize, fetchOrders]
@@ -188,7 +219,7 @@ const ManagerOrder = () => {
   const formatPrice = useCallback((price) => {
     if (price === null || price === undefined || price === "") return "-";
     const number = Number(price);
-    if (isNaN(number)) return "-";
+    if (Number.isNaN(number)) return "-";
     return number.toLocaleString("vi-VN");
   }, []);
 
@@ -245,7 +276,7 @@ const ManagerOrder = () => {
       CHUYEN_TIEN: 0,
     };
     orders.forEach((order) => {
-      if (stats.hasOwnProperty(order.orderType)) {
+      if (Object.prototype.hasOwnProperty.call(stats, order.orderType)) {
         stats[order.orderType]++;
       }
     });
@@ -385,11 +416,10 @@ const ManagerOrder = () => {
           </div>
         </div>
 
-        {/* Search & Filter Section */}
+        {/* Search Section (✅ có button Search, ❌ không có nút xóa lọc) */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
           <div className="flex flex-col gap-4">
-            {/* Search Input */}
-            <div className="flex flex-col lg:flex-row gap-3">
+            <div className="flex flex-col lg:flex-row gap-3 items-stretch">
               <div className="flex-1">
                 <div className="relative">
                   <Search
@@ -399,34 +429,23 @@ const ManagerOrder = () => {
                   <input
                     type="text"
                     placeholder="Tìm kiếm mã đơn, mã KH, tên KH..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-10 py-2.5 border-2 border-gray-300 rounded-lg outline-none focus:ring-0 focus:border-blue-500 transition-all"
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                    onKeyDown={handleSearchKeyDown}
+                    className="w-full pl-10 pr-3 py-2.5 border-2 border-gray-300 rounded-lg outline-none focus:ring-0 focus:border-blue-500 transition-all"
                   />
-                  {searchTerm && (
-                    <button
-                      onClick={() => setSearchTerm("")}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                      type="button"
-                    >
-                      <XCircle size={18} />
-                    </button>
-                  )}
                 </div>
               </div>
 
-              {searchTerm && (
-                <div className="flex items-center gap-2 px-4 py-2.5 bg-blue-50 border-2 border-blue-200 rounded-lg">
-                  <Filter className="text-blue-600" size={18} />
-                  <span className="text-sm text-blue-700">
-                    Tìm thấy:{" "}
-                    <span className="font-semibold">
-                      {filteredOrders.length}
-                    </span>{" "}
-                    / {orders.length}
-                  </span>
-                </div>
-              )}
+              <button
+                onClick={handleApplySearch}
+                disabled={loading}
+                className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                type="button"
+              >
+                <Search size={18} />
+                Tìm kiếm
+              </button>
             </div>
 
             {/* Page Size Selector */}
@@ -479,6 +498,7 @@ const ManagerOrder = () => {
                     }
                     disabled={loading}
                     className="bg-red-100 hover:bg-red-200 text-red-800 px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    type="button"
                   >
                     {loading ? "Đang tải..." : "Thử lại"}
                   </button>
@@ -496,15 +516,15 @@ const ManagerOrder = () => {
             <div className="p-12 text-center">
               <FileText className="mx-auto text-gray-400 mb-4" size={48} />
               <p className="text-gray-600 font-medium">
-                {searchTerm
+                {appliedSearch
                   ? "Không tìm thấy kết quả"
                   : "Không có đơn hàng nào"}
               </p>
               <p className="text-sm text-gray-500 mt-1">
-                {searchTerm ? (
+                {appliedSearch ? (
                   <>
                     Không tìm thấy đơn hàng với từ khóa "
-                    <span className="font-semibold">{searchTerm}</span>"
+                    <span className="font-semibold">{appliedSearch}</span>"
                   </>
                 ) : (
                   <>
@@ -512,18 +532,11 @@ const ManagerOrder = () => {
                     <span className="font-semibold">
                       {currentStatus?.label}
                     </span>
-                    "
+                    " "
                   </>
                 )}
               </p>
-              {searchTerm && (
-                <button
-                  onClick={() => setSearchTerm("")}
-                  className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
-                >
-                  Xóa tìm kiếm
-                </button>
-              )}
+              {/* ❌ Không có nút "Xóa tìm kiếm" */}
             </div>
           ) : (
             <div className="overflow-x-auto">

@@ -155,6 +155,7 @@ import OrderWarehouse from "../components/StaffSale/OrderWarehouse";
 import OrderShippingAddress from "../components/Warehouse/OrderShippingAddress";
 import ShippingAddressList from "../components/Warehouse/ShippingAddressList";
 import ExportWarehouseShipList from "../components/Warehouse/ExportWarehouseShipList";
+import DashboadStaffPerformance from "../components/Dashboard/DashboadStaffPerformance";
 const Router = createBrowserRouter([
   // const Router = createHashRouter([
   {
@@ -365,11 +366,10 @@ const Router = createBrowserRouter([
       { path: "status-orders", element: <ManagerOrder /> },
       { path: "create-customer", element: <CreateAccountUser /> },
       { path: "list-customers", element: <CustomerStaffList /> },
-
+      { path: "add-shipping-order", element: <RelateOrder /> },
       { path: "prospects", element: <NotFound /> },
       { path: "list-orders", element: <OrderList /> },
       { path: "orders/pending", element: <NotFound /> }, // Chưa triển khai
-      { path: "add-shipping-order", element: <RelateOrder /> },
       { path: "tracking", element: <Tracking /> }, // Chưa triển khai
       { path: "warehouses", element: <OrderWarehouse /> }, // Chưa triển khai
       { path: "confirm-shipping", element: <OrderShippingAddress /> },
@@ -379,7 +379,7 @@ const Router = createBrowserRouter([
       { path: "knowledge", element: <NotFound /> }, // Chưa triển khai
       { path: "schedule", element: <NotFound /> }, // Chưa triển khai
       { path: "dashboard", element: <DashboardSale /> },
-      { path: "performance", element: <NotFound /> },
+      { path: "performance", element: <DashboadStaffPerformance /> },
     ],
   },
   {

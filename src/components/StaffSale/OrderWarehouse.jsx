@@ -1,14 +1,14 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import {
-  Search,
-  X,
   Package,
   CheckCircle2,
   CircleSlash,
   TruckIcon,
+  Search as SearchIcon,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import DomesticService from "../../Services/Warehouse/domesticService";
+import AccountSearch from "../Order/AccountSearch"; // ✅ chỉnh lại path cho đúng dự án bạn
 
 const PAGE_SIZES = [50, 100, 200];
 
@@ -70,8 +70,9 @@ const OrderWarehouse = () => {
 
   const [selectedStatus, setSelectedStatus] = useState("CHUA_DU_DIEU_KIEN");
 
-  const [searchInput, setSearchInput] = useState("");
-  const [searchCode, setSearchCode] = useState("");
+  // ✅ dùng AccountSearch (controlled)
+  const [accountSearchValue, setAccountSearchValue] = useState(""); // text hiển thị trên ô search
+  const [searchCode, setSearchCode] = useState(""); // mã KH dùng để gọi API (customerCode)
 
   useEffect(() => {
     fetchDeliveries();
@@ -125,16 +126,27 @@ const OrderWarehouse = () => {
     setPage(0);
   };
 
-  const handleSearch = () => {
-    setSearchCode(searchInput.trim());
+  // ✅ Search button: lấy customerCode từ text đang có trong AccountSearch (nếu user gõ tay)
+  const handleSearch = useCallback(() => {
+    // nếu user đã chọn từ dropdown → searchCode đã có
+    // nếu user gõ tay → cố gắng lấy đoạn trước dấu " - " làm mã KH
+    const raw = (accountSearchValue || "").trim();
+    if (!raw) {
+      setSearchCode("");
+      setPage(0);
+      return;
+    }
+    const maybeCode = raw.split(" - ")[0].trim();
+    setSearchCode(maybeCode);
     setPage(0);
-  };
+  }, [accountSearchValue]);
 
-  const handleClearSearch = () => {
-    setSearchInput("");
+  // ✅ Clear từ AccountSearch: clear cả input + filter
+  const handleClearAccountSearch = useCallback(() => {
+    setAccountSearchValue("");
     setSearchCode("");
     setPage(0);
-  };
+  }, []);
 
   const showingFrom = totalCount ? page * pageSize + 1 : 0;
   const showingTo = Math.min((page + 1) * pageSize, totalCount);
@@ -145,8 +157,6 @@ const OrderWarehouse = () => {
       0
     );
   }, [deliveries]);
-
-  const currentStatusOption = STATUS_OPTIONS[selectedStatus];
 
   return (
     <div className="min-h-screen">
@@ -276,40 +286,35 @@ const OrderWarehouse = () => {
         {/* Filter & Search Section */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
           <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-            {/* Search */}
+            {/* ✅ AccountSearch */}
             <div className="flex-1 w-full lg:w-auto">
-              <div className="flex gap-2">
-                <div className="relative flex-1">
-                  <Search
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                    size={20}
+              <div className="flex gap-2 items-start">
+                <div className="flex-1">
+                  <AccountSearch
+                    value={accountSearchValue}
+                    onChange={(e) => setAccountSearchValue(e.target.value)}
+                    onClear={handleClearAccountSearch}
+                    onSelectAccount={(account) => {
+                      // hiển thị dạng "CODE - NAME"
+                      setAccountSearchValue(
+                        `${account.customerCode || ""} - ${
+                          account.name || ""
+                        }`.trim()
+                      );
+                      // set mã KH để gọi API
+                      setSearchCode((account.customerCode || "").trim());
+                      setPage(0);
+                    }}
                   />
-                  <input
-                    type="text"
-                    placeholder="Tìm kiếm mã khách hàng ..."
-                    value={searchInput}
-                    onChange={(e) => setSearchInput(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                    className="w-full pl-10 pr-10 py-2.5 border-2 border-gray-300 rounded-lg outline-none focus:ring-0 focus:border-blue-500 transition-all"
-                  />
-                  {searchInput && (
-                    <button
-                      onClick={handleClearSearch}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                      type="button"
-                    >
-                      <X size={18} />
-                    </button>
-                  )}
                 </div>
 
                 <button
                   onClick={handleSearch}
                   disabled={loading}
-                  className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                   type="button"
                 >
-                  <Search size={18} />
+                  <SearchIcon size={18} />
                   Tìm kiếm
                 </button>
               </div>
@@ -349,7 +354,7 @@ const OrderWarehouse = () => {
               <Package className="mx-auto text-gray-400 mb-4" size={48} />
               <p className="text-gray-600 font-medium">Không có đơn hàng nào</p>
               <p className="text-sm text-gray-500 mt-1">
-                Thử thay đổi bộ lọc hoặc tìm kiếm
+                Thử thay đổi trạng thái hoặc tìm kiếm khách hàng
               </p>
             </div>
           ) : (

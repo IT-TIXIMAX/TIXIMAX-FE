@@ -1,5 +1,12 @@
 // src/components/AccountSearch.jsx
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useMemo,
+} from "react";
+import { Search, X, Loader2 } from "lucide-react";
 import searchService from "../../Services/SharedService/searchService";
 
 const AccountSearch = ({
@@ -7,35 +14,40 @@ const AccountSearch = ({
   value = "",
   onChange = () => {},
   onClear = () => {},
+  placeholder = "Tìm kiếm hoặc nhập mã khách hàng ...",
+  disabled = false,
 }) => {
   const [searchQuery, setSearchQuery] = useState(value || "");
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(false);
+
   const [error, setError] = useState("");
   const [filteredAccounts, setFilteredAccounts] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
 
   const searchRef = useRef(null);
-  const dropdownRef = useRef(null);
 
   // Sync với value từ props (controlled component)
   useEffect(() => {
     setSearchQuery(value || "");
   }, [value]);
 
-  // Debounce function
-  const debounce = (func, delay) => {
+  // Debounce (memo để không tạo mới mỗi render)
+  const debounce = useMemo(() => {
     let timeoutId;
-    return (...args) => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => func.apply(null, args), delay);
+    return (func, delay) => {
+      return (...args) => {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => func.apply(null, args), delay);
+      };
     };
-  };
+  }, []);
 
   // Load all accounts khi component mount
   useEffect(() => {
     loadAllAccounts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Click outside để đóng dropdown
@@ -56,7 +68,7 @@ const AccountSearch = ({
       setLoading(true);
       setError("");
       const data = await searchService.getAllAccounts();
-      setAccounts(data);
+      setAccounts(Array.isArray(data) ? data : []);
     } catch (err) {
       setError("Không thể tải danh sách tài khoản");
       console.error("Error loading accounts:", err);
@@ -68,283 +80,271 @@ const AccountSearch = ({
   // Filter accounts và show dropdown
   const filterAccounts = useCallback(
     (query) => {
-      if (!query.trim()) {
+      const q = (query || "").trim();
+      if (!q) {
         setFilteredAccounts([]);
         setShowDropdown(false);
         setSelectedIndex(-1);
         return;
       }
 
+      const searchTerm = q.toLowerCase();
       const filtered = accounts
         .filter((account) => {
-          const searchTerm = query.toLowerCase();
           return (
             (account.customerCode &&
-              account.customerCode.toLowerCase().includes(searchTerm)) ||
-            (account.name && account.name.toLowerCase().includes(searchTerm)) ||
+              String(account.customerCode)
+                .toLowerCase()
+                .includes(searchTerm)) ||
+            (account.name &&
+              String(account.name).toLowerCase().includes(searchTerm)) ||
             (account.phone &&
-              account.phone.toLowerCase().includes(searchTerm)) ||
-            (account.email && account.email.toLowerCase().includes(searchTerm))
+              String(account.phone).toLowerCase().includes(searchTerm)) ||
+            (account.email &&
+              String(account.email).toLowerCase().includes(searchTerm))
           );
         })
-        .slice(0, 10); // Giới hạn 10 kết quả
+        .slice(0, 10);
 
       setFilteredAccounts(filtered);
-      setShowDropdown(filtered.length > 0);
-      setSelectedIndex(-1);
+      setShowDropdown(true); // show luôn để có thể hiện "Không tìm thấy..."
+      setSelectedIndex(filtered.length ? 0 : -1);
     },
     [accounts]
   );
 
-  // Debounced search function
   const debouncedSearch = useCallback(
     debounce((query) => filterAccounts(query), 300),
-    [filterAccounts]
+    [debounce, filterAccounts]
   );
 
-  // Handle search input change
   const handleSearchChange = (e) => {
-    const value = e.target.value;
-    setSearchQuery(value);
+    const v = e.target.value;
+    setSearchQuery(v);
 
-    // Gọi onChange callback để update parent component
-    if (onChange) {
-      onChange(e);
-    }
+    // đồng bộ parent
+    onChange?.(e);
 
-    debouncedSearch(value);
+    debouncedSearch(v);
   };
 
-  // Handle keyboard navigation
   const handleKeyDown = (e) => {
-    if (!showDropdown || filteredAccounts.length === 0) return;
+    if (!showDropdown) return;
+
+    const hasItems = filteredAccounts.length > 0;
 
     switch (e.key) {
       case "ArrowDown":
+        if (!hasItems) return;
         e.preventDefault();
         setSelectedIndex((prev) =>
           prev < filteredAccounts.length - 1 ? prev + 1 : 0
         );
         break;
       case "ArrowUp":
+        if (!hasItems) return;
         e.preventDefault();
         setSelectedIndex((prev) =>
           prev > 0 ? prev - 1 : filteredAccounts.length - 1
         );
         break;
       case "Enter":
+        if (!hasItems) return;
         e.preventDefault();
-        if (selectedIndex >= 0) {
+        if (selectedIndex >= 0)
           handleSelectAccount(filteredAccounts[selectedIndex]);
-        }
         break;
       case "Escape":
         setShowDropdown(false);
         setSelectedIndex(-1);
         break;
+      default:
+        break;
     }
   };
 
-  // Handle select account
   const handleSelectAccount = (account) => {
-    setSearchQuery(`${account.customerCode} - ${account.name}`);
+    const display = `${account.customerCode || ""} - ${
+      account.name || ""
+    }`.trim();
+    setSearchQuery(display);
     setShowDropdown(false);
     setSelectedIndex(-1);
-    if (onSelectAccount) {
-      onSelectAccount(account);
-    }
+    onSelectAccount?.(account);
   };
 
-  // Clear search - Gọi onClear để clear cả selected customer
   const handleClearSearch = () => {
     setSearchQuery("");
     setFilteredAccounts([]);
     setShowDropdown(false);
     setSelectedIndex(-1);
-
-    // Gọi onClear callback để clear selected customer ở parent
-    if (onClear) {
-      onClear();
-    }
+    onClear?.();
   };
 
-  // Highlight matched text
   const highlightMatch = (text, query) => {
     if (!query || !text) return text;
+    const q = query.trim();
+    if (!q) return text;
 
-    const regex = new RegExp(`(${query})`, "gi");
-    const parts = text.split(regex);
+    const regex = new RegExp(
+      `(${q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`,
+      "gi"
+    );
+    const parts = String(text).split(regex);
 
     return parts.map((part, index) =>
       regex.test(part) ? (
-        <mark key={index} className="bg-yellow-200 text-yellow-900">
+        <mark
+          key={index}
+          className="bg-yellow-200 text-yellow-900 rounded px-0.5"
+        >
           {part}
         </mark>
       ) : (
-        part
+        <span key={index}>{part}</span>
       )
     );
   };
 
   return (
     <div ref={searchRef} className="relative w-full">
-      {/* Search Input */}
+      {/* Input (đồng bộ UI với các input khác của bạn) */}
       <div className="relative">
-        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <svg
-            className="h-5 w-5 text-gray-400"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            />
-          </svg>
-        </div>
+        <Search
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+          size={20}
+        />
 
         <input
           type="text"
-          placeholder="Tìm kiếm hoặc nhập mã khách hàng..."
+          placeholder={placeholder}
           value={searchQuery}
           onChange={handleSearchChange}
           onKeyDown={handleKeyDown}
-          onFocus={() =>
-            searchQuery && setShowDropdown(filteredAccounts.length > 0)
-          }
-          className="w-full pl-10 pr-12 py-3 text-gray-700 bg-white border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+          onFocus={() => {
+            if (disabled) return;
+            if ((searchQuery || "").trim()) {
+              // mở dropdown nếu đang có query (kể cả khi không có kết quả)
+              setShowDropdown(true);
+              filterAccounts(searchQuery);
+            }
+          }}
+          disabled={disabled}
+          className="w-full pl-10 pr-10 py-2.5 border-2 border-gray-300 rounded-lg outline-none focus:ring-0 focus:border-blue-500 transition-all disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
         />
 
-        {/* Loading spinner */}
+        {/* Loading */}
         {loading && (
-          <div className="absolute inset-y-0 right-10 flex items-center">
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+          <div className="absolute right-10 top-1/2 -translate-y-1/2">
+            <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
           </div>
         )}
 
-        {/* Clear button - Quan trọng: Gọi onClear khi bấm */}
-        {searchQuery && (
+        {/* Clear */}
+        {!!searchQuery && !disabled && (
           <button
             onClick={handleClearSearch}
-            className="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors duration-200"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
             type="button"
-            title="Xóa tìm kiếm"
+            title="Xóa"
           >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
+            <X size={18} />
           </button>
         )}
       </div>
 
-      {/* Dropdown Recommendations */}
-      {showDropdown && (
-        <div
-          ref={dropdownRef}
-          className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-80 overflow-y-auto"
-        >
-          {filteredAccounts.length > 0 ? (
-            <ul className="py-1">
-              {filteredAccounts.map((account, index) => (
-                <li key={account.accountId}>
-                  <button
-                    onClick={() => handleSelectAccount(account)}
-                    className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors duration-150 ${
-                      index === selectedIndex
-                        ? "bg-blue-50 border-r-2 border-blue-500"
-                        : ""
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center space-x-3">
-                          <div className="flex-shrink-0">
-                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                              <span className="text-sm font-medium text-blue-600">
-                                {account.name
-                                  ? account.name.charAt(0).toUpperCase()
-                                  : "N"}
-                              </span>
-                            </div>
+      {/* Dropdown */}
+      {showDropdown && !disabled && (
+        <div className="absolute z-50 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
+          {/* Header nhỏ cho đồng bộ */}
+          <div className="px-4 py-2 bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-600">
+            Gợi ý tìm kiếm khách hàng
+          </div>
+
+          <div className="max-h-80 overflow-y-auto">
+            {filteredAccounts.length > 0 ? (
+              <ul className="py-1">
+                {filteredAccounts.map((account, index) => {
+                  const active = index === selectedIndex;
+                  return (
+                    <li
+                      key={
+                        account.accountId || `${account.customerCode}-${index}`
+                      }
+                    >
+                      <button
+                        onClick={() => handleSelectAccount(account)}
+                        className={`w-full text-left px-4 py-3 transition-colors ${
+                          active ? "bg-blue-50" : "hover:bg-gray-50"
+                        }`}
+                        type="button"
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="w-9 h-9 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span className="text-sm font-semibold text-blue-700">
+                              {account.name
+                                ? account.name.charAt(0).toUpperCase()
+                                : "N"}
+                            </span>
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-900 truncate">
-                              {highlightMatch(
-                                account.customerCode,
-                                searchQuery.trim()
+
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center justify-between gap-2">
+                              <p className="text-sm font-semibold text-gray-900 truncate">
+                                {highlightMatch(
+                                  account.customerCode,
+                                  searchQuery
+                                )}
+                              </p>
+                              {account.phone && (
+                                <span className="text-xs text-gray-500 whitespace-nowrap">
+                                  {highlightMatch(account.phone, searchQuery)}
+                                </span>
                               )}
-                            </p>
+                            </div>
+
                             <p className="text-sm text-gray-600 truncate">
                               {highlightMatch(
                                 account.name || "Chưa có tên",
-                                searchQuery.trim()
+                                searchQuery
                               )}
                             </p>
-                            <div className="flex items-center space-x-4 mt-1">
-                              {account.email && (
-                                <span className="text-xs text-gray-500 truncate">
-                                  {highlightMatch(
-                                    account.email,
-                                    searchQuery.trim()
-                                  )}
-                                </span>
-                              )}
-                              {account.phone && (
-                                <span className="text-xs text-gray-500">
-                                  {highlightMatch(
-                                    account.phone,
-                                    searchQuery.trim()
-                                  )}
-                                </span>
-                              )}
-                            </div>
+
+                            {(account.email || account.phone) && (
+                              <div className="flex items-center gap-3 mt-1">
+                                {account.email && (
+                                  <span className="text-xs text-gray-500 truncate">
+                                    {highlightMatch(account.email, searchQuery)}
+                                  </span>
+                                )}
+                              </div>
+                            )}
                           </div>
                         </div>
-                      </div>
-                    </div>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            searchQuery && (
-              <div className="px-4 py-6 text-center text-gray-500">
-                <svg
-                  className="mx-auto h-8 w-8 text-gray-400 mb-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
-                <p className="text-sm">Không tìm thấy khách hàng nào</p>
-              </div>
-            )
-          )}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              (searchQuery || "").trim() && (
+                <div className="px-4 py-8 text-center">
+                  <div className="mx-auto w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mb-2">
+                    <Search className="text-gray-400" size={18} />
+                  </div>
+                  <p className="text-sm font-medium text-gray-700">
+                    Không tìm thấy khách hàng
+                  </p>
+                </div>
+              )
+            )}
+          </div>
         </div>
       )}
 
-      {/* Error message */}
+      {/* Error */}
       {error && (
-        <div className="absolute z-50 w-full mt-1 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+        <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
           {error}
         </div>
       )}
