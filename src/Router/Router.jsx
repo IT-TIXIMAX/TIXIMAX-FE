@@ -155,7 +155,8 @@ import OrderWarehouse from "../components/StaffSale/OrderWarehouse";
 import OrderShippingAddress from "../components/Warehouse/OrderShippingAddress";
 import ShippingAddressList from "../components/Warehouse/ShippingAddressList";
 import ExportWarehouseShipList from "../components/Warehouse/ExportWarehouseShipList";
-import DashboadStaffPerformance from "../components/Dashboard/DashboadStaffPerformance";
+import DashboadStaffPerformance from "../components/Dashboard/Staff/DashboadStaffPerformance";
+import LockedDraftsList from "../components/Warehouse/LockedDraftsList";
 const Router = createBrowserRouter([
   // const Router = createHashRouter([
   {
@@ -452,7 +453,8 @@ const Router = createBrowserRouter([
       { path: "exports", element: <ExportWarehouse /> },
       { path: "order-export", element: <ExportWarehouseShipList /> },
       { path: "check", element: <ScanImportWarehouse /> },
-      { path: "reports", element: <TrackingCodeList /> },
+      { path: "report", element: <TrackingCodeList /> },
+      { path: "reports-vnpost", element: <LockedDraftsList /> },
       { path: "importsjp", element: <ImportDomesticPacking /> },
       { path: "inventorys-check", element: <InventoryWarehouse /> },
     ],

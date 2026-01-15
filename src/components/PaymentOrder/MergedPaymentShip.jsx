@@ -533,7 +533,7 @@ const MergedPaymentShip = () => {
           <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
             <div className="flex items-center justify-between flex-wrap gap-3">
               <h2 className="text-xl font-semibold text-white flex items-center">
-                Danh Sách Đơn Vận Chuyển
+                Danh Sách Đơn Hàng
                 <span className="ml-2 text-xl font-normal text-blue-100">
                   ({orders.length} đơn hàng)
                 </span>
@@ -563,10 +563,10 @@ const MergedPaymentShip = () => {
                   }`}
                 >
                   <span className="text-xl font-bold text-black">
-                    Đã chọn: {selectedOrders.length}
+                    Đã chọn: {selectedOrders.length} -
                   </span>
                   <span className="text-xl font-bold text-black">
-                    {formatCurrency(calculateSelectedTotal())}
+                    Tổng: {formatCurrency(calculateSelectedTotal())}
                   </span>
 
                   {/* Cảnh báo nhiều accountId */}

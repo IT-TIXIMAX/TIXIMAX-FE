@@ -83,13 +83,20 @@ const StaffWarehouseDomesticSidebar = () => {
       path: "/staff-warehouse-domestic/exports",
       title: "Tra cứu theo mã đơn hàng, mã vận đơn",
     },
-
     {
-      text: "In mã vận đơn",
+      text: "In mã vận đơn VN POST",
       icon: <FileSpreadsheet className="w-6 h-6" />,
-      path: "/staff-warehouse-domestic/reports",
+      path: "/staff-warehouse-domestic/reports-vnpost",
       title: "Xem báo cáo thống kê xuất nhập kho",
     },
+
+    {
+      text: "Kiểm tra",
+      icon: <Download className="w-6 h-6" />,
+      path: "/staff-warehouse-domestic/report",
+      title: "Xem báo cáo thống kê xuất nhập kho",
+    },
+
     {
       text: "Nhập kho đơn US",
       icon: <Download className="w-6 h-6" />,

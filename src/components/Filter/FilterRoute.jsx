@@ -73,13 +73,6 @@ const FilterRoute = ({
         <ChevronDown className="w-5 h-5 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
       </div>
 
-      {loading && (
-        <p className="text-xs text-gray-500 mt-1.5 flex items-center gap-1.5">
-          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600" />
-          Đang tải danh sách tuyến...
-        </p>
-      )}
-
       {error && !loading && (
         <p className="text-xs text-red-500 mt-1.5 flex items-center gap-1.5">
           <span>⚠️</span>

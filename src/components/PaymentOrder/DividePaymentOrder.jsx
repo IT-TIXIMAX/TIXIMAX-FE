@@ -492,7 +492,7 @@ const DividePaymentOrder = () => {
           <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
             <div className="flex items-center justify-between flex-wrap gap-3">
               <h2 className="text-xl font-semibold text-white flex items-center">
-                Danh Sách Sản Phẩm
+                Danh Sách Mã Vận Đơn
                 <span className="ml-2 text-xl font-normal text-blue-100">
                   ({items.length} sản phẩm)
                 </span>
@@ -519,10 +519,10 @@ const DividePaymentOrder = () => {
                   }`}
                 >
                   <span className="text-xl font-bold text-black">
-                    Đã chọn: {selectedCount}
+                    Đã chọn: {selectedCount} -
                   </span>
                   <span className="text-xl font-bold text-black">
-                    {formatCurrency(selectedTotal)}
+                    Tổng: {formatCurrency(selectedTotal)}
                   </span>
 
                   <CreateDividePaymentShip

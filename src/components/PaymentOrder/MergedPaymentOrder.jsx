@@ -532,10 +532,10 @@ const MergedPaymentOrder = () => {
                   }`}
                 >
                   <span className="text-xl font-bold text-black">
-                    Đã chọn: {selectedOrders.length}
+                    Đã chọn: {selectedOrders.length} -
                   </span>
                   <span className="text-xl font-bold text-black">
-                    {formatCurrency(calculateSelectedTotal())}
+                    Tổng: {formatCurrency(calculateSelectedTotal())}
                   </span>
                   <CreateMergedPaymentOrder
                     selectedOrders={selectedOrders}

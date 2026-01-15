@@ -62,6 +62,17 @@ const draftWarehouseService = {
     );
     return data;
   },
+  getLockedDrafts: async (endDate) => {
+    const { data } = await api.get("/draft-domestics/locked", {
+      params: { endDate }, // => ?endDate=2026-01-15
+    });
+    return data;
+  },
+
+  exportByIds: async (ids) => {
+    const { data } = await api.post("/draft-domestics/export/ids", ids);
+    return data;
+  },
 };
 
 export default draftWarehouseService;
