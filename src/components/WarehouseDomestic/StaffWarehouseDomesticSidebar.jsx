@@ -91,13 +91,6 @@ const StaffWarehouseDomesticSidebar = () => {
     },
 
     {
-      text: "Kiểm tra",
-      icon: <Download className="w-6 h-6" />,
-      path: "/staff-warehouse-domestic/report",
-      title: "Xem báo cáo thống kê xuất nhập kho",
-    },
-
-    {
       text: "Nhập kho đơn US",
       icon: <Download className="w-6 h-6" />,
       path: "/staff-warehouse-domestic/importsjp",
@@ -115,6 +108,12 @@ const StaffWarehouseDomesticSidebar = () => {
       icon: <PackageCheck className="w-6 h-6" />,
       path: "/staff-warehouse-domestic/eligible-exports",
       title: "Quản lý đơn hàng đủ điều kiện xuất kho",
+    },
+    {
+      text: "Kiểm tra",
+      icon: <Download className="w-6 h-6" />,
+      path: "/staff-warehouse-domestic/report",
+      title: "Xem báo cáo thống kê xuất nhập kho",
     },
   ];
 

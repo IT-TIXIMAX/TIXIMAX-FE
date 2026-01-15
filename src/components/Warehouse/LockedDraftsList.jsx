@@ -103,21 +103,20 @@ const setCellStyle = (ws, addr, style) => {
 /* ===================== Excel Builder ===================== */
 const buildAndSaveExcel = ({
   rows,
-  filePrefix = "locked_drafts_export",
+  filePrefix = "Hang_Di_VNPost-",
   endDate,
 }) => {
-  // schema: Address, Staff, Số mã, Shipping list ...
   const excelData = [
     [
       "STT",
       "ID",
-      "Mã ship", // vàng
+      "Mã ship",
       "Tên khách hàng",
       "SĐT",
       "Địa chỉ",
       "Nhân viên",
-      "Số mã", // vàng
-      "Danh sách mã (shippingList)",
+      "Số mã",
+      "Danh sách mã ",
       "Trọng lượng",
       "VNPost tracking",
     ],
