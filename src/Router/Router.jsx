@@ -1,7 +1,6 @@
 // src/Router/Router.jsx
 import React from "react";
 import { createBrowserRouter } from "react-router-dom";
-// import { createHashRouter } from "react-router-dom";
 import Layout from "../Page/Layout";
 import SignIn from "../Page/SignIn";
 import SignUp from "../Page/SignUp";
@@ -158,7 +157,6 @@ import ExportWarehouseShipList from "../components/Warehouse/ExportWarehouseShip
 import DashboadStaffPerformance from "../components/Dashboard/Staff/DashboadStaffPerformance";
 import LockedDraftsList from "../components/Warehouse/LockedDraftsList";
 const Router = createBrowserRouter([
-  // const Router = createHashRouter([
   {
     path: "/",
     element: <Layout />,

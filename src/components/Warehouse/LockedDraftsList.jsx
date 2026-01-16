@@ -109,14 +109,13 @@ const buildAndSaveExcel = ({
   const excelData = [
     [
       "STT",
-      "ID",
       "Mã ship",
+      "Nhân viên",
       "Tên khách hàng",
       "SĐT",
       "Địa chỉ",
-      "Nhân viên",
       "Số mã",
-      "Danh sách mã ",
+      "Danh sách mã",
       "Trọng lượng",
       "VNPost tracking",
     ],
@@ -127,12 +126,11 @@ const buildAndSaveExcel = ({
     const list = ensureArray(it.shippingList);
     excelData.push([
       stt++,
-      it.id ?? "",
       it.shipCode ?? "",
+      it.staffCode ?? "",
       it.customerName ?? "",
       it.phoneNumber ?? "",
       (it.address ?? "").replace(/\r\n/g, "\n"),
-      it.staffCode ?? "",
       list.length,
       list.join(", "),
       it.weight !== undefined && it.weight !== null ? Number(it.weight) : "",
@@ -144,16 +142,15 @@ const buildAndSaveExcel = ({
 
   ws["!cols"] = [
     { wch: 6 }, // STT
-    { wch: 8 }, // ID
-    { wch: 16 }, // shipCode
-    { wch: 22 }, // customerName
-    { wch: 14 }, // phone
-    { wch: 50 }, // address
-    { wch: 10 }, // staff
-    { wch: 10 }, // count
-    { wch: 45 }, // shipping list
-    { wch: 12 }, // weight
-    { wch: 18 }, // vnpost
+    { wch: 16 }, // Mã ship
+    { wch: 10 }, // Nhân viên
+    { wch: 22 }, // Tên khách hàng
+    { wch: 14 }, // SĐT
+    { wch: 50 }, // Địa chỉ
+    { wch: 10 }, // Số mã
+    { wch: 45 }, // Danh sách mã
+    { wch: 12 }, // Trọng lượng
+    { wch: 18 }, // VNPost tracking
   ];
 
   // Header style (giống PackingFlyingList)
@@ -180,8 +177,8 @@ const buildAndSaveExcel = ({
     setCellStyle(ws, addr, headerStyle);
   }
 
-  // ✅ Tô vàng toàn bộ cột: "Mã ship" (c=2) và "Số mã" (c=7)
-  const yellowCols = [2, 7];
+  //  Tô vàng toàn bộ cột: "Mã ship" (c=2) và "Số mã" (c=7)
+  const yellowCols = [1, 6];
   for (let r = 0; r <= range.e.r; r++) {
     yellowCols.forEach((c) => {
       const addr = XLSX.utils.encode_cell({ r, c });
@@ -191,7 +188,7 @@ const buildAndSaveExcel = ({
 
   // weight column index = 9
   for (let row = 1; row < excelData.length; row++) {
-    const wCell = XLSX.utils.encode_cell({ r: row, c: 9 });
+    const wCell = XLSX.utils.encode_cell({ r: row, c: 8 });
     if (ws[wCell] && typeof ws[wCell].v === "number") {
       ws[wCell].z = "0.000";
     }
@@ -527,7 +524,7 @@ const LockedDraftsList = () => {
                   Tìm kiếm
                 </button>
 
-                {/* ✅ Nút chọn tất cả / bỏ chọn */}
+                {/* Nút chọn tất cả / bỏ chọn */}
                 <button
                   onClick={handleSelectAllButton}
                   disabled={loading || filtered.length === 0}
@@ -558,7 +555,7 @@ const LockedDraftsList = () => {
                   )}
                 </button>
 
-                {/* ✅ Khóa & Xuất (gọi API exportByIds) */}
+                {/*  Khóa & Xuất (gọi API exportByIds) */}
                 <button
                   onClick={handleLockAndExportSelected}
                   disabled={selectedIds.length === 0 || lockExportLoading}

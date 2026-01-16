@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import dashboardService from "../../Services/Dashboard/dashboardService";
-import routesService from "../../Services/Manager/managerRoutesService";
 import {
   Truck,
   DollarSign,
@@ -8,11 +7,11 @@ import {
   Users,
   Calendar,
   BarChart3,
-  Loader2,
   Filter,
   X,
   Trophy,
 } from "lucide-react";
+import FilterRoute from "../Filter/FilterRoute"; // ✅ chỉnh path đúng theo project bạn
 
 const FILTER_TYPES = [
   { value: "DAY", label: "Hôm nay" },
@@ -29,9 +28,7 @@ const DEFAULT_FILTERS = {
   endDate: "",
 };
 
-const formatCurrency = (value) => {
-  return new Intl.NumberFormat("vi-VN").format(value);
-};
+const formatCurrency = (value) => new Intl.NumberFormat("vi-VN").format(value);
 
 const getPerformanceColor = (value, max) => {
   const percent = (value / max) * 100;
@@ -40,28 +37,163 @@ const getPerformanceColor = (value, max) => {
   return "bg-red-500";
 };
 
-const SummaryCard = ({ icon: Icon, label, value, unit, gradient }) => (
-  <div className="bg-white rounded-xl md:rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden">
-    <div className={`p-4 md:p-5 bg-gradient-to-br ${gradient}`}>
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-blue-100 text-xs md:text-sm font-medium">
-          {label}
-        </span>
-        <Icon className="w-5 h-5 md:w-6 md:h-6 text-white" />
+/* ===================== Loading skeleton ===================== */
+const Skeleton = ({ className = "" }) => (
+  <div className={`animate-pulse bg-gray-200 rounded ${className}`} />
+);
+
+const SummaryCardSkeleton = ({ bgGradient = "from-gray-50 to-gray-100" }) => (
+  <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
+    <div className={`p-4 md:p-5 bg-gradient-to-br ${bgGradient}`}>
+      <div className="flex items-center justify-between mb-3">
+        <Skeleton className="h-4 w-28" />
+        <Skeleton className="h-10 w-10 rounded-lg" />
       </div>
-      <div className="text-xl md:text-2xl font-bold text-white">{value}</div>
-      <div className="text-blue-100 text-xs mt-1">{unit}</div>
+      <Skeleton className="h-8 w-32 mb-2" />
+      <Skeleton className="h-4 w-16" />
     </div>
   </div>
 );
 
-const FilterDialog = ({ show, filters, routes, onClose, onApply }) => {
+const RouteCardSkeleton = () => (
+  <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
+    <div className="px-4 md:px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-700">
+      <div className="flex items-center gap-3">
+        <div className="p-2 bg-white/20 rounded-lg">
+          <Skeleton className="h-6 w-6 bg-white/40" />
+        </div>
+        <Skeleton className="h-5 w-40 bg-white/40" />
+      </div>
+    </div>
+
+    <div className="p-4 md:p-6 bg-gradient-to-br from-gray-50 to-white">
+      <div className="grid grid-cols-3 gap-4 mb-5">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div
+            key={i}
+            className="text-center p-3 bg-white rounded-lg border border-gray-100 shadow-sm"
+          >
+            <Skeleton className="h-3 w-16 mx-auto mb-2" />
+            <Skeleton className="h-7 w-14 mx-auto" />
+          </div>
+        ))}
+      </div>
+
+      <div className="space-y-4 mb-5">
+        {Array.from({ length: 2 }).map((_, i) => (
+          <div
+            key={i}
+            className="p-3 bg-white rounded-lg border border-gray-100 shadow-sm"
+          >
+            <div className="flex justify-between mb-2">
+              <Skeleton className="h-3 w-28" />
+              <Skeleton className="h-3 w-12" />
+            </div>
+            <div className="h-2.5 bg-gray-200 rounded-full overflow-hidden">
+              <div className="h-full w-2/3 bg-gray-300 rounded-full" />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="p-4 bg-gradient-to-br from-yellow-50 to-amber-50 border border-yellow-200 rounded-lg shadow-sm">
+        <div className="flex items-center gap-2 mb-2">
+          <Skeleton className="h-4 w-4 bg-yellow-200" />
+          <Skeleton className="h-3 w-40 bg-yellow-200" />
+        </div>
+        <Skeleton className="h-4 w-32 mb-3 bg-yellow-200" />
+        <div className="flex items-center justify-between">
+          <div>
+            <Skeleton className="h-3 w-14 mb-2 bg-yellow-200" />
+            <Skeleton className="h-4 w-24 bg-yellow-200" />
+          </div>
+          <div className="text-right">
+            <Skeleton className="h-3 w-16 mb-2 bg-yellow-200" />
+            <Skeleton className="h-4 w-20 bg-yellow-200" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div className="border-t-2 border-gray-100">
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
+            <tr>
+              {Array.from({ length: 6 }).map((_, i) => (
+                <th key={i} className="px-3 md:px-4 py-3">
+                  <Skeleton className="h-3 w-14" />
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100 bg-white">
+            {Array.from({ length: 6 }).map((_, r) => (
+              <tr key={r}>
+                <td className="px-3 md:px-4 py-3">
+                  <Skeleton className="h-4 w-6" />
+                </td>
+                <td className="px-3 md:px-4 py-3">
+                  <Skeleton className="h-5 w-16 rounded-md" />
+                </td>
+                <td className="px-3 md:px-4 py-3">
+                  <Skeleton className="h-4 w-28" />
+                </td>
+                <td className="px-3 md:px-4 py-3 text-right">
+                  <Skeleton className="h-4 w-20 ml-auto" />
+                </td>
+                <td className="px-3 md:px-4 py-3 text-right">
+                  <Skeleton className="h-4 w-14 ml-auto" />
+                </td>
+                <td className="px-3 md:px-4 py-3">
+                  <div className="flex items-center justify-center gap-2">
+                    <Skeleton className="h-2 w-20 rounded-full" />
+                    <Skeleton className="h-4 w-10" />
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+);
+/* =================== End skeleton =================== */
+
+const SummaryCard = ({
+  icon: Icon,
+  label,
+  value,
+  unit,
+  iconColor,
+  bgGradient,
+}) => (
+  <div className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-100">
+    <div className={`p-4 md:p-5 bg-gradient-to-br ${bgGradient}`}>
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-black font-bold text-xl md:text-sm font-semibold uppercase tracking-wide">
+          {label}
+        </span>
+        <div className={`p-2 rounded-lg ${iconColor}`}>
+          <Icon className="w-5 h-5 md:w-6 md:h-6 text-white" />
+        </div>
+      </div>
+      <div className="text-2xl md:text-3xl font-bold text-gray-800">
+        {value}
+      </div>
+      <div className="text-black text-xs md:text-sm font-medium mt-1">
+        {unit}
+      </div>
+    </div>
+  </div>
+);
+
+const FilterDialog = ({ show, filters, onClose, onApply }) => {
   const [tempFilters, setTempFilters] = useState({ ...filters });
 
   useEffect(() => {
-    if (show) {
-      setTempFilters({ ...filters });
-    }
+    if (show) setTempFilters({ ...filters });
   }, [show, filters]);
 
   const handleChange = (key, value) => {
@@ -69,37 +201,26 @@ const FilterDialog = ({ show, filters, routes, onClose, onApply }) => {
   };
 
   const handleApply = () => {
-    // Validation
     if (tempFilters.filterType === "CUSTOM") {
-      if (!tempFilters.startDate || !tempFilters.endDate) {
-        return;
-      }
-      if (tempFilters.startDate > tempFilters.endDate) {
-        return;
-      }
+      if (!tempFilters.startDate || !tempFilters.endDate) return;
+      if (tempFilters.startDate > tempFilters.endDate) return;
     }
-
     onApply(tempFilters);
   };
 
-  const handleReset = () => {
-    setTempFilters(DEFAULT_FILTERS);
-  };
+  const handleReset = () => setTempFilters(DEFAULT_FILTERS);
 
   if (!show) return null;
 
   return (
     <>
-      {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity"
         onClick={onClose}
       ></div>
 
-      {/* Dialog */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden animate-in fade-in zoom-in duration-200">
-          {/* Dialog Header */}
+        <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden animate-in fade-in zoom-in duration-200">
           <div className="px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-700 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Filter className="w-5 h-5 text-white" />
@@ -113,29 +234,21 @@ const FilterDialog = ({ show, filters, routes, onClose, onApply }) => {
             </button>
           </div>
 
-          {/* Dialog Content */}
           <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
             <div className="space-y-5">
-              {/* Route Selection */}
+              {/* ✅ FilterRoute */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Chọn tuyến
-                </label>
-                <select
+                <FilterRoute
                   value={tempFilters.routeId}
-                  onChange={(e) => handleChange("routeId", e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm"
-                >
-                  <option value="">Tất cả tuyến</option>
-                  {routes.map((route) => (
-                    <option key={route.routeId} value={route.routeId}>
-                      {route.name}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(v) => handleChange("routeId", v)}
+                  showLabel={true}
+                  label="Chọn tuyến"
+                  placeholder="Tất cả tuyến"
+                  showNote={true}
+                  selectClassName="!rounded-lg !border !border-gray-300 !h-[48px] focus:!ring-2 focus:!ring-blue-500 focus:!border-blue-500"
+                />
               </div>
 
-              {/* Time Range Selection */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Khoảng thời gian
@@ -157,7 +270,6 @@ const FilterDialog = ({ show, filters, routes, onClose, onApply }) => {
                 </div>
               </div>
 
-              {/* Custom Date Range */}
               {tempFilters.filterType === "CUSTOM" && (
                 <div className="p-4 bg-blue-50 rounded-lg border-2 border-blue-200 space-y-4">
                   <div className="flex items-center gap-2 mb-3">
@@ -201,7 +313,6 @@ const FilterDialog = ({ show, filters, routes, onClose, onApply }) => {
             </div>
           </div>
 
-          {/* Dialog Footer */}
           <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-between gap-3">
             <button
               onClick={handleReset}
@@ -230,7 +341,7 @@ const FilterDialog = ({ show, filters, routes, onClose, onApply }) => {
   );
 };
 
-const RouteCard = ({ routeData, maxValues, formatCurrency }) => {
+const RouteCard = ({ routeData, maxValues }) => {
   const routeTotal = useMemo(() => {
     return routeData.staffPerformances?.reduce(
       (acc, staff) => ({
@@ -259,118 +370,132 @@ const RouteCard = ({ routeData, maxValues, formatCurrency }) => {
   }, [routeData.staffPerformances]);
 
   return (
-    <div className="bg-white rounded-xl md:rounded-2xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-2xl transition-all duration-300">
-      {/* Route Header */}
-      <div className="px-4 md:px-6 py-3 md:py-4 bg-gradient-to-r from-blue-600 to-blue-700 border-b border-blue-800">
-        <div className="flex items-center gap-2 md:gap-3">
-          <Truck className="w-5 h-5 md:w-6 md:h-6 text-white" />
+    <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 hover:shadow-lg transition-all duration-300">
+      <div className="px-4 md:px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-700">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-white/20 rounded-lg">
+            <Truck className="w-5 h-5 md:w-6 md:h-6 text-white" />
+          </div>
           <h2 className="text-lg md:text-xl font-bold text-white">
             {routeData.routeName}
           </h2>
         </div>
       </div>
 
-      {/* Route Statistics */}
-      <div className="p-4 md:p-6 bg-gray-50">
-        <div className="grid grid-cols-3 gap-3 md:gap-4 mb-4">
-          <div className="text-center">
-            <div className="text-xs text-gray-600 mb-1">Nhân viên</div>
+      <div className="p-4 md:p-6 bg-gradient-to-br from-gray-50 to-white">
+        <div className="grid grid-cols-3 gap-4 mb-5">
+          <div className="text-center p-3 bg-green-300 rounded-lg border border-gray-100 shadow-sm">
+            <div className="text-xl text-black mb-1 font-medium">Nhân viên</div>
             <div className="text-xl md:text-2xl font-bold text-gray-800">
               {routeData.staffPerformances?.length || 0}
             </div>
           </div>
-          <div className="text-center">
-            <div className="text-xs text-gray-600 mb-1">Giá trị</div>
+          <div className="text-center p-3  bg-red-200 rounded-lg border border-gray-100 shadow-sm">
+            <div className="text-xl text-black mb-1 font-medium">
+              Tổng giá trị
+            </div>
             <div className="text-base md:text-lg font-bold text-gray-800 break-words">
               {formatCurrency(routeTotal.goods)}
             </div>
           </div>
-          <div className="text-center">
-            <div className="text-xs text-gray-600 mb-1">Số kg</div>
+          <div className="text-center p-3 bg-yellow-200 rounded-lg border border-gray-100 shadow-sm">
+            <div className="text-xl text-black mb-1 font-medium">Số kg</div>
             <div className="text-xl md:text-2xl font-bold text-gray-800">
               {routeTotal.weight.toFixed(1)}
             </div>
           </div>
         </div>
 
-        {/* Comparison Bars */}
-        <div className="space-y-3">
-          <div>
-            <div className="flex justify-between text-xs text-gray-600 mb-1">
-              <span>So sánh giá trị</span>
-              <span className="font-semibold">{goodsPercent.toFixed(1)}%</span>
+        <div className="space-y-4 mb-5">
+          <div className="p-3 bg-white rounded-lg border border-gray-100 shadow-sm">
+            <div className="flex justify-between text-xs text-gray-600 mb-2">
+              <span className="font-medium text-xl">So sánh giá trị</span>
+              <span className="font-bold text-blue-600">
+                {goodsPercent.toFixed(1)}%
+              </span>
             </div>
-            <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div className="h-2.5 bg-gray-200 rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-green-500 to-green-600 transition-all duration-500"
+                className="h-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-500"
                 style={{ width: `${goodsPercent}%` }}
-              ></div>
+              />
             </div>
           </div>
 
-          <div>
-            <div className="flex justify-between text-xs text-gray-600 mb-1">
-              <span>So sánh trọng lượng</span>
-              <span className="font-semibold">{weightPercent.toFixed(1)}%</span>
+          <div className="p-3 bg-white rounded-lg border border-gray-100 shadow-sm">
+            <div className="flex justify-between text-xs text-gray-600 mb-2">
+              <span className="font-medium text-xl">So sánh trọng lượng</span>
+              <span className="font-bold text-blue-600">
+                {weightPercent.toFixed(1)}%
+              </span>
             </div>
-            <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div className="h-2.5 bg-gray-200 rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-orange-500 to-orange-600 transition-all duration-500"
+                className="h-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-500"
                 style={{ width: `${weightPercent}%` }}
-              ></div>
+              />
             </div>
           </div>
         </div>
 
-        {/* Top Performer */}
         {topPerformer && (
-          <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <div className="flex items-center gap-2 mb-1">
-              <Trophy className="w-4 h-4 text-yellow-600" />
-              <span className="text-xs font-semibold text-yellow-800">
+          <div className="p-4 bg-gradient-to-br from-yellow-50 to-amber-50 border border-yellow-200 rounded-lg shadow-sm">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-2xs font-bold text-yellow-800 uppercase tracking-wide">
                 Nhân viên xuất sắc
               </span>
             </div>
-            <div className="text-sm font-medium text-gray-800">
+            <div className="text-xl font-bold text-gray-800">
               {topPerformer.name}
             </div>
-            <div className="text-xs text-gray-700 font-semibold mt-1">
-              {formatCurrency(topPerformer.totalGoods)} VNĐ
-            </div>
-            <div className="text-xs text-gray-700 font-semibold">
-              {topPerformer.totalNetWeight.toFixed(2)} kg
+            <div className="flex items-center justify-between mt-2">
+              <div>
+                <div className="text-2xs text-gray-600 font-medium">
+                  Giá trị
+                </div>
+                <div className="text-2xs font-bold text-gray-800">
+                  {formatCurrency(topPerformer.totalGoods)} VNĐ
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-2xs text-gray-600 font-medium">
+                  Khối lượng
+                </div>
+                <div className="text-2xs font-bold text-gray-800">
+                  {topPerformer.totalNetWeight.toFixed(2)} kg
+                </div>
+              </div>
             </div>
           </div>
         )}
       </div>
 
-      {/* Staff Details Table */}
-      <div className="border-t border-gray-200">
+      <div className="border-t-2 border-gray-100">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50">
+            <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
               <tr>
-                <th className="px-2 md:px-4 py-2 md:py-3 text-left text-xs font-medium text-gray-600">
+                <th className="px-3 md:px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                   #
                 </th>
-                <th className="px-2 md:px-4 py-2 md:py-3 text-left text-xs font-medium text-gray-600">
+                <th className="px-3 md:px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                   Mã NV
                 </th>
-                <th className="px-2 md:px-4 py-2 md:py-3 text-left text-xs font-medium text-gray-600">
+                <th className="px-3 md:px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                   Tên
                 </th>
-                <th className="px-2 md:px-4 py-2 md:py-3 text-right text-xs font-medium text-gray-600">
+                <th className="px-3 md:px-4 py-3 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">
                   Giá trị
                 </th>
-                <th className="px-2 md:px-4 py-2 md:py-3 text-right text-xs font-medium text-gray-600">
-                  KL
+                <th className="px-3 md:px-4 py-3 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  KL (kg)
                 </th>
-                <th className="px-2 md:px-4 py-2 md:py-3 text-center text-xs font-medium text-gray-600">
-                  %
+                <th className="px-3 md:px-4 py-3 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  Hiệu suất
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-gray-100 bg-white">
               {routeData.staffPerformances
                 ?.sort((a, b) => b.totalGoods - a.totalGoods)
                 .map((staff, index) => {
@@ -384,37 +509,43 @@ const RouteCard = ({ routeData, maxValues, formatCurrency }) => {
                       key={staff.staffCode}
                       className="hover:bg-blue-50 transition-colors"
                     >
-                      <td className="px-2 md:px-4 py-2 md:py-3 text-xs md:text-sm text-gray-700">
-                        {index + 1}
+                      <td className="px-3 md:px-4 py-3">
+                        <span className="text-xs md:text-sm font-semibold text-gray-600">
+                          {index + 1}
+                        </span>
                       </td>
-                      <td className="px-2 md:px-4 py-2 md:py-3">
-                        <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-semibold whitespace-nowrap">
+                      <td className="px-3 md:px-4 py-3">
+                        <span className="inline-block px-2.5 py-1 bg-blue-100 text-blue-700 rounded-md text-xs font-bold whitespace-nowrap border border-blue-200">
                           {staff.staffCode}
                         </span>
                       </td>
-                      <td className="px-2 md:px-4 py-2 md:py-3 text-xs md:text-sm text-gray-900">
-                        {staff.name}
+                      <td className="px-3 md:px-4 py-3">
+                        <span className="text-xs md:text-sm font-medium text-gray-800">
+                          {staff.name}
+                        </span>
                       </td>
-                      <td className="px-2 md:px-4 py-2 md:py-3 text-xs md:text-sm text-right font-semibold text-gray-900">
-                        {formatCurrency(staff.totalGoods)}
+                      <td className="px-3 md:px-4 py-3 text-right">
+                        <span className="text-xs md:text-sm font-bold text-gray-800">
+                          {formatCurrency(staff.totalGoods)}
+                        </span>
                       </td>
-                      <td className="px-2 md:px-4 py-2 md:py-3 text-xs md:text-sm text-right text-gray-600">
-                        {staff.totalNetWeight.toFixed(2)}
+                      <td className="px-3 md:px-4 py-3 text-right">
+                        <span className="text-xs md:text-sm font-semibold text-gray-600">
+                          {staff.totalNetWeight.toFixed(2)}
+                        </span>
                       </td>
-                      <td className="px-2 md:px-4 py-2 md:py-3">
-                        <div className="flex items-center justify-center gap-1 md:gap-2">
-                          <div className="w-12 md:w-16 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                      <td className="px-3 md:px-4 py-3">
+                        <div className="flex items-center justify-center gap-2">
+                          <div className="w-16 md:w-20 h-2 bg-gray-200 rounded-full overflow-hidden">
                             <div
                               className={`h-full ${getPerformanceColor(
                                 performancePercent,
                                 100
                               )} transition-all duration-500`}
-                              style={{
-                                width: `${performancePercent}%`,
-                              }}
-                            ></div>
+                              style={{ width: `${performancePercent}%` }}
+                            />
                           </div>
-                          <span className="text-xs font-semibold text-gray-600 w-8 md:w-10 text-right">
+                          <span className="text-xs font-bold text-gray-700 w-10 text-right">
                             {performancePercent.toFixed(0)}%
                           </span>
                         </div>
@@ -433,30 +564,29 @@ const RouteCard = ({ routeData, maxValues, formatCurrency }) => {
 const DashboardKPI = () => {
   const [data, setData] = useState({});
   const [loading, setLoading] = useState(false);
-  const [routes, setRoutes] = useState([]);
+  const [routes, setRoutes] = useState([]); // ✅ để hiển thị label route ở header (không bắt buộc)
   const [showFilterDialog, setShowFilterDialog] = useState(false);
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
 
-  // ✅ Fetch routes once on mount
+  // ✅ optional: load routes để hiển thị tên tuyến trên header label
   useEffect(() => {
+    const fetchRoutes = async () => {
+      try {
+        const list = await managerRoutesService.getRoutes();
+        setRoutes(list || []);
+      } catch {
+        setRoutes([]);
+      }
+    };
     fetchRoutes();
   }, []);
 
-  // ✅ Fetch KPI when filters change (FIX BUG CHÍNH)
   useEffect(() => {
     const controller = new AbortController();
     fetchKPI(controller.signal);
     return () => controller.abort();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters]);
-
-  const fetchRoutes = async () => {
-    try {
-      const data = await routesService.getRoutes();
-      setRoutes(data || []);
-    } catch (error) {
-      console.error("Error fetching routes:", error);
-    }
-  };
 
   const fetchKPI = async (signal) => {
     setLoading(true);
@@ -468,16 +598,13 @@ const DashboardKPI = () => {
         params.endDate = filters.endDate;
       }
 
-      if (filters.routeId) {
-        params.routeId = filters.routeId;
-      }
+      if (filters.routeId) params.routeId = filters.routeId;
 
       const res = await dashboardService.getRoutesKPI(params, { signal });
       setData(res.data || {});
     } catch (error) {
-      if (error.name !== "AbortError") {
+      if (error.name !== "AbortError")
         console.error("Error fetching KPI:", error);
-      }
     } finally {
       setLoading(false);
     }
@@ -490,12 +617,13 @@ const DashboardKPI = () => {
 
   const getFilterLabel = () => {
     const type = FILTER_TYPES.find((t) => t.value === filters.filterType);
-    const route = routes.find((r) => r.routeId === filters.routeId);
+    const route = routes.find(
+      (r) => String(r.routeId) === String(filters.routeId)
+    );
 
     let label = type?.label || "Tháng này";
-    if (route) {
-      label += ` - ${route.name}`;
-    }
+    if (route) label += ` - ${route.name}`;
+
     if (
       filters.filterType === "CUSTOM" &&
       filters.startDate &&
@@ -507,7 +635,6 @@ const DashboardKPI = () => {
     return label;
   };
 
-  // ✅ Memoized calculations
   const totals = useMemo(() => {
     let totalGoods = 0;
     let totalWeight = 0;
@@ -543,108 +670,116 @@ const DashboardKPI = () => {
     );
   }, [data]);
 
+  const skeletonRouteCount = Math.max(2, Math.min(8, routes?.length || 4));
+
   return (
-    <div className="min-h-screen">
-      <div className="mx-auto p-4 md:p-6">
+    <div className="min-h-screen ">
+      <div className="mx-auto p-4 md:p-6 lg:p-8">
         {/* Header */}
         <div className="mb-6 md:mb-8">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
-              <div className="w-1 h-6 md:h-8 bg-gradient-to-b from-blue-500 to-blue-600 rounded-full"></div>
-              <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
+              <div className="w-1.5 h-8 md:h-10 bg-gradient-to-b from-blue-600 to-blue-700 rounded-full"></div>
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
                 Thống kê hiệu suất nhân viên
               </h1>
             </div>
 
-            {/* Filter Button */}
             <button
               onClick={() => setShowFilterDialog(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg"
+              className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-md hover:shadow-lg font-semibold"
             >
               <Filter className="w-4 h-4" />
-              <span className="hidden sm:inline text-sm font-semibold">
-                Bộ lọc
-              </span>
+              <span className="hidden sm:inline text-sm">Bộ lọc</span>
             </button>
           </div>
 
-          {/* Active Filter Display */}
-          <div className="mt-3 flex items-center gap-2 text-sm text-gray-600">
-            <Calendar className="w-4 h-4" />
-            <span className="font-medium">{getFilterLabel()}</span>
+          <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg w-fit">
+            <Calendar className="w-4 h-4 text-blue-600" />
+            <span className="text-sm font-semibold text-blue-800">
+              {getFilterLabel()}
+            </span>
           </div>
         </div>
 
-        {/* Filter Dialog */}
         <FilterDialog
           show={showFilterDialog}
           filters={filters}
-          routes={routes}
           onClose={() => setShowFilterDialog(false)}
           onApply={handleApplyFilter}
-          onReset={() => setFilters(DEFAULT_FILTERS)}
         />
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
-          <SummaryCard
-            icon={Truck}
-            label="Tổng tuyến"
-            value={Object.keys(data).length}
-            unit="Đang hoạt động"
-            gradient="from-blue-500 to-blue-600"
-          />
-          <SummaryCard
-            icon={DollarSign}
-            label="Tổng giá trị"
-            value={formatCurrency(totals.totalGoods)}
-            unit="VNĐ"
-            gradient="from-green-500 to-green-600"
-          />
-          <SummaryCard
-            icon={Weight}
-            label="Trọng lượng"
-            value={totals.totalWeight.toFixed(2)}
-            unit="Kilogram"
-            gradient="from-orange-500 to-orange-600"
-          />
-          <SummaryCard
-            icon={Users}
-            label="Nhân viên"
-            value={totals.totalStaff}
-            unit="Tổng số"
-            gradient="from-purple-500 to-purple-600"
-          />
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 md:mb-8">
+          {loading ? (
+            <>
+              <SummaryCardSkeleton bgGradient="from-blue-50 to-blue-100" />
+              <SummaryCardSkeleton bgGradient="from-green-50 to-green-100" />
+              <SummaryCardSkeleton bgGradient="from-orange-50 to-orange-100" />
+              <SummaryCardSkeleton bgGradient="from-purple-50 to-purple-100" />
+            </>
+          ) : (
+            <>
+              <SummaryCard
+                icon={Truck}
+                label="Tổng tuyến"
+                value={Object.keys(data).length}
+                unit="Đang hoạt động"
+                iconColor="bg-blue-600"
+                bgGradient="from-red-200 to-red-200"
+              />
+              <SummaryCard
+                icon={DollarSign}
+                label="Tổng giá trị"
+                value={formatCurrency(totals.totalGoods)}
+                unit="VNĐ"
+                iconColor="bg-green-600"
+                bgGradient="from-green-50 to-green-100"
+              />
+              <SummaryCard
+                icon={Weight}
+                label="Trọng lượng"
+                value={totals.totalWeight.toFixed(2)}
+                unit="Kilogram"
+                iconColor="bg-orange-600"
+                bgGradient="from-orange-50 to-orange-100"
+              />
+              <SummaryCard
+                icon={Users}
+                label="Nhân viên"
+                value={totals.totalStaff}
+                unit="Tổng số"
+                iconColor="bg-purple-600"
+                bgGradient="from-purple-50 to-purple-100"
+              />
+            </>
+          )}
         </div>
 
         {/* Routes Grid */}
         {loading ? (
-          <div className="flex flex-col justify-center items-center py-12 md:py-20">
-            <div className="relative">
-              <Loader2 className="w-12 h-12 md:w-16 md:h-16 text-blue-600 animate-spin" />
-            </div>
-            <p className="text-gray-600 mt-4 font-medium text-sm md:text-base">
-              Đang tải dữ liệu...
-            </p>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 md:gap-6">
+            {Array.from({ length: skeletonRouteCount }).map((_, i) => (
+              <RouteCardSkeleton key={i} />
+            ))}
           </div>
         ) : Object.keys(data).length === 0 ? (
-          <div className="bg-white rounded-xl md:rounded-2xl shadow-lg p-8 md:p-12 text-center border border-gray-100">
-            <BarChart3 className="w-12 h-12 md:w-16 md:h-16 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500 text-base md:text-lg font-medium">
+          <div className="bg-white rounded-xl shadow-md p-10 md:p-16 text-center border border-gray-100">
+            <BarChart3 className="w-14 h-14 md:w-16 md:h-16 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-600 text-base md:text-lg font-semibold mb-2">
               Không có dữ liệu
             </p>
-            <p className="text-gray-400 text-xs md:text-sm mt-2">
+            <p className="text-gray-500 text-sm md:text-base">
               Vui lòng thử lại với bộ lọc khác
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 md:gap-6">
             {Object.entries(data).map(([routeKey, routeData]) => (
               <RouteCard
                 key={routeKey}
                 routeData={routeData}
                 maxValues={maxValues}
-                formatCurrency={formatCurrency}
               />
             ))}
           </div>

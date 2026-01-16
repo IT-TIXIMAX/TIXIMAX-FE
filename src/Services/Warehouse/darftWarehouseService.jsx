@@ -58,9 +58,11 @@ const draftWarehouseService = {
     return data;
   },
   scanVNPost: async (trackingCode, shipCode, carrier) => {
-    const { data } = await api.post(
-      `/domestics/scan-to-ship/${trackingCode}/${shipCode}/${carrier}`
-    );
+    const { data } = await api.post("/domestics/scan-to-ship", {
+      trackingCode,
+      shipCode,
+      carrier,
+    });
     return data;
   },
   getLockedDrafts: async (endDate) => {
