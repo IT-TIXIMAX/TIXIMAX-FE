@@ -8,9 +8,11 @@ import {
   TruckIcon,
   RefreshCw,
   ShoppingCart,
+  Edit2, // ✅ Import icon Edit
 } from "lucide-react";
 import managerOrderService from "../../Services/Manager/managerOrderService";
 import DetailOrderSale from "../Manager/DetailForSale/DetailOrderSale";
+import DetailOrderLink from "./DetailOrderLink";
 import AccountSearch from "../Order/AccountSearch";
 
 const PAGE_SIZES = [50, 100, 200];
@@ -72,6 +74,10 @@ const OrderList = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [loadingDetail, setLoadingDetail] = useState(false);
+
+  // ✅ Edit modal states
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editOrderId, setEditOrderId] = useState(null);
 
   // Constants
   const availableStatuses = useMemo(
@@ -199,16 +205,6 @@ const OrderList = () => {
     setCurrentPage(0);
   }, [searchOrderCode, selectedCustomer, searchShipmentCode]);
 
-  const handleClearSearch = useCallback(() => {
-    setSearchOrderCode("");
-    setSelectedCustomer(null);
-    setSearchShipmentCode("");
-    setAppliedOrderCode("");
-    setAppliedCustomerCode("");
-    setAppliedShipmentCode("");
-    setCurrentPage(0);
-  }, []);
-
   const hasActiveSearch = useMemo(() => {
     return appliedOrderCode || appliedCustomerCode || appliedShipmentCode;
   }, [appliedOrderCode, appliedCustomerCode, appliedShipmentCode]);
@@ -265,6 +261,17 @@ const OrderList = () => {
     setShowDetailModal(false);
     setSelectedOrder(null);
     setLoadingDetail(false);
+  }, []);
+
+  // ✅ Edit order handlers
+  const handleEdit = useCallback((orderId) => {
+    setEditOrderId(orderId);
+    setShowEditModal(true);
+  }, []);
+
+  const handleCloseEdit = useCallback(() => {
+    setShowEditModal(false);
+    setEditOrderId(null);
   }, []);
 
   // Utility functions
@@ -701,17 +708,28 @@ const OrderList = () => {
                           </span>
                         </td>
 
+                        {/* ✅ Thao Tác: 2 buttons Xem và Sửa */}
                         <td className="px-4 py-4">
-                          <button
-                            onClick={() =>
-                              handleViewDetail(order.orderId, order)
-                            }
-                            className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-all flex items-center gap-2 mx-auto text-sm"
-                            type="button"
-                          >
-                            <Eye size={16} />
-                            Xem
-                          </button>
+                          <div className="flex items-center justify-center gap-2">
+                            <button
+                              onClick={() => handleEdit(order.orderId)}
+                              className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition-all flex items-center gap-2 text-sm"
+                              type="button"
+                              title="Chỉnh sửa"
+                            >
+                              Chỉnh Sửa
+                            </button>
+                            <button
+                              onClick={() =>
+                                handleViewDetail(order.orderId, order)
+                              }
+                              className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-all flex items-center gap-2 text-sm"
+                              type="button"
+                              title="Xem chi tiết"
+                            >
+                              Xem
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );
@@ -791,6 +809,15 @@ const OrderList = () => {
           onClose={handleCloseDetail}
           availableStatuses={availableStatuses}
           isLoading={loadingDetail}
+        />
+      )}
+
+      {/* ✅ Edit Modal */}
+      {showEditModal && (
+        <DetailOrderLink
+          orderId={editOrderId}
+          isOpen={showEditModal}
+          onClose={handleCloseEdit}
         />
       )}
     </div>

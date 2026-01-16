@@ -348,7 +348,6 @@ const Router = createBrowserRouter([
     children: [
       {
         index: true,
-        // element: <StaffSalePage />,
         element: <StaffProfile />,
       },
       { path: "profile", element: <StaffProfile /> },

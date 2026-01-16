@@ -165,6 +165,14 @@ const managerOrderService = {
     // { key: "DA_HOAN_THANH", label: "Đã hoàn thành", color: "emerald" },
     // { key: "DA_HUY", label: "Đã hủy", color: "red" },
   ],
+  getOrderDetails: async (orderId) => {
+    const { data } = await api.get(`/orders/${orderId}`);
+    return data;
+  },
+  updateOrder: async (orderId, payload) => {
+    const { data } = await api.patch(`/orders/${orderId}`, payload);
+    return data;
+  },
 };
 
 export default managerOrderService;
