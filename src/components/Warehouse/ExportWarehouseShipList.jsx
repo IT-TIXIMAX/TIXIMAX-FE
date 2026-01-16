@@ -10,11 +10,17 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  Filter,
 } from "lucide-react";
 import draftWarehouseService from "../../Services/Warehouse/darftWarehouseService";
 import CreateExportWarehouse from "./CreateExoportWarehouse";
 
 const PAGE_SIZES = [50, 100, 200];
+const CARRIER_OPTIONS = [
+  { value: "ALL", label: "Tất cả" },
+  { value: "VNPOST", label: "VNPost" },
+  { value: "OTHER", label: "Khác" },
+];
 
 /* ===================== Skeletons ===================== */
 const StatCardSkeleton = () => (
@@ -60,6 +66,7 @@ const ExportWarehouseShipList = () => {
 
   const [filterCustomerCode, setFilterCustomerCode] = useState("");
   const [filterShipmentCode, setFilterShipmentCode] = useState("");
+  const [filterCarrier, setFilterCarrier] = useState("ALL"); // ✅ Thêm carrier filter
 
   const [selectedShipment, setSelectedShipment] = useState(null);
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
@@ -67,15 +74,19 @@ const ExportWarehouseShipList = () => {
   useEffect(() => {
     fetchShipments();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, pageSize, filterCustomerCode, filterShipmentCode]);
+  }, [page, pageSize, filterCustomerCode, filterShipmentCode, filterCarrier]);
 
   const fetchShipments = async () => {
     try {
       setLoading(true);
 
-      const params = { lock: true };
+      // ✅ Đổi từ lock: true sang status: "EXPORTED"
+      const params = { status: "EXPORTED" };
+
       if (filterCustomerCode) params.customerCode = filterCustomerCode;
       if (filterShipmentCode) params.shipmentCode = filterShipmentCode;
+      if (filterCarrier && filterCarrier !== "ALL")
+        params.carrier = filterCarrier; // ✅ Thêm carrier
 
       const response = await draftWarehouseService.getShippingAddressList(
         page,
@@ -115,14 +126,6 @@ const ExportWarehouseShipList = () => {
     setPage(0);
   };
 
-  const handleClearSearch = () => {
-    setSearchCustomerCode("");
-    setSearchShipmentCode("");
-    setFilterCustomerCode("");
-    setFilterShipmentCode("");
-    setPage(0);
-  };
-
   const handleExport = (shipment) => {
     setSelectedShipment(shipment);
     setIsExportDialogOpen(true);
@@ -159,7 +162,7 @@ const ExportWarehouseShipList = () => {
                 <Truck size={22} className="text-white" />
               </div>
               <h1 className="text-xl font-semibold text-white">
-                Danh Sách Đơn Hàng Xuất Kho
+                Danh Sách Đơn Hàng Đã Xuất Kho
               </h1>
             </div>
 
@@ -257,7 +260,11 @@ const ExportWarehouseShipList = () => {
                   />
                   {searchCustomerCode && (
                     <button
-                      onClick={() => setSearchCustomerCode("")}
+                      onClick={() => {
+                        setSearchCustomerCode("");
+                        setFilterCustomerCode("");
+                        setPage(0);
+                      }}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                       type="button"
                     >
@@ -283,7 +290,11 @@ const ExportWarehouseShipList = () => {
                   />
                   {searchShipmentCode && (
                     <button
-                      onClick={() => setSearchShipmentCode("")}
+                      onClick={() => {
+                        setSearchShipmentCode("");
+                        setFilterShipmentCode("");
+                        setPage(0);
+                      }}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                       type="button"
                     >
@@ -303,41 +314,60 @@ const ExportWarehouseShipList = () => {
                   <Search size={18} />
                   Tìm kiếm
                 </button>
-
-                {(filterCustomerCode || filterShipmentCode) && (
-                  <button
-                    onClick={handleClearSearch}
-                    disabled={loading}
-                    className="px-4 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
-                    type="button"
-                  >
-                    <X size={18} />
-                    Xóa lọc
-                  </button>
-                )}
               </div>
             </div>
 
-            {/* Page Size Selector */}
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-medium text-gray-700 whitespace-nowrap">
-                Hiển thị:
-              </span>
-              <div className="flex gap-2">
-                {PAGE_SIZES.map((size) => (
-                  <button
-                    key={size}
-                    onClick={() => handlePageSizeChange(size)}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                      pageSize === size
-                        ? "bg-blue-600 text-white shadow-sm"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    }`}
-                    type="button"
-                  >
-                    {size}
-                  </button>
-                ))}
+            {/* ✅ Carrier Filter + Page Size */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              {/* Carrier Filter */}
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                    Đơn vị vận chuyển:
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  {CARRIER_OPTIONS.map((option) => (
+                    <button
+                      key={option.value}
+                      onClick={() => {
+                        setFilterCarrier(option.value);
+                        setPage(0);
+                      }}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                        filterCarrier === option.value
+                          ? "bg-blue-600 text-white shadow-sm"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      }`}
+                      type="button"
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Page Size Selector */}
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                  Hiển thị:
+                </span>
+                <div className="flex gap-2">
+                  {PAGE_SIZES.map((size) => (
+                    <button
+                      key={size}
+                      onClick={() => handlePageSizeChange(size)}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                        pageSize === size
+                          ? "bg-blue-600 text-white shadow-sm"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      }`}
+                      type="button"
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -369,8 +399,8 @@ const ExportWarehouseShipList = () => {
                     <th className="px-4 py-4 text-left text-sm font-semibold">
                       Địa Chỉ
                     </th>
-                    <th className="px-4 py-4 text-left text-sm font-semibold">
-                      Danh Sách Mã Vận Đơn
+                    <th className="px-4 py-4 text-left text-sm font-semibold whitespace-nowrap">
+                      Đơn Vị Vận Chuyển
                     </th>
                     <th className="px-4 py-4 text-left text-sm font-semibold whitespace-nowrap">
                       Trọng Lượng
@@ -415,7 +445,6 @@ const ExportWarehouseShipList = () => {
                           {item.address}
                         </span>
                       </td>
-
                       <td className="px-4 py-4">
                         <div className="flex flex-wrap gap-2">
                           {item.shippingList?.length > 0 ? (
@@ -452,13 +481,17 @@ const ExportWarehouseShipList = () => {
                       </td>
 
                       <td className="px-4 py-4">
-                        {item.vnpostTrackingCode ? (
-                          <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-md font-medium">
-                            {item.vnpostTrackingCode}
+                        {filterCarrier === "VNPOST" ? (
+                          <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs rounded-full font-semibold inline-flex items-center gap-1">
+                            VNPOST
+                          </span>
+                        ) : filterCarrier === "OTHER" ? (
+                          <span className="px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded-full font-semibold inline-flex items-center gap-1">
+                            OTHER
                           </span>
                         ) : (
-                          <span className="text-sm text-gray-400 italic">
-                            Chưa có
+                          <span className="px-3 py-1 bg-purple-100 text-purple-700 text-xs rounded-full font-semibold">
+                            Tất cả
                           </span>
                         )}
                       </td>
@@ -574,6 +607,7 @@ const ExportWarehouseShipList = () => {
           setSelectedShipment(null);
         }}
         shipment={selectedShipment}
+        carrier={filterCarrier === "ALL" ? "VNPOST" : filterCarrier}
         onSuccess={fetchShipments}
       />
     </div>

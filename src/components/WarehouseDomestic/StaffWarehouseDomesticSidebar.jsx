@@ -78,16 +78,16 @@ const StaffWarehouseDomesticSidebar = () => {
       title: "Quản lý đơn hàng nội địa sẵn sàng giao",
     },
     {
-      text: "Tra cứu đơn xuất kho",
-      icon: <Search className="w-6 h-6" />,
-      path: "/staff-warehouse-domestic/exports",
-      title: "Tra cứu theo mã đơn hàng, mã vận đơn",
-    },
-    {
       text: "In mã vận đơn VN POST",
       icon: <FileSpreadsheet className="w-6 h-6" />,
       path: "/staff-warehouse-domestic/reports-vnpost",
       title: "Xem báo cáo thống kê xuất nhập kho",
+    },
+    {
+      text: "Tra cứu đơn xuất kho",
+      icon: <Search className="w-6 h-6" />,
+      path: "/staff-warehouse-domestic/exports",
+      title: "Tra cứu theo mã đơn hàng, mã vận đơn",
     },
 
     {

@@ -1,7 +1,6 @@
 import api from "../../config/api";
 
 const draftWarehouseService = {
-  // Lấy danh sách đơn hàng nháp có thể thêm vào kho
   getAvailableToAdd: async (page = 0, size = 10, params = {}) => {
     const queryParams = new URLSearchParams();
 
@@ -28,7 +27,9 @@ const draftWarehouseService = {
       queryParams.append("customerCode", params.customerCode);
     if (params.shipmentCode)
       queryParams.append("shipmentCode", params.shipmentCode);
-    if (params.lock !== undefined) queryParams.append("lock", params.lock);
+    if (params.status) queryParams.append("status", params.status); // ✅ Thêm status
+    if (params.carrier) queryParams.append("carrier", params.carrier); // ✅ Thêm carrier
+
     const queryString = queryParams.toString();
     const url = `/draft-domestics/${page}/${size}${
       queryString ? `?${queryString}` : ""
@@ -56,15 +57,15 @@ const draftWarehouseService = {
     );
     return data;
   },
-  scanVNPost: async (trackingCode, shipCode) => {
+  scanVNPost: async (trackingCode, shipCode, carrier) => {
     const { data } = await api.post(
-      `/domestics/scan-vnpost/${trackingCode}/${shipCode}`
+      `/domestics/scan-to-ship/${trackingCode}/${shipCode}/${carrier}`
     );
     return data;
   },
   getLockedDrafts: async (endDate) => {
     const { data } = await api.get("/draft-domestics/locked", {
-      params: { endDate }, // => ?endDate=2026-01-15
+      params: { endDate },
     });
     return data;
   },

@@ -3,7 +3,13 @@ import { X, Package, Truck } from "lucide-react";
 import toast from "react-hot-toast";
 import draftWarehouseService from "../../Services/Warehouse/darftWarehouseService";
 
-const CreateExportWarehouse = ({ isOpen, onClose, shipment, onSuccess }) => {
+const CreateExportWarehouse = ({
+  isOpen,
+  onClose,
+  shipment,
+  carrier,
+  onSuccess,
+}) => {
   const [trackingCode, setTrackingCode] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -13,15 +19,17 @@ const CreateExportWarehouse = ({ isOpen, onClose, shipment, onSuccess }) => {
     e.preventDefault();
 
     if (!trackingCode.trim()) {
-      toast.error("Vui lòng nhập mã vận đơn VNPost");
+      toast.error("Vui lòng nhập mã vận đơn");
       return;
     }
 
     try {
       setLoading(true);
+      // ✅ Truyền carrier vào API
       await draftWarehouseService.scanVNPost(
         trackingCode.trim(),
-        shipment.shipCode
+        shipment.shipCode,
+        carrier || "VNPOST" // Default VNPOST nếu không có
       );
       toast.success("Xuất kho thành công!");
       setTrackingCode("");
@@ -107,6 +115,27 @@ const CreateExportWarehouse = ({ isOpen, onClose, shipment, onSuccess }) => {
                   {shipment?.weight} kg
                 </span>
               </div>
+              {/* ✅ Hiển thị carrier */}
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-gray-600">
+                  Đơn vị vận chuyển:
+                </span>
+                {carrier === "VNPOST" ? (
+                  <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full font-semibold inline-flex items-center gap-1">
+                    <Truck size={12} />
+                    VNPost
+                  </span>
+                ) : carrier === "OTHER" ? (
+                  <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full font-semibold inline-flex items-center gap-1">
+                    <Package size={12} />
+                    Khác
+                  </span>
+                ) : (
+                  <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full font-semibold">
+                    Tất cả
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 
@@ -114,19 +143,22 @@ const CreateExportWarehouse = ({ isOpen, onClose, shipment, onSuccess }) => {
           <form onSubmit={handleSubmit}>
             <div className="mb-6">
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Mã vận đơn VNPost <span className="text-red-500">*</span>
+                Mã vận đơn {carrier === "VNPOST" ? "VNPost" : "vận chuyển"}{" "}
+                <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 value={trackingCode}
                 onChange={(e) => setTrackingCode(e.target.value)}
-                placeholder="Nhập mã vận đơn VNPost..."
+                placeholder={`Nhập mã vận đơn ${
+                  carrier === "VNPOST" ? "VNPost" : "vận chuyển"
+                }...`}
                 disabled={loading}
                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg outline-none focus:ring-0 focus:border-blue-500 transition-all disabled:bg-gray-100"
                 autoFocus
               />
               <p className="text-xs text-gray-500 mt-2">
-                Nhập mã vận đơn VNPost để xác nhận xuất kho
+                Nhập mã vận đơn để xác nhận xuất kho
               </p>
             </div>
 
