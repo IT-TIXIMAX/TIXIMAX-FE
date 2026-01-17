@@ -21,7 +21,7 @@ import {
 const useCountAnimation = (
   targetValue,
   shouldAnimate = true,
-  duration = 800
+  duration = 800,
 ) => {
   const [displayValue, setDisplayValue] = useState(targetValue);
   const prevTargetRef = useRef(targetValue);
@@ -141,16 +141,15 @@ const DashboardManager = () => {
     setLoadingOverview(true);
     setError(null);
     try {
-      const filterRes = await dashboardService.getDashboardFilter(
-        currentFilter
-      );
+      const filterRes =
+        await dashboardService.getDashboardFilter(currentFilter);
       setStats(filterRes?.data || DEFAULT_STATS);
     } catch (err) {
       console.error(err);
       setError(
         err?.response?.data?.message ||
           err?.message ||
-          "Đã xảy ra lỗi khi tải dữ liệu Tổng quan."
+          "Đã xảy ra lỗi khi tải dữ liệu Tổng quan.",
       );
       setStats(DEFAULT_STATS);
     } finally {
@@ -180,13 +179,13 @@ const DashboardManager = () => {
         paymentsRes?.data || {
           totalCollectedAmount: 0,
           totalShipAmount: 0,
-        }
+        },
       );
       setOrders(
         ordersRes?.data || {
           newOrderLinks: 0,
           newOrders: 0,
-        }
+        },
       );
       setCustomers(customersRes?.data || { newCustomers: 0 });
 
@@ -200,7 +199,7 @@ const DashboardManager = () => {
       setError(
         err?.response?.data?.message ||
           err?.message ||
-          "Đã xảy ra lỗi khi tải dữ liệu Chi tiết."
+          "Đã xảy ra lỗi khi tải dữ liệu Chi tiết.",
       );
 
       if (!silent) {

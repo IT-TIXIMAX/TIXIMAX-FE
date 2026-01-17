@@ -398,16 +398,16 @@ const DashboardWarehouseDomestic = () => {
     ? {
         totalCodes: Object.values(dashboardData).reduce(
           (sum, item) => sum + (item.totalCodes || 0),
-          0
+          0,
         ),
         totalWeight: Object.values(dashboardData).reduce(
           (sum, item) => sum + (item.totalWeight || 0),
-          0
+          0,
         ),
         totalCustomers: Math.max(
           ...Object.values(dashboardData).map(
-            (item) => item.totalCustomers || 0
-          )
+            (item) => item.totalCustomers || 0,
+          ),
         ),
       }
     : null;
@@ -514,7 +514,7 @@ const DashboardWarehouseDomestic = () => {
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
-                    <div className="text-blue-100 text-xl font-medium mb-1">
+                    <div className="text-blue-50 text-xl font-medium mb-1">
                       Tổng mã vận đơn
                     </div>
                     <div className="text-white text-2xl md:text-3xl font-bold">
@@ -522,7 +522,7 @@ const DashboardWarehouseDomestic = () => {
                     </div>
                   </div>
                   <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
-                    <div className="text-blue-100 text-xl font-medium mb-1">
+                    <div className="text-blue-50 text-xl font-medium mb-1">
                       Tổng khối lượng
                     </div>
                     <div className="text-white text-2xl md:text-3xl font-bold">
@@ -530,7 +530,7 @@ const DashboardWarehouseDomestic = () => {
                     </div>
                   </div>
                   <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
-                    <div className="text-blue-100 text-xs font-medium mb-1">
+                    <div className="text-blue-50 text-xl font-medium mb-1">
                       Tổng khách hàng
                     </div>
                     <div className="text-white text-2xl md:text-3xl font-bold">

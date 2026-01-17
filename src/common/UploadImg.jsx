@@ -7,7 +7,7 @@ const UploadImg = ({
   imageUrl = "",
   onImageUpload,
   onImageRemove,
-  label = "Hình ảnh",
+  label = "Img",
   required = false,
   maxSizeMB = 3,
   placeholder = "Chưa có ảnh",
@@ -55,7 +55,7 @@ const UploadImg = ({
     } catch (error) {
       console.error("Lỗi upload:", error);
       toast.error(
-        "Upload thất bại: " + (error.response?.data?.error || error.message)
+        "Upload thất bại: " + (error.response?.data?.error || error.message),
       );
     } finally {
       setUploading(false);

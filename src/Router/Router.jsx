@@ -441,7 +441,7 @@ const Router = createBrowserRouter([
       </ProtectedRoute>
     ),
     children: [
-      { index: true, element: <StaffWarehouseDomesticPage /> },
+      { index: true, element: <DashboardWarehouseDomestic /> },
       { path: "profile", element: <StaffProfile /> },
       { path: "dashboard", element: <DashboardWarehouseDomestic /> },
       { path: "inventory", element: <WarehouseDomestic /> },

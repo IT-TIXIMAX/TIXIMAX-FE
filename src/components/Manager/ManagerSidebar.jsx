@@ -72,11 +72,11 @@ const ManagerSidebar = () => {
           icon: <BookKey />,
           path: "/manager/permission",
         },
-        {
-          text: t("Thành viên"),
-          icon: <UserCheck />,
-          path: "/manager/stafflead",
-        },
+        // {
+        //   text: t("Thành viên"),
+        //   icon: <UserCheck />,
+        //   path: "/manager/stafflead",
+        // },
         {
           text: t("Tạo nhân viên"),
           icon: <UserRoundPlus />,
@@ -241,7 +241,7 @@ const ManagerSidebar = () => {
           useConfirm={true}
           confirmMessage={t(
             "confirmLogout",
-            "Bạn có chắc chắn muốn đăng xuất?"
+            "Bạn có chắc chắn muốn đăng xuất?",
           )}
           showIcon={true}
         />

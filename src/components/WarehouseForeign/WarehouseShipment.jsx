@@ -120,7 +120,7 @@ const WarehouseShipment = () => {
     const checkRequired = orderInfo.orders?.checkRequired;
     if (checkRequired === true && !formData.imageCheck) {
       toast.error(
-        "Please upload the check image since order requires checking"
+        "Please upload the check image since order requires checking",
       );
       return;
     }
@@ -228,10 +228,7 @@ const WarehouseShipment = () => {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Tracking Number <span className="text-red-500">*</span>
               </label>
-              <p className="text-xs text-gray-500 mb-2">
-                Enter or scan tracking number. It will be automatically
-                converted to UPPERCASE.
-              </p>
+
               <div className="relative">
                 <input
                   id="trackingNumber"
