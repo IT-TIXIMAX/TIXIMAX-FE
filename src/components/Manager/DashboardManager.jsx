@@ -1,6 +1,6 @@
 // DashboardManager.jsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom"; // ✅ THÊM
+import { useNavigate } from "react-router-dom";
 import dashboardService from "../../Services/Dashboard/dashboardService";
 import { useWebSocket } from "../../hooks/useWebSocket";
 import {
@@ -15,6 +15,7 @@ import {
   UserPlus,
   Users,
   Loader2,
+  ChevronRight,
 } from "lucide-react";
 
 const useCountAnimation = (
@@ -61,9 +62,7 @@ const useCountAnimation = (
     animationRef.current = requestAnimationFrame(animate);
 
     return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
+      if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
   }, [targetValue, shouldAnimate, duration]);
 
@@ -77,10 +76,7 @@ const AnimatedNumber = ({
   className = "",
 }) => {
   const animatedValue = useCountAnimation(value || 0, shouldAnimate, 800);
-
-  const formatNumber = (val) => {
-    return Number(val).toLocaleString("vi-VN");
-  };
+  const formatNumber = (val) => Number(val).toLocaleString("vi-VN");
 
   return (
     <span className={className}>
@@ -109,7 +105,7 @@ const DEFAULT_STATS = {
 };
 
 const DashboardManager = () => {
-  const navigate = useNavigate(); // ✅ THÊM useNavigate
+  const navigate = useNavigate();
   const [filterType, setFilterType] = useState("DAY");
 
   const [stats, setStats] = useState(DEFAULT_STATS);
@@ -195,9 +191,7 @@ const DashboardManager = () => {
       setCustomers(customersRes?.data || { newCustomers: 0 });
 
       if (silent) {
-        setTimeout(() => {
-          setAnimationKey((prev) => prev + 1);
-        }, 50);
+        setTimeout(() => setAnimationKey((prev) => prev + 1), 50);
       }
 
       setHasLoadedDetailsOnce(true);
@@ -224,6 +218,7 @@ const DashboardManager = () => {
   useEffect(() => {
     fetchOverview(filterType);
     fetchDetails(filterType, false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterType]);
 
   const wsTimerRef = useRef(null);
@@ -294,30 +289,35 @@ const DashboardManager = () => {
   return (
     <div className="min-h-screen px-4 py-6">
       <div className="mx-auto">
-        {/* Header */}
+        {/* ✅ Breadcrumb tách riêng */}
+        <div className="mb-3 flex items-center gap-2 text-xs font-semibold text-gray-700">
+          <span className="px-2 py-1 rounded-lg bg-gray-100 border border-gray-200">
+            Dashboard
+          </span>
+          <ChevronRight className="w-4 h-4 text-gray-400" />
+          <span className="px-2 py-1 rounded-lg bg-white border border-gray-200">
+            Doanh thu & đơn hàng
+          </span>
+        </div>
+
+        {/* ✅ Header tách gọn: Title + Icon / Filter */}
         <div className="mb-6 rounded-2xl border border-gray-200 bg-sky-300 px-6 py-4 shadow-sm">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <div className="flex items-center gap-2 text-xs font-medium text-black mb-1">
-                <span>Dashboard</span>
-                <span className="h-1 w-1 rounded-full bg-black-300" />
-                <span>Doanh thu & đơn hàng</span>
+            {/* Left: icon + title */}
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white">
+                <Banknote className="h-5 w-5 text-sky-600" />
               </div>
-
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white">
-                  <Banknote className="h-5 w-5 text-sky-600" />
-                </div>
-                <div>
-                  <h1 className="text-lg md:text-xl font-semibold text-black">
-                    Thống kê doanh thu & đơn hàng
-                  </h1>
-                </div>
+              <div>
+                <h1 className="text-lg md:text-xl font-semibold text-black">
+                  Thống kê doanh thu & đơn hàng
+                </h1>
               </div>
             </div>
 
+            {/* Right: filter */}
             <div className="flex flex-col items-start gap-2 md:items-end">
-              <span className="text-xs font-medium uppercase tracking-wide text-black-500">
+              <span className="text-xs font-semibold uppercase tracking-wide text-black/70">
                 Khoảng thời gian
               </span>
 

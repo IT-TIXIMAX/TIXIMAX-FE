@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import dashboardService from "../../Services/Dashboard/dashboardService";
+import managerRoutesService from "../../Services/Manager/managerRoutesService";
 import {
   Truck,
   DollarSign,
@@ -9,7 +10,6 @@ import {
   BarChart3,
   Filter,
   X,
-  Trophy,
 } from "lucide-react";
 import FilterRoute from "../Filter/FilterRoute"; // ✅ chỉnh path đúng theo project bạn
 
@@ -28,7 +28,12 @@ const DEFAULT_FILTERS = {
   endDate: "",
 };
 
-const formatCurrency = (value) => new Intl.NumberFormat("vi-VN").format(value);
+/** ✅ Format tiền theo từng tuyến: "12,345 IDR" */
+const formatMoney = (value, currency) => {
+  const n = Number(value || 0);
+  const formatted = new Intl.NumberFormat("vi-VN").format(n);
+  return currency ? `${formatted} ${currency}` : formatted;
+};
 
 const getPerformanceColor = (value, max) => {
   const percent = (value / max) * 100;
@@ -390,14 +395,17 @@ const RouteCard = ({ routeData, maxValues }) => {
               {routeData.staffPerformances?.length || 0}
             </div>
           </div>
-          <div className="text-center p-3  bg-red-200 rounded-lg border border-gray-100 shadow-sm">
+
+          {/* ✅ Tổng giá trị: gắn theo currency = routeName */}
+          <div className="text-center p-3 bg-red-200 rounded-lg border border-gray-100 shadow-sm">
             <div className="text-xl text-black mb-1 font-medium">
               Tổng giá trị
             </div>
             <div className="text-base md:text-lg font-bold text-gray-800 break-words">
-              {formatCurrency(routeTotal.goods)}
+              {formatMoney(routeTotal.goods, routeData.routeName)}
             </div>
           </div>
+
           <div className="text-center p-3 bg-yellow-200 rounded-lg border border-gray-100 shadow-sm">
             <div className="text-xl text-black mb-1 font-medium">Số kg</div>
             <div className="text-xl md:text-2xl font-bold text-gray-800">
@@ -454,7 +462,7 @@ const RouteCard = ({ routeData, maxValues }) => {
                   Giá trị
                 </div>
                 <div className="text-2xs font-bold text-gray-800">
-                  {formatCurrency(topPerformer.totalGoods)} VNĐ
+                  {formatMoney(topPerformer.totalGoods, routeData.routeName)}
                 </div>
               </div>
               <div className="text-right">
@@ -462,7 +470,7 @@ const RouteCard = ({ routeData, maxValues }) => {
                   Khối lượng
                 </div>
                 <div className="text-2xs font-bold text-gray-800">
-                  {topPerformer.totalNetWeight.toFixed(2)} kg
+                  {Number(topPerformer.totalNetWeight || 0).toFixed(2)} kg
                 </div>
               </div>
             </div>
@@ -495,18 +503,20 @@ const RouteCard = ({ routeData, maxValues }) => {
                 </th>
               </tr>
             </thead>
+
             <tbody className="divide-y divide-gray-100 bg-white">
               {routeData.staffPerformances
-                ?.sort((a, b) => b.totalGoods - a.totalGoods)
+                ?.slice()
+                .sort((a, b) => (b.totalGoods || 0) - (a.totalGoods || 0))
                 .map((staff, index) => {
                   const performancePercent =
                     maxGoodsInRoute > 0
-                      ? (staff.totalGoods / maxGoodsInRoute) * 100
+                      ? ((staff.totalGoods || 0) / maxGoodsInRoute) * 100
                       : 0;
 
                   return (
                     <tr
-                      key={staff.staffCode}
+                      key={staff.staffCode || index}
                       className="hover:bg-blue-50 transition-colors"
                     >
                       <td className="px-3 md:px-4 py-3">
@@ -514,26 +524,31 @@ const RouteCard = ({ routeData, maxValues }) => {
                           {index + 1}
                         </span>
                       </td>
+
                       <td className="px-3 md:px-4 py-3">
                         <span className="inline-block px-2.5 py-1 bg-blue-100 text-blue-700 rounded-md text-xs font-bold whitespace-nowrap border border-blue-200">
                           {staff.staffCode}
                         </span>
                       </td>
+
                       <td className="px-3 md:px-4 py-3">
                         <span className="text-xs md:text-sm font-medium text-gray-800">
                           {staff.name}
                         </span>
                       </td>
+
                       <td className="px-3 md:px-4 py-3 text-right">
                         <span className="text-xs md:text-sm font-bold text-gray-800">
-                          {formatCurrency(staff.totalGoods)}
+                          {formatMoney(staff.totalGoods, routeData.routeName)}
                         </span>
                       </td>
+
                       <td className="px-3 md:px-4 py-3 text-right">
                         <span className="text-xs md:text-sm font-semibold text-gray-600">
-                          {staff.totalNetWeight.toFixed(2)}
+                          {Number(staff.totalNetWeight || 0).toFixed(2)}
                         </span>
                       </td>
+
                       <td className="px-3 md:px-4 py-3">
                         <div className="flex items-center justify-center gap-2">
                           <div className="w-16 md:w-20 h-2 bg-gray-200 rounded-full overflow-hidden">
@@ -564,11 +579,10 @@ const RouteCard = ({ routeData, maxValues }) => {
 const DashboardKPI = () => {
   const [data, setData] = useState({});
   const [loading, setLoading] = useState(false);
-  const [routes, setRoutes] = useState([]); // ✅ để hiển thị label route ở header (không bắt buộc)
+  const [routes, setRoutes] = useState([]);
   const [showFilterDialog, setShowFilterDialog] = useState(false);
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
 
-  // ✅ optional: load routes để hiển thị tên tuyến trên header label
   useEffect(() => {
     const fetchRoutes = async () => {
       try {
@@ -581,34 +595,36 @@ const DashboardKPI = () => {
     fetchRoutes();
   }, []);
 
+  const fetchKPI = useCallback(
+    async (signal) => {
+      setLoading(true);
+      try {
+        const params = { filterType: filters.filterType };
+
+        if (filters.filterType === "CUSTOM") {
+          params.startDate = filters.startDate;
+          params.endDate = filters.endDate;
+        }
+
+        if (filters.routeId) params.routeId = filters.routeId;
+
+        const res = await dashboardService.getRoutesKPI(params, { signal });
+        setData(res?.data || {});
+      } catch (error) {
+        if (error?.name !== "AbortError")
+          console.error("Error fetching KPI:", error);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [filters]
+  );
+
   useEffect(() => {
     const controller = new AbortController();
     fetchKPI(controller.signal);
     return () => controller.abort();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters]);
-
-  const fetchKPI = async (signal) => {
-    setLoading(true);
-    try {
-      const params = { filterType: filters.filterType };
-
-      if (filters.filterType === "CUSTOM") {
-        params.startDate = filters.startDate;
-        params.endDate = filters.endDate;
-      }
-
-      if (filters.routeId) params.routeId = filters.routeId;
-
-      const res = await dashboardService.getRoutesKPI(params, { signal });
-      setData(res.data || {});
-    } catch (error) {
-      if (error.name !== "AbortError")
-        console.error("Error fetching KPI:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [fetchKPI]);
 
   const handleApplyFilter = useCallback((newFilters) => {
     setFilters(newFilters);
@@ -636,19 +652,40 @@ const DashboardKPI = () => {
   };
 
   const totals = useMemo(() => {
-    let totalGoods = 0;
     let totalWeight = 0;
     let totalStaff = 0;
 
     Object.values(data).forEach((route) => {
       route.staffPerformances?.forEach((staff) => {
-        totalGoods += staff.totalGoods || 0;
         totalWeight += staff.totalNetWeight || 0;
       });
       totalStaff += route.staffPerformances?.length || 0;
     });
 
-    return { totalGoods, totalWeight, totalStaff };
+    return { totalWeight, totalStaff };
+  }, [data]);
+
+  /** ✅ Tính "Giá trị tuyến cao nhất" + routeName */
+  const bestRoute = useMemo(() => {
+    let best = { value: 0, currency: "", routeKey: "" };
+
+    Object.entries(data || {}).forEach(([key, route]) => {
+      const sumGoods =
+        route?.staffPerformances?.reduce(
+          (acc, s) => acc + (s.totalGoods || 0),
+          0
+        ) || 0;
+
+      if (sumGoods > best.value) {
+        best = {
+          value: sumGoods,
+          currency: route?.routeName || "",
+          routeKey: key,
+        };
+      }
+    });
+
+    return best;
   }, [data]);
 
   const maxValues = useMemo(() => {
@@ -728,14 +765,17 @@ const DashboardKPI = () => {
                 iconColor="bg-blue-600"
                 bgGradient="from-red-200 to-red-200"
               />
+
+              {/* ✅ Đổi: "Tổng giá trị" -> "Giá trị tuyến cao nhất" */}
               <SummaryCard
                 icon={DollarSign}
-                label="Tổng giá trị"
-                value={formatCurrency(totals.totalGoods)}
-                unit="VNĐ"
+                label="Giá trị tuyến cao nhất"
+                value={formatMoney(bestRoute.value, bestRoute.currency)}
+                unit={bestRoute.currency ? `Tuyến: ${bestRoute.currency}` : ""}
                 iconColor="bg-green-600"
                 bgGradient="from-green-50 to-green-100"
               />
+
               <SummaryCard
                 icon={Weight}
                 label="Trọng lượng"
@@ -744,6 +784,7 @@ const DashboardKPI = () => {
                 iconColor="bg-orange-600"
                 bgGradient="from-orange-50 to-orange-100"
               />
+
               <SummaryCard
                 icon={Users}
                 label="Nhân viên"

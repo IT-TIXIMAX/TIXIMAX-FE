@@ -156,6 +156,7 @@ import ShippingAddressList from "../components/Warehouse/ShippingAddressList";
 import ExportWarehouseShipList from "../components/Warehouse/ExportWarehouseShipList";
 import DashboadStaffPerformance from "../components/Dashboard/Staff/DashboadStaffPerformance";
 import LockedDraftsList from "../components/Warehouse/LockedDraftsList";
+import DashboardWarehouseDomestic from "../components/Warehouse/DashboardWarehouseDomestic";
 const Router = createBrowserRouter([
   {
     path: "/",
@@ -442,7 +443,7 @@ const Router = createBrowserRouter([
     children: [
       { index: true, element: <StaffWarehouseDomesticPage /> },
       { path: "profile", element: <StaffProfile /> },
-      { path: "dashboard", element: <DashboardWarehouse /> },
+      { path: "dashboard", element: <DashboardWarehouseDomestic /> },
       { path: "inventory", element: <WarehouseDomestic /> },
       { path: "imports", element: <PackingFlyingList /> },
       { path: "pending-payments", element: <PendingWarehouse /> },

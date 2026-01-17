@@ -231,7 +231,7 @@ const UpdateOrderLink = ({ orderId, isOpen, onClose, onSuccess }) => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Phí Ship (KRW)
+                      Phí Ship
                     </label>
                     <input
                       type="text"
@@ -285,14 +285,6 @@ const UpdateOrderLink = ({ orderId, isOpen, onClose, onSuccess }) => {
                   <h3 className="text-lg font-semibold text-gray-900">
                     Danh Sách Sản Phẩm ({formData.orderLinks.length})
                   </h3>
-                  <button
-                    type="button"
-                    onClick={handleAddLink}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-all flex items-center gap-2"
-                  >
-                    <Plus size={18} />
-                    Thêm sản phẩm
-                  </button>
                 </div>
 
                 {formData.orderLinks.length === 0 ? (
@@ -326,14 +318,6 @@ const UpdateOrderLink = ({ orderId, isOpen, onClose, onSuccess }) => {
                               </span>
                             )}
                           </div>
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveLink(index)}
-                            className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Xóa"
-                          >
-                            <Trash2 size={18} />
-                          </button>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -433,7 +417,7 @@ const UpdateOrderLink = ({ orderId, isOpen, onClose, onSuccess }) => {
                           {/* Price Web */}
                           <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-2">
-                              Giá Web (KRW)
+                              Giá Web
                             </label>
                             <input
                               type="text"
@@ -453,7 +437,7 @@ const UpdateOrderLink = ({ orderId, isOpen, onClose, onSuccess }) => {
                           {/* Ship Web */}
                           <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-2">
-                              Ship Web (KRW)
+                              Ship Web
                             </label>
                             <input
                               type="text"
@@ -473,7 +457,7 @@ const UpdateOrderLink = ({ orderId, isOpen, onClose, onSuccess }) => {
                           {/* Purchase Fee */}
                           <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-2">
-                              Phí Mua Hộ (KRW)
+                              Phí Mua Hộ
                             </label>
                             <input
                               type="text"
@@ -493,7 +477,7 @@ const UpdateOrderLink = ({ orderId, isOpen, onClose, onSuccess }) => {
                           {/* Extra Charge */}
                           <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-2">
-                              Phụ Thu (KRW)
+                              Phụ Thu
                             </label>
                             <input
                               type="text"

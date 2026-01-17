@@ -1,5 +1,5 @@
 // pages/Manager/Dashboard/SummaryCustomer.jsx
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import dashboardService from "../../../Services/Dashboard/dashboardService";
 import toast from "react-hot-toast";
@@ -9,11 +9,12 @@ import {
   UserPlus,
   TrendingUp,
   Award,
-  Loader2,
   AlertCircle,
   Calendar,
   Medal,
   Crown,
+  ChevronRight,
+  Layers,
 } from "lucide-react";
 
 const FILTER_OPTIONS = [
@@ -36,6 +37,10 @@ const SummaryCustomer = () => {
   const fetchSummary = async () => {
     if (filterType === "CUSTOM" && (!startDate || !endDate)) {
       toast.error("Vui lòng chọn ngày bắt đầu và kết thúc");
+      return;
+    }
+    if (filterType === "CUSTOM" && startDate > endDate) {
+      toast.error("Ngày bắt đầu không được lớn hơn ngày kết thúc");
       return;
     }
 
@@ -71,16 +76,18 @@ const SummaryCustomer = () => {
     return Number(value).toLocaleString("vi-VN");
   };
 
-  // Tính toán các metrics
-  const calculateMetrics = () => {
-    if (!data || !Array.isArray(data)) return null;
+  const metrics = useMemo(() => {
+    if (!data || !Array.isArray(data) || data.length === 0) return null;
 
     const totalCustomers = data.reduce(
       (sum, item) => sum + (item.newCustomerCount || 0),
       0
     );
     const totalStaff = data.length;
-    const topPerformer = data.length > 0 ? data[0] : null;
+
+    // giả định API đã sort desc theo newCustomerCount
+    const topPerformer = data[0] || null;
+
     const avgCustomersPerStaff =
       totalStaff > 0 ? totalCustomers / totalStaff : 0;
 
@@ -90,24 +97,20 @@ const SummaryCustomer = () => {
       topPerformer,
       avgCustomersPerStaff,
     };
-  };
+  }, [data]);
 
-  const metrics = calculateMetrics();
-
-  // Skeleton Loading
   const SkeletonCard = () => (
-    <div className="rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 p-5 shadow-sm border border-gray-100">
+    <div className="rounded-2xl bg-white p-5 shadow-sm border border-gray-200">
       <div className="animate-pulse">
         <div className="flex items-center justify-between mb-3">
-          <div className="h-4 w-24 rounded bg-gray-300" />
-          <div className="h-10 w-10 rounded-xl bg-gray-300" />
+          <div className="h-4 w-24 rounded bg-gray-100" />
+          <div className="h-10 w-10 rounded-xl bg-gray-100" />
         </div>
-        <div className="h-8 w-32 rounded bg-gray-300" />
+        <div className="h-8 w-32 rounded bg-gray-100" />
       </div>
     </div>
   );
 
-  // Get medal icon cho top 3
   const getMedalIcon = (index) => {
     if (index === 0) return <Crown className="h-5 w-5 text-yellow-500" />;
     if (index === 1) return <Medal className="h-5 w-5 text-gray-400" />;
@@ -115,7 +118,6 @@ const SummaryCustomer = () => {
     return null;
   };
 
-  // Get background color cho ranking
   const getRankBgColor = (index) => {
     if (index === 0)
       return "bg-gradient-to-r from-yellow-50 to-amber-50 border-yellow-200";
@@ -126,25 +128,31 @@ const SummaryCustomer = () => {
     return "bg-white border-gray-200";
   };
 
+  const isCustom = filterType === "CUSTOM";
+
   return (
     <div className="min-h-screen px-4 py-6">
       <div className="mx-auto">
-        {/* HEADER */}
-        <div className="mb-6 rounded-2xl border border-gray-200 bg-sky-300 px-6 py-4 shadow-sm">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <div className="flex items-center gap-2 text-xs font-medium text-black mb-1">
-                <button
-                  onClick={() => navigate("/manager/dashboard")}
-                  className="hover:underline flex items-center gap-1 transition-all"
-                >
-                  <ArrowLeft size={14} />
-                  Dashboard
-                </button>
-                <span className="h-1 w-1 rounded-full bg-black" />
-                <span>Khách hàng mới theo nhân viên</span>
-              </div>
+        {/* ✅ Breadcrumb tách riêng */}
+        <div className="mb-3 flex items-center gap-2 text-xs font-semibold text-gray-700">
+          <button
+            onClick={() => navigate("/manager/dashboard")}
+            className="px-2 py-1 rounded-lg bg-gray-100 border border-gray-200 hover:bg-gray-200 transition-colors flex items-center gap-1"
+          >
+            <ArrowLeft size={14} />
+            Dashboard
+          </button>
+          <ChevronRight className="w-4 h-4 text-gray-400" />
+          <span className="px-2 py-1 rounded-lg bg-white border border-gray-200">
+            Khách hàng mới theo nhân viên
+          </span>
+        </div>
 
+        {/* ✅ Header gọn */}
+        <div className="mb-6 rounded-2xl border border-gray-200 bg-sky-300 px-6 py-4 shadow-sm">
+          <div className="flex flex-col gap-4">
+            {/* Top row */}
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white">
                   <Users className="h-5 w-5 text-sky-600" />
@@ -155,68 +163,101 @@ const SummaryCustomer = () => {
                   </h1>
                 </div>
               </div>
+
+              {/* Quick info pill */}
+              <div className="inline-flex items-center gap-2 rounded-xl border border-gray-200 px-3 py-2 bg-white/70">
+                <div className="p-1.5 rounded-lg bg-white text-purple-700">
+                  <Layers size={16} />
+                </div>
+                <div className="leading-tight">
+                  <div className="text-xs font-semibold text-gray-900">
+                    {metrics ? metrics.totalStaff : 0} nhân viên
+                  </div>
+                  <div className="text-[11px] text-gray-600">Đang thống kê</div>
+                </div>
+              </div>
             </div>
 
-            {/* FILTER */}
-            <div className="flex flex-col items-start gap-2 md:items-end">
-              <span className="text-xs font-medium uppercase tracking-wide text-black-500">
+            {/* Filters row */}
+            <div className="pt-4 border-t border-sky-400">
+              <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-black/70">
                 Khoảng thời gian
-              </span>
+              </div>
 
-              <div className="inline-flex rounded-xl bg-gray-100 p-1">
-                {FILTER_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.value}
-                    onClick={() => setFilterType(opt.value)}
-                    disabled={loading}
-                    className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
-                      filterType === opt.value
-                        ? "bg-white text-blue-700 shadow-sm"
-                        : "text-gray-600 hover:text-gray-900"
-                    } ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+                <div className="inline-flex flex-wrap rounded-xl bg-gray-100 p-1">
+                  {FILTER_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      onClick={() => setFilterType(opt.value)}
+                      disabled={loading}
+                      className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                        filterType === opt.value
+                          ? "bg-white text-blue-700 shadow-sm"
+                          : "text-gray-600 hover:text-gray-900"
+                      } ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Custom range bar */}
+                {isCustom && (
+                  <div className="w-full lg:w-auto">
+                    <div className="rounded-xl bg-white/70 border border-gray-200 p-3">
+                      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                        <div className="flex flex-wrap items-center gap-3">
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-gray-800" />
+                            <span className="text-sm font-semibold text-gray-900">
+                              Tùy chỉnh:
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-gray-700">
+                              Từ
+                            </span>
+                            <input
+                              type="date"
+                              value={startDate}
+                              onChange={(e) => setStartDate(e.target.value)}
+                              className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                            />
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-gray-700">
+                              Đến
+                            </span>
+                            <input
+                              type="date"
+                              value={endDate}
+                              onChange={(e) => setEndDate(e.target.value)}
+                              className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                            />
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={fetchSummary}
+                          disabled={loading}
+                          className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                          {loading ? "Đang tải..." : "Tìm kiếm"}
+                        </button>
+                      </div>
+
+                      <p className="mt-2 text-xs text-gray-600">
+                        Chọn ngày rồi bấm <b>Tìm kiếm</b> để cập nhật dữ liệu.
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
-
-          {/* CUSTOM DATE RANGE */}
-          {filterType === "CUSTOM" && (
-            <div className="mt-4 flex flex-wrap items-center gap-3 pt-4 border-t border-sky-400">
-              <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-black" />
-                <span className="text-sm font-medium text-black">Từ ngày:</span>
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-black">
-                  Đến ngày:
-                </span>
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <button
-                onClick={fetchSummary}
-                disabled={loading}
-                className="bg-blue-600 text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {loading ? "Đang tải..." : "Tìm kiếm"}
-              </button>
-            </div>
-          )}
         </div>
 
         {/* ERROR */}
@@ -227,7 +268,7 @@ const SummaryCustomer = () => {
           </div>
         )}
 
-        {/* LOADING STATE */}
+        {/* LOADING */}
         {loading && (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4 mb-6">
             <SkeletonCard />
@@ -241,8 +282,11 @@ const SummaryCustomer = () => {
         {!loading && (!data || data.length === 0) && (
           <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center">
             <Users className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+            <p className="text-gray-600 text-sm font-semibold mb-1">
+              Không có dữ liệu
+            </p>
             <p className="text-gray-500 text-sm">
-              Không có dữ liệu khách hàng trong khoảng thời gian này
+              Thử đổi khoảng thời gian khác.
             </p>
           </div>
         )}
@@ -252,7 +296,7 @@ const SummaryCustomer = () => {
           <>
             {/* SUMMARY CARDS */}
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4 mb-6">
-              {/* Tổng khách hàng mới */}
+              {/* Tổng KH mới */}
               <div className="rounded-2xl bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200 p-5 shadow-sm border border-gray-100">
                 <div className="flex items-center justify-between">
                   <div>
@@ -261,6 +305,9 @@ const SummaryCustomer = () => {
                     </p>
                     <p className="mt-2 text-3xl font-bold text-gray-900">
                       {formatNumber(metrics.totalCustomers)}
+                    </p>
+                    <p className="mt-1 text-xs text-gray-700">
+                      TB/NV: <b>{metrics.avgCustomersPerStaff.toFixed(1)}</b>
                     </p>
                   </div>
                   <div className="rounded-xl bg-white/70 p-3">
@@ -279,6 +326,9 @@ const SummaryCustomer = () => {
                     <p className="mt-2 text-3xl font-bold text-gray-900">
                       {formatNumber(metrics.totalStaff)}
                     </p>
+                    <p className="mt-1 text-xs text-gray-700">
+                      Có dữ liệu theo lọc
+                    </p>
                   </div>
                   <div className="rounded-xl bg-white/70 p-3">
                     <Users className="h-6 w-6 text-purple-600" />
@@ -286,10 +336,10 @@ const SummaryCustomer = () => {
                 </div>
               </div>
 
-              {/* Top Performer */}
+              {/* Top performer */}
               <div className="rounded-2xl bg-gradient-to-br from-yellow-50 via-yellow-100 to-yellow-200 p-5 shadow-sm border border-gray-100">
                 <div className="flex items-center justify-between">
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <p className="text-xs font-medium uppercase tracking-wide text-gray-900 mb-1">
                       Nhân viên xuất sắc
                     </p>
@@ -300,7 +350,7 @@ const SummaryCustomer = () => {
                       {formatNumber(
                         metrics.topPerformer?.newCustomerCount || 0
                       )}{" "}
-                      KH
+                      <span className="text-base font-normal">KH</span>
                     </p>
                   </div>
                   <div className="rounded-xl bg-white/70 p-3">
@@ -309,7 +359,7 @@ const SummaryCustomer = () => {
                 </div>
               </div>
 
-              {/* Trung bình */}
+              {/* TB mỗi NV */}
               <div className="rounded-2xl bg-gradient-to-br from-green-50 via-green-100 to-green-200 p-5 shadow-sm border border-gray-100">
                 <div className="flex items-center justify-between">
                   <div>
@@ -319,6 +369,7 @@ const SummaryCustomer = () => {
                     <p className="mt-2 text-3xl font-bold text-gray-900">
                       {metrics.avgCustomersPerStaff.toFixed(1)}
                     </p>
+                    <p className="mt-1 text-xs text-gray-700">KH / nhân viên</p>
                   </div>
                   <div className="rounded-xl bg-white/70 p-3">
                     <TrendingUp className="h-6 w-6 text-green-600" />
@@ -327,68 +378,111 @@ const SummaryCustomer = () => {
               </div>
             </div>
 
-            {/* RANKING TABLE */}
+            {/* RANKING */}
             <div className="bg-white rounded-2xl border border-gray-200 p-6">
-              <h3 className="text-sm font-bold text-gray-700 uppercase mb-4">
-                Bảng xếp hạng nhân viên
-              </h3>
-
-              <div className="space-y-2">
-                {data.map((staff, index) => (
-                  <div
-                    key={index}
-                    className={`flex items-center justify-between p-4 rounded-xl border transition-all hover:shadow-md ${getRankBgColor(
-                      index
-                    )}`}
-                  >
-                    {/* Left: Rank + Name */}
-                    <div className="flex items-center gap-4 flex-1">
-                      {/* Rank Number */}
-                      <div className="flex items-center justify-center w-10 h-10 rounded-full bg-white border-2 border-gray-200 font-bold text-gray-900">
-                        {index === 0 || index === 1 || index === 2 ? (
-                          getMedalIcon(index)
-                        ) : (
-                          <span className="text-sm">{index + 1}</span>
-                        )}
-                      </div>
-
-                      {/* Staff Name */}
-                      <div>
-                        <p className="font-semibold text-gray-900">
-                          {staff.staffName}
-                        </p>
-                        {index === 0 && (
-                          <p className="text-xs text-yellow-600 font-medium">
-                            🏆 Xuất sắc nhất
-                          </p>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Right: Customer Count */}
-                    <div className="text-right">
-                      <p className="text-2xl font-bold text-gray-900">
-                        {formatNumber(staff.newCustomerCount)}
-                      </p>
-                      <p className="text-xs text-gray-500 font-medium">
-                        khách hàng
-                      </p>
-                    </div>
-                  </div>
-                ))}
+              <div className="flex items-end justify-between mb-4">
+                <h3 className="text-sm font-bold text-gray-700 uppercase">
+                  Bảng xếp hạng nhân viên
+                </h3>
+                <div className="text-xs text-gray-500">
+                  Tổng:{" "}
+                  <b className="text-gray-800">
+                    {formatNumber(metrics.totalCustomers)}
+                  </b>{" "}
+                  KH mới
+                </div>
               </div>
 
-              {/* Summary Footer */}
+              <div className="space-y-2">
+                {data.map((staff, index) => {
+                  const percentOfTotal =
+                    metrics.totalCustomers > 0
+                      ? (staff.newCustomerCount / metrics.totalCustomers) * 100
+                      : 0;
+
+                  return (
+                    <div
+                      key={`${staff.staffName}-${index}`}
+                      className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-xl border transition-all hover:shadow-md ${getRankBgColor(
+                        index
+                      )}`}
+                    >
+                      {/* Left */}
+                      <div className="flex items-center gap-4 flex-1 min-w-0">
+                        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-white border-2 border-gray-200 font-bold text-gray-900">
+                          {index <= 2 ? (
+                            getMedalIcon(index)
+                          ) : (
+                            <span className="text-sm">{index + 1}</span>
+                          )}
+                        </div>
+
+                        <div className="min-w-0">
+                          <p className="font-semibold text-gray-900 truncate">
+                            {staff.staffName}
+                          </p>
+                          <div className="mt-1 flex items-center gap-2 text-xs text-gray-600">
+                            {index === 0 && (
+                              <span className="font-semibold text-yellow-700">
+                                🏆 Xuất sắc nhất
+                              </span>
+                            )}
+                            <span>{percentOfTotal.toFixed(1)}% tổng KH</span>
+                          </div>
+
+                          {/* Progress */}
+                          <div className="mt-2 w-full max-w-[360px] bg-gray-200 rounded-full h-1.5">
+                            <div
+                              className="bg-green-600 h-1.5 rounded-full transition-all"
+                              style={{
+                                width: `${Math.min(100, percentOfTotal)}%`,
+                              }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right */}
+                      <div className="text-right">
+                        <p className="text-2xl font-bold text-gray-900">
+                          {formatNumber(staff.newCustomerCount)}
+                        </p>
+                        <p className="text-xs text-gray-500 font-medium">
+                          khách hàng
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Footer */}
               <div className="mt-6 pt-4 border-t border-gray-200">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">
-                    Tổng cộng: <strong>{metrics.totalStaff}</strong> nhân viên
-                  </span>
-                  <span className="text-gray-600">
-                    Tổng:{" "}
-                    <strong>{formatNumber(metrics.totalCustomers)}</strong>{" "}
-                    khách hàng mới
-                  </span>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
+                  <div className="p-3 rounded-lg bg-gray-50">
+                    <p className="text-xs text-gray-500 uppercase font-medium mb-1">
+                      Tổng nhân viên
+                    </p>
+                    <p className="text-xl font-bold text-gray-900">
+                      {metrics.totalStaff}
+                    </p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-blue-50">
+                    <p className="text-xs text-gray-500 uppercase font-medium mb-1">
+                      Tổng KH mới
+                    </p>
+                    <p className="text-xl font-bold text-gray-900">
+                      {formatNumber(metrics.totalCustomers)}
+                    </p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-green-50">
+                    <p className="text-xs text-gray-500 uppercase font-medium mb-1">
+                      TB mỗi NV
+                    </p>
+                    <p className="text-xl font-bold text-gray-900">
+                      {metrics.avgCustomersPerStaff.toFixed(1)}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>

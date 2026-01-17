@@ -1,5 +1,5 @@
 // pages/Manager/Dashboard/SummaryRevenue.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import dashboardService from "../../../Services/Dashboard/dashboardService";
 import toast from "react-hot-toast";
@@ -9,7 +9,6 @@ import {
   TrendingUp,
   DollarSign,
   Award,
-  Loader2,
   AlertCircle,
   Calendar,
   Layers,
@@ -17,6 +16,7 @@ import {
   Clock,
   Truck,
   RotateCcw,
+  ChevronRight,
 } from "lucide-react";
 
 const FILTER_OPTIONS = [
@@ -27,7 +27,6 @@ const FILTER_OPTIONS = [
   { label: "Tùy chỉnh", value: "CUSTOM" },
 ];
 
-// Status options với icons và colors
 const STATUS_OPTIONS = [
   {
     label: "Đã thanh toán",
@@ -81,6 +80,10 @@ const SummaryRevenue = () => {
       toast.error("Vui lòng chọn ngày bắt đầu và kết thúc");
       return;
     }
+    if (filterType === "CUSTOM" && startDate > endDate) {
+      toast.error("Ngày bắt đầu không được lớn hơn ngày kết thúc");
+      return;
+    }
 
     setLoading(true);
     setError(null);
@@ -111,17 +114,13 @@ const SummaryRevenue = () => {
   }, [filterType, status]);
 
   const formatCurrency = (value) => {
-    if (value == null) return "0 đ";
-    return `${Number(value).toLocaleString("vi-VN")} đ`;
+    const n = Number(value || 0);
+    return `${n.toLocaleString("vi-VN")} đ`;
   };
 
-  const formatNumber = (value) => {
-    if (value == null) return "0";
-    return Number(value).toLocaleString("vi-VN");
-  };
+  const formatNumber = (value) => Number(value || 0).toLocaleString("vi-VN");
 
-  // Tính toán metrics
-  const calculateMetrics = () => {
+  const metrics = useMemo(() => {
     if (!data || !Array.isArray(data)) return null;
 
     const totalRevenue = data.reduce(
@@ -129,38 +128,29 @@ const SummaryRevenue = () => {
       0
     );
     const totalRoutes = data.length;
+    // giả định data đã sort desc theo totalRevenue từ BE, nếu chưa thì vẫn ổn vì mình sort lại bên dưới
     const topRoute = data.length > 0 ? data[0] : null;
     const avgRevenuePerRoute = totalRoutes > 0 ? totalRevenue / totalRoutes : 0;
 
-    return {
-      totalRevenue,
-      totalRoutes,
-      topRoute,
-      avgRevenuePerRoute,
-    };
-  };
+    return { totalRevenue, totalRoutes, topRoute, avgRevenuePerRoute };
+  }, [data]);
 
-  const metrics = calculateMetrics();
-
-  // Get current status config
   const currentStatusConfig =
     STATUS_OPTIONS.find((opt) => opt.value === status) || STATUS_OPTIONS[0];
   const StatusIcon = currentStatusConfig.icon;
 
-  // Skeleton Loading
   const SkeletonCard = () => (
-    <div className="rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 p-5 shadow-sm border border-gray-100">
+    <div className="rounded-2xl bg-white p-5 shadow-sm border border-gray-200">
       <div className="animate-pulse">
         <div className="flex items-center justify-between mb-3">
-          <div className="h-4 w-24 rounded bg-gray-300" />
-          <div className="h-10 w-10 rounded-xl bg-gray-300" />
+          <div className="h-4 w-24 rounded bg-gray-100" />
+          <div className="h-10 w-10 rounded-xl bg-gray-100" />
         </div>
-        <div className="h-8 w-32 rounded bg-gray-300" />
+        <div className="h-8 w-32 rounded bg-gray-100" />
       </div>
     </div>
   );
 
-  // Get color cho từng route
   const getRouteColor = (index) => {
     const colors = [
       "from-blue-50 to-blue-200 border-blue-200",
@@ -185,25 +175,31 @@ const SummaryRevenue = () => {
     return colors[index % colors.length];
   };
 
+  const canSearchCustom = filterType === "CUSTOM";
+
   return (
     <div className="min-h-screen px-4 py-6">
       <div className="mx-auto">
-        {/* HEADER */}
+        {/* ✅ Breadcrumb tách riêng */}
+        <div className="mb-3 flex items-center gap-2 text-xs font-semibold text-gray-700">
+          <button
+            onClick={() => navigate("/manager/dashboard")}
+            className="px-2 py-1 rounded-lg bg-gray-100 border border-gray-200 hover:bg-gray-200 transition-colors flex items-center gap-1"
+          >
+            <ArrowLeft size={14} />
+            Dashboard
+          </button>
+          <ChevronRight className="w-4 h-4 text-gray-400" />
+          <span className="px-2 py-1 rounded-lg bg-white border border-gray-200">
+            Doanh thu theo tuyến
+          </span>
+        </div>
+
+        {/* ✅ Header gọn: Title + Icon / Filters */}
         <div className="mb-6 rounded-2xl border border-gray-200 bg-sky-300 px-6 py-4 shadow-sm">
           <div className="flex flex-col gap-4">
-            <div>
-              <div className="flex items-center gap-2 text-xs font-medium text-black mb-1">
-                <button
-                  onClick={() => navigate("/manager/dashboard")}
-                  className="hover:underline flex items-center gap-1 transition-all"
-                >
-                  <ArrowLeft size={14} />
-                  Dashboard
-                </button>
-                <span className="h-1 w-1 rounded-full bg-black" />
-                <span>Doanh thu theo tuyến</span>
-              </div>
-
+            {/* Top row */}
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white">
                   <Banknote className="h-5 w-5 text-sky-600" />
@@ -214,16 +210,34 @@ const SummaryRevenue = () => {
                   </h1>
                 </div>
               </div>
+
+              {/* Status pill (nhỏ gọn) */}
+              <div
+                className={`inline-flex items-center gap-2 rounded-xl border border-gray-200 px-3 py-2 bg-white/70`}
+                title="Trạng thái đang xem"
+              >
+                <div
+                  className={`p-1.5 rounded-lg bg-white ${currentStatusConfig.color}`}
+                >
+                  <StatusIcon size={16} />
+                </div>
+                <div className="leading-tight">
+                  <div className="text-xs font-semibold text-gray-900">
+                    {currentStatusConfig.label}
+                  </div>
+                  <div className="text-[11px] text-gray-600">Trạng thái</div>
+                </div>
+              </div>
             </div>
 
-            {/* FILTERS ROW */}
-            <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between pt-4 border-t border-sky-400">
-              {/* Time Filter */}
-              <div className="flex flex-col gap-2">
-                <span className="text-xs font-medium uppercase tracking-wide text-black">
+            {/* Filters row */}
+            <div className="pt-4 border-t border-sky-400 grid gap-4 lg:grid-cols-2">
+              {/* Time filter */}
+              <div>
+                <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-black/70">
                   Khoảng thời gian
-                </span>
-                <div className="inline-flex rounded-xl bg-gray-100 p-1">
+                </div>
+                <div className="inline-flex flex-wrap rounded-xl bg-gray-100 p-1">
                   {FILTER_OPTIONS.map((opt) => (
                     <button
                       key={opt.value}
@@ -241,12 +255,12 @@ const SummaryRevenue = () => {
                 </div>
               </div>
 
-              {/* Status Filter */}
-              <div className="flex flex-col gap-2">
-                <span className="text-xs font-medium uppercase tracking-wide text-black">
+              {/* Status filter */}
+              <div>
+                <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-black/70">
                   Trạng thái thanh toán
-                </span>
-                <div className="inline-flex rounded-xl bg-gray-100 p-1 flex-wrap">
+                </div>
+                <div className="inline-flex flex-wrap rounded-xl bg-gray-100 p-1">
                   {STATUS_OPTIONS.map((opt) => {
                     const Icon = opt.icon;
                     return (
@@ -267,65 +281,59 @@ const SummaryRevenue = () => {
                   })}
                 </div>
               </div>
-            </div>
 
-            {/* CUSTOM DATE RANGE */}
-            {filterType === "CUSTOM" && (
-              <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-sky-400">
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-black" />
-                  <span className="text-sm font-medium text-black">
-                    Từ ngày:
-                  </span>
-                  <input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+              {/* Custom range bar */}
+              {canSearchCustom && (
+                <div className="lg:col-span-2">
+                  <div className="mt-1 rounded-xl bg-white/70 border border-gray-200 p-3">
+                    <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                      <div className="flex flex-wrap items-center gap-3">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-4 w-4 text-gray-800" />
+                          <span className="text-sm font-semibold text-gray-900">
+                            Tùy chỉnh:
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-gray-700">
+                            Từ
+                          </span>
+                          <input
+                            type="date"
+                            value={startDate}
+                            onChange={(e) => setStartDate(e.target.value)}
+                            className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                          />
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-gray-700">
+                            Đến
+                          </span>
+                          <input
+                            type="date"
+                            value={endDate}
+                            onChange={(e) => setEndDate(e.target.value)}
+                            className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                          />
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={fetchSummary}
+                        disabled={loading}
+                        className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        {loading ? "Đang tải..." : "Tìm kiếm"}
+                      </button>
+                    </div>
+                    <p className="mt-2 text-xs text-gray-600">
+                      Chọn ngày rồi bấm <b>Tìm kiếm</b> để cập nhật dữ liệu.
+                    </p>
+                  </div>
                 </div>
-
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-black">
-                    Đến ngày:
-                  </span>
-                  <input
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-
-                <button
-                  onClick={fetchSummary}
-                  disabled={loading}
-                  className="bg-blue-600 text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {loading ? "Đang tải..." : "Tìm kiếm"}
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* STATUS INFO BANNER */}
-        <div
-          className={`mb-6 rounded-xl ${currentStatusConfig.bgColor} border border-gray-200 p-4`}
-        >
-          <div className="flex items-center gap-3">
-            <div
-              className={`p-2 rounded-lg bg-white ${currentStatusConfig.color}`}
-            >
-              <StatusIcon size={20} />
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-gray-900">
-                Đang xem: {currentStatusConfig.label}
-              </p>
-              <p className="text-xs text-gray-600">
-                Dữ liệu được lọc theo trạng thái thanh toán đã chọn
-              </p>
+              )}
             </div>
           </div>
         </div>
@@ -352,8 +360,11 @@ const SummaryRevenue = () => {
         {!loading && (!data || data.length === 0) && (
           <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center">
             <Banknote className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+            <p className="text-gray-600 text-sm font-semibold mb-1">
+              Không có dữ liệu
+            </p>
             <p className="text-gray-500 text-sm">
-              Không có dữ liệu doanh thu trong khoảng thời gian này
+              Thử đổi khoảng thời gian hoặc trạng thái thanh toán.
             </p>
           </div>
         )}
@@ -407,7 +418,7 @@ const SummaryRevenue = () => {
                     <p className="text-2xl font-bold text-gray-900">
                       {metrics.topRoute?.routeName || "N/A"}
                     </p>
-                    <p className="text-sm text-gray-600 mt-1">
+                    <p className="text-sm text-gray-700 mt-1 font-semibold">
                       {formatCurrency(metrics.topRoute?.totalRevenue || 0)}
                     </p>
                   </div>
@@ -435,30 +446,32 @@ const SummaryRevenue = () => {
               </div>
             </div>
 
-            {/* ROUTES GRID - ✅ COMPACT 4 COLS */}
+            {/* ROUTES GRID */}
             <div>
-              <h3 className="text-sm font-bold text-gray-700 uppercase mb-4">
-                Chi tiết theo từng tuyến
-              </h3>
+              <div className="flex items-end justify-between mb-4">
+                <h3 className="text-sm font-bold text-gray-700 uppercase">
+                  Chi tiết theo từng tuyến
+                </h3>
+                <div className="text-xs text-gray-500">
+                  Tổng: <b className="text-gray-800">{metrics.totalRoutes}</b>{" "}
+                  tuyến
+                </div>
+              </div>
 
               <div className="grid gap-3 grid-cols-1 md:grid-cols-2 xl:grid-cols-4">
                 {data.map((route, index) => {
                   const percentOfTotal =
                     metrics.totalRevenue > 0
-                      ? (
-                          (route.totalRevenue / metrics.totalRevenue) *
-                          100
-                        ).toFixed(1)
+                      ? (route.totalRevenue / metrics.totalRevenue) * 100
                       : 0;
 
                   return (
                     <div
-                      key={index}
+                      key={`${route.routeName}-${index}`}
                       className={`rounded-xl bg-gradient-to-br ${getRouteColor(
                         index
                       )} p-4 shadow-sm border transition-all hover:shadow-lg hover:-translate-y-1`}
                     >
-                      {/* Header - Compact */}
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2">
                           <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-white border border-gray-200 font-bold text-gray-900 text-xs">
@@ -477,7 +490,6 @@ const SummaryRevenue = () => {
                         </div>
                       </div>
 
-                      {/* Revenue - Compact */}
                       <div className="mb-3">
                         <p className="text-xs text-gray-600 font-medium mb-0.5">
                           Doanh thu
@@ -487,23 +499,22 @@ const SummaryRevenue = () => {
                         </p>
                       </div>
 
-                      {/* Stats - Compact */}
                       <div className="space-y-2 pt-2 border-t border-gray-300">
-                        {/* % of total */}
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-medium text-gray-700">
                             % tổng DT
                           </span>
                           <span className="text-base font-bold text-gray-900">
-                            {percentOfTotal}%
+                            {percentOfTotal.toFixed(1)}%
                           </span>
                         </div>
 
-                        {/* Progress bar */}
                         <div className="w-full bg-gray-200 rounded-full h-1.5">
                           <div
                             className="bg-green-600 h-1.5 rounded-full transition-all"
-                            style={{ width: `${percentOfTotal}%` }}
+                            style={{
+                              width: `${Math.min(100, percentOfTotal)}%`,
+                            }}
                           />
                         </div>
                       </div>
@@ -512,10 +523,9 @@ const SummaryRevenue = () => {
                 })}
               </div>
 
-              {/* Summary Footer - Compact */}
+              {/* Summary Footer */}
               <div className="mt-4 bg-white rounded-xl border border-gray-200 p-4">
-                <div className="grid grid-cols-3 gap-3">
-                  {/* Tổng tuyến */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div className="text-center p-3 rounded-lg bg-gray-50">
                     <p className="text-xs text-gray-500 uppercase font-medium mb-1">
                       Tổng tuyến
@@ -525,7 +535,6 @@ const SummaryRevenue = () => {
                     </p>
                   </div>
 
-                  {/* Tổng doanh thu */}
                   <div className="text-center p-3 rounded-lg bg-green-50">
                     <p className="text-xs text-gray-500 uppercase font-medium mb-1">
                       Tổng doanh thu
@@ -535,7 +544,6 @@ const SummaryRevenue = () => {
                     </p>
                   </div>
 
-                  {/* TB/tuyến */}
                   <div className="text-center p-3 rounded-lg bg-blue-50">
                     <p className="text-xs text-gray-500 uppercase font-medium mb-1">
                       TB/tuyến
