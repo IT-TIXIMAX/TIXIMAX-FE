@@ -83,14 +83,7 @@ const dashboardService = {
       params: { filterType, startDate, endDate },
     });
   },
-  //   getRoutesKPI: ({ startDate, endDate }) => {
-  //     return api.get("/dashboard/routes/kpi", {
-  //       params: { startDate, endDate },
-  //     });
-  //   },
-  // };
 
-  // export default dashboardService;
   getRoutesKPI: ({
     startDate,
     endDate,
@@ -107,6 +100,23 @@ const dashboardService = {
     if (routeId) params.routeId = Number(routeId);
 
     return api.get("/dashboard/routes/kpi", { params });
+  },
+  getTopCustomers: async (page = 0, size = 10, filters = {}) => {
+    const params = new URLSearchParams();
+
+    if (filters.customerTopType) {
+      params.append("customerTopType", filters.customerTopType);
+    }
+
+    if (filters.customerCode) {
+      params.append("customerCode", filters.customerCode);
+    }
+
+    const response = await api.get(
+      `/dashboard/customers/top/${page}/${size}?${params.toString()}`,
+    );
+
+    return response.data;
   },
 };
 

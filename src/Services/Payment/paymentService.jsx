@@ -9,7 +9,7 @@ const paymentService = {
 
       const response = await api.post(
         `/payments/${orderCode}`,
-        paymentData || {}
+        paymentData || {},
       );
 
       return response.data;
@@ -62,7 +62,7 @@ const paymentService = {
     } catch (error) {
       console.error(
         `Error updating payment status for order ${orderCode}:`,
-        error
+        error,
       );
       throw error;
     }
@@ -93,14 +93,14 @@ const paymentService = {
     } catch (error) {
       console.error(
         `Error fetching payment for code ${paymentCode}:`,
-        error.response || error
+        error.response || error,
       );
       throw error;
     }
   },
   refundBalance: async (id, { image = "", amount = 0 } = {}) => {
     if (!id) throw new Error("Account ID is required");
-    const { data } = await api.get(`/accounts/refund-balance/${id}`, {
+    const { data } = await api.put(`/accounts/refund-balance/${id}`, {
       params: { image, amount },
     });
     return data;

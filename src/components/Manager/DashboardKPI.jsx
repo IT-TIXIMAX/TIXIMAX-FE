@@ -353,13 +353,13 @@ const RouteCard = ({ routeData, maxValues }) => {
         goods: acc.goods + (staff.totalGoods || 0),
         weight: acc.weight + (staff.totalNetWeight || 0),
       }),
-      { goods: 0, weight: 0 }
+      { goods: 0, weight: 0 },
     );
   }, [routeData.staffPerformances]);
 
   const maxGoodsInRoute = useMemo(() => {
     return Math.max(
-      ...(routeData.staffPerformances?.map((s) => s.totalGoods || 0) || [0])
+      ...(routeData.staffPerformances?.map((s) => s.totalGoods || 0) || [0]),
     );
   }, [routeData.staffPerformances]);
 
@@ -555,7 +555,7 @@ const RouteCard = ({ routeData, maxValues }) => {
                             <div
                               className={`h-full ${getPerformanceColor(
                                 performancePercent,
-                                100
+                                100,
                               )} transition-all duration-500`}
                               style={{ width: `${performancePercent}%` }}
                             />
@@ -617,7 +617,7 @@ const DashboardKPI = () => {
         setLoading(false);
       }
     },
-    [filters]
+    [filters],
   );
 
   useEffect(() => {
@@ -634,7 +634,7 @@ const DashboardKPI = () => {
   const getFilterLabel = () => {
     const type = FILTER_TYPES.find((t) => t.value === filters.filterType);
     const route = routes.find(
-      (r) => String(r.routeId) === String(filters.routeId)
+      (r) => String(r.routeId) === String(filters.routeId),
     );
 
     let label = type?.label || "Tháng này";
@@ -673,7 +673,7 @@ const DashboardKPI = () => {
       const sumGoods =
         route?.staffPerformances?.reduce(
           (acc, s) => acc + (s.totalGoods || 0),
-          0
+          0,
         ) || 0;
 
       if (sumGoods > best.value) {
@@ -696,14 +696,14 @@ const DashboardKPI = () => {
             goods: sum.goods + (staff.totalGoods || 0),
             weight: sum.weight + (staff.totalNetWeight || 0),
           }),
-          { goods: 0, weight: 0 }
+          { goods: 0, weight: 0 },
         );
         return {
           goods: Math.max(acc.goods, routeTotal?.goods || 0),
           weight: Math.max(acc.weight, routeTotal?.weight || 0),
         };
       },
-      { goods: 0, weight: 0 }
+      { goods: 0, weight: 0 },
     );
   }, [data]);
 

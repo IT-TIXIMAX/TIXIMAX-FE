@@ -29,7 +29,7 @@ const CreateExportWarehouse = ({
       await draftWarehouseService.scanVNPost(
         trackingCode.trim(),
         shipment.shipCode,
-        carrier || "VNPOST" // Default VNPOST nếu không có
+        carrier || "VNPOST", // Default VNPOST nếu không có
       );
       toast.success("Xuất kho thành công!");
       setTrackingCode("");
@@ -38,7 +38,8 @@ const CreateExportWarehouse = ({
     } catch (error) {
       console.error("Error exporting:", error);
       const errorMessage =
-        error?.response?.data?.error || "Xuất kho thất bại. Vui lòng thử lại!";
+        error?.response?.data?.message ||
+        "Xuất kho thất bại. Vui lòng thử lại!";
       toast.error(errorMessage);
     } finally {
       setLoading(false);

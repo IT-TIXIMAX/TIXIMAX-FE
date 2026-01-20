@@ -204,7 +204,7 @@ const buildAndSaveExcel = ({
 };
 
 /* ===================== Component ===================== */
-const LockedDraftsList = () => {
+const LockedDraftsOtherList = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -225,7 +225,7 @@ const LockedDraftsList = () => {
     try {
       const data = await draftWarehouseService.getLockedDrafts(
         filterDate,
-        "VNPOST",
+        "OTHER",
       );
       setItems(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -383,7 +383,7 @@ const LockedDraftsList = () => {
                 <Lock size={22} className="text-white" />
               </div>
               <h1 className="text-xl font-semibold text-white">
-                Locked Drafts (Kho nội địa)
+                Xuất kho đơn vị khác
               </h1>
             </div>
             <button
@@ -750,4 +750,4 @@ const LockedDraftsList = () => {
   );
 };
 
-export default LockedDraftsList;
+export default LockedDraftsOtherList;

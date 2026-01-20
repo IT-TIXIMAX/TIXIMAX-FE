@@ -118,7 +118,7 @@ const CustomerList = () => {
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
     },
-    [totalPages, pageSize, loading, fetchMyCustomers, appliedSearch]
+    [totalPages, pageSize, loading, fetchMyCustomers, appliedSearch],
   );
 
   const handlePageSizeChange = useCallback((newSize) => {
@@ -136,7 +136,7 @@ const CustomerList = () => {
     (e) => {
       if (e.key === "Enter") handleApplySearch();
     },
-    [handleApplySearch]
+    [handleApplySearch],
   );
 
   useEffect(() => {
@@ -216,22 +216,22 @@ const CustomerList = () => {
       if (refundCustomer?.id && newBalance !== undefined) {
         setCustomerList((prev) =>
           prev.map((c) =>
-            c?.id === refundCustomer.id ? { ...c, balance: newBalance } : c
-          )
+            c?.id === refundCustomer.id ? { ...c, balance: newBalance } : c,
+          ),
         );
 
         // nếu modal detail đang mở đúng customer đó cũng update luôn
         setSelectedCustomer((prev) =>
           prev?.id === refundCustomer.id
             ? { ...prev, balance: newBalance }
-            : prev
+            : prev,
         );
       } else {
         // fallback: reload trang hiện tại
         fetchMyCustomers(currentPage, pageSize, appliedSearch);
       }
     },
-    [refundCustomer, fetchMyCustomers, currentPage, pageSize, appliedSearch]
+    [refundCustomer, fetchMyCustomers, currentPage, pageSize, appliedSearch],
   );
 
   return (
@@ -589,7 +589,7 @@ const CustomerList = () => {
                           {customer?.source ? (
                             <span
                               className={`inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-full ${getSourceColor(
-                                customer.source
+                                customer.source,
                               )}`}
                             >
                               {customer.source}
@@ -597,7 +597,7 @@ const CustomerList = () => {
                           ) : (
                             <span
                               className={`inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-full ${getSourceColor(
-                                ""
+                                "",
                               )}`}
                             >
                               {getSourceLabel(EMPTY_SOURCE_VALUE)}
@@ -827,7 +827,7 @@ const CustomerList = () => {
                   </p>
                   <span
                     className={`inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-full ${getSourceColor(
-                      selectedCustomer?.source || ""
+                      selectedCustomer?.source || "",
                     )}`}
                   >
                     {selectedCustomer?.source || getSourceLabel("__EMPTY__")}
@@ -844,7 +844,7 @@ const CustomerList = () => {
                 <div className="flex flex-col gap-2">
                   {Array.isArray(selectedCustomer?.addresses) &&
                   selectedCustomer.addresses.filter(
-                    (a) => (a?.addressName || "").trim() !== ""
+                    (a) => (a?.addressName || "").trim() !== "",
                   ).length > 0 ? (
                     selectedCustomer.addresses
                       .filter((a) => (a?.addressName || "").trim() !== "")

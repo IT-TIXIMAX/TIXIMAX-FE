@@ -18,6 +18,7 @@ import {
   Gift,
   UserRoundPlus,
   BookKey,
+  ChartSpline,
   LayoutDashboard,
   ChartNoAxesCombined,
 } from "lucide-react";
@@ -61,6 +62,11 @@ const ManagerSidebar = () => {
           text: t("Hiệu suất nhân viên"),
           icon: <ChartNoAxesCombined />,
           path: "/manager/kpistaff",
+        },
+        {
+          text: t("Hiệu suất khách hàng"),
+          icon: <ChartSpline />,
+          path: "/manager/kpicustomer",
         },
         {
           text: t("Danh sách khách hàng"),

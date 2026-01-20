@@ -16,6 +16,7 @@ import {
   CreditCard,
   ChevronLeft,
   ChevronRight,
+  Shapes,
 } from "lucide-react";
 import Logout from "../../Page/Logout";
 import profileService from "../../Services/SharedService/profileService";
@@ -84,6 +85,12 @@ const StaffWarehouseDomesticSidebar = () => {
       title: "Xem báo cáo thống kê xuất nhập kho",
     },
     {
+      text: "Xuất kho đơn vị khác",
+      icon: <Shapes className="w-6 h-6" />,
+      path: "/staff-warehouse-domestic/order-other",
+      title: "Xem báo cáo thống kê xuất nhập kho",
+    },
+    {
       text: "Tra cứu đơn xuất kho",
       icon: <Search className="w-6 h-6" />,
       path: "/staff-warehouse-domestic/exports",
@@ -93,7 +100,7 @@ const StaffWarehouseDomesticSidebar = () => {
     {
       text: "Nhập kho đơn US",
       icon: <Download className="w-6 h-6" />,
-      path: "/staff-warehouse-domestic/importsjp",
+      path: "/staff-warehouse-domestic/import-sjp",
       title: "Quản lý đơn hàng đang vận chuyển đến kho",
     },
     {

@@ -43,7 +43,7 @@ const draftWarehouseService = {
       `/draft-domestics/${addressId}/shipments/add`,
       {
         shippingCodes,
-      }
+      },
     );
     return data;
   },
@@ -53,7 +53,7 @@ const draftWarehouseService = {
       `/draft-domestics/${addressId}/shipments/remove`,
       {
         shippingCodes,
-      }
+      },
     );
     return data;
   },
@@ -65,13 +65,22 @@ const draftWarehouseService = {
     });
     return data;
   },
-  getLockedDrafts: async (endDate) => {
-    const { data } = await api.get("/draft-domestics/locked", {
-      params: { endDate },
-    });
+  // getLockedDrafts: async (endDate) => {
+  //   const { data } = await api.get("/draft-domestics/locked", {
+  //     params: { endDate },
+  //   });
+  //   return data;
+  // },
+
+  getLockedDrafts: async (endDate, carrier) => {
+    const params = { endDate };
+    if (carrier) {
+      params.carrier = carrier;
+    }
+
+    const { data } = await api.get("/draft-domestics/locked", { params });
     return data;
   },
-
   exportByIds: async (ids) => {
     const { data } = await api.post("/draft-domestics/export/ids", ids);
     return data;

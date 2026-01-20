@@ -157,6 +157,8 @@ import ExportWarehouseShipList from "../components/Warehouse/ExportWarehouseShip
 import DashboadStaffPerformance from "../components/Dashboard/Staff/DashboadStaffPerformance";
 import LockedDraftsList from "../components/Warehouse/LockedDraftsList";
 import DashboardWarehouseDomestic from "../components/Warehouse/DashboardWarehouseDomestic";
+import PerformancesCustomer from "../components/Manager/PerformancesCustomer";
+import LockedDraftsOtherList from "../components/Warehouse/LockedDraftsOtherList";
 const Router = createBrowserRouter([
   {
     path: "/",
@@ -264,7 +266,7 @@ const Router = createBrowserRouter([
       </ProtectedRoute>
     ),
     children: [
-      { index: true, element: <ManagerPage /> },
+      { index: true, element: <DashboardManager /> },
       { path: "profile", element: <ProfilePage /> },
       { path: "team", element: <StaffList /> },
       { path: "customers", element: <CustomerList /> },
@@ -273,6 +275,7 @@ const Router = createBrowserRouter([
       { path: "permission", element: <Permission /> },
       { path: "stafflead", element: <StaffListPermission /> },
       { path: "createstaff", element: <CreateAccountStaff /> },
+      { path: "kpicustomer", element: <PerformancesCustomer /> },
       { path: "quote", element: <PaymentOrderList /> },
       { path: "refund", element: <RefundOrder /> },
       { path: "cost/paylater", element: <ManagerBankAccountList /> },
@@ -453,7 +456,8 @@ const Router = createBrowserRouter([
       { path: "check", element: <ScanImportWarehouse /> },
       { path: "report", element: <TrackingCodeList /> },
       { path: "reports-vnpost", element: <LockedDraftsList /> },
-      { path: "importsjp", element: <ImportDomesticPacking /> },
+      { path: "order-other", element: <LockedDraftsOtherList /> },
+      { path: "import-sjp", element: <ImportDomesticPacking /> },
       { path: "inventorys-check", element: <InventoryWarehouse /> },
     ],
   },
