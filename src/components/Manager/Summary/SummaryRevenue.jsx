@@ -731,21 +731,44 @@ const SummaryRevenue = () => {
     STATUS_OPTIONS.find((opt) => opt.value === status) || STATUS_OPTIONS[0];
   const StatusIcon = currentStatusConfig.icon;
 
-  const SkeletonCard = () => (
-    <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 animate-pulse">
-      <div className="p-5 md:p-6 bg-gradient-to-br from-blue-50 to-blue-100">
+  const SkeletonCard = ({ colorClass = "from-gray-200 to-gray-300" }) => (
+    <div className="bg-white rounded-xl shadow-lg overflow-hidden border-2 border-black animate-pulse">
+      <div className={`p-5 md:p-6 bg-gradient-to-br ${colorClass}`}>
         <div className="flex items-center justify-between mb-4">
-          <div className="h-4 w-24 bg-gray-200 rounded" />
-          <div className="h-10 w-10 bg-gray-200 rounded-lg" />
+          <div className="h-4 w-24 bg-gray-400 rounded" />
+          <div className="h-10 w-10 bg-gray-400 rounded-lg" />
         </div>
-        <div className="h-10 w-44 bg-gray-200 rounded" />
-        <div className="mt-3 h-3 w-28 bg-gray-100 rounded" />
+        <div className="h-10 w-44 bg-gray-400 rounded" />
+        <div className="mt-3 h-3 w-28 bg-gray-300 rounded" />
+      </div>
+    </div>
+  );
+
+  const SkeletonRouteCard = () => (
+    <div className="bg-white rounded-xl border-2 border-black shadow-lg overflow-hidden animate-pulse">
+      {/* header */}
+      <div className="p-4 md:p-5 bg-gradient-to-br from-gray-200 to-gray-300 border-b-2 border-black">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <div className="w-7 h-7 rounded-lg bg-gray-400" />
+            <div className="h-5 bg-gray-400 rounded flex-1 max-w-[150px]" />
+          </div>
+          <div className="w-8 h-8 rounded-lg bg-gray-400" />
+        </div>
+      </div>
+
+      {/* body */}
+      <div className="p-4 md:p-5 bg-white">
+        <div className="flex items-center justify-between gap-3">
+          <div className="h-4 w-20 bg-gray-200 rounded" />
+          <div className="h-4 w-24 bg-gray-300 rounded" />
+        </div>
       </div>
     </div>
   );
 
   const SectionTitle = ({ children }) => (
-    <h3 className="text-sm font-bold text-gray-700 uppercase mb-3">
+    <h3 className="text-xl font-bold text-gray-800 uppercase mb-3">
       {children}
     </h3>
   );
@@ -756,10 +779,10 @@ const SummaryRevenue = () => {
       <button
         onClick={() => setFilterType(value)}
         disabled={loading}
-        className={`px-3.5 py-2 rounded-lg text-xs md:text-sm font-semibold transition-all border ${
+        className={`px-3.5 py-2 rounded-lg text-xs md:text-sm font-semibold transition-all border-2 border-black shadow-sm ${
           active
-            ? "bg-blue-600 text-white border-blue-600 shadow-sm"
-            : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+            ? "bg-black text-yellow-400"
+            : "bg-white text-black hover:bg-gray-100"
         } ${loading ? "opacity-60 cursor-not-allowed" : ""}`}
       >
         {label}
@@ -774,49 +797,47 @@ const SummaryRevenue = () => {
       <button
         onClick={() => setStatus(opt.value)}
         disabled={loading}
-        className={`px-3.5 py-2 rounded-lg text-xs md:text-sm font-semibold transition-all border flex items-center gap-2 ${
+        className={`px-3.5 py-2 rounded-lg text-xs md:text-sm font-semibold transition-all border-2 border-black flex items-center gap-2 shadow-sm ${
           active
-            ? `bg-blue-600 text-white border-blue-600 shadow-sm`
-            : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+            ? "bg-black text-yellow-400"
+            : "bg-white text-black hover:bg-gray-100"
         } ${loading ? "opacity-60 cursor-not-allowed" : ""}`}
         title={opt.label}
       >
-        <Icon className={`w-4 h-4 ${active ? "text-white" : opt.color}`} />
+        <Icon className={`w-4 h-4 ${active ? "text-yellow-400" : opt.color}`} />
         <span className="whitespace-nowrap">{opt.label}</span>
       </button>
     );
   };
 
   return (
-    <div className="min-h-screen ">
+    <div className="min-h-screen">
       <div className="mx-auto p-4 md:p-6 lg:p-8">
-        {/* ✅ Breadcrumb đồng bộ */}
+        {/* ✅ Breadcrumb */}
         <div className="mb-4 flex items-center gap-2 text-xs font-semibold text-gray-700">
           <button
             onClick={() => navigate("/manager/dashboard")}
-            className="px-2.5 py-1.5 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition-colors flex items-center gap-1 shadow-sm"
+            className="px-2.5 py-1.5 rounded-lg bg-white border-2 border-black hover:bg-gray-100 transition-colors flex items-center gap-1 shadow-sm"
           >
             <ArrowLeft size={14} />
             Dashboard
           </button>
           <ChevronRight className="w-4 h-4 text-gray-400" />
-          <span className="px-2.5 py-1.5 rounded-lg bg-white border border-gray-200 shadow-sm">
+          <span className="px-2.5 py-1.5 rounded-lg bg-white border-2 border-black shadow-sm">
             Doanh thu theo tuyến
           </span>
         </div>
 
-        {/* ✅ Header đồng bộ (white card + filter inline) */}
+        {/* ✅ Header - VÀNG VIỀN ĐEN */}
         <div className="mb-6 md:mb-8">
-          <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-4 md:p-5">
+          <div className="bg-gradient-to-r from-yellow-300 via-yellow-300 to-yellow-300 border-2 border-black rounded-xl shadow-lg p-4 md:p-5">
             <div className="flex flex-col gap-4">
               {/* Top row */}
               <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0">
-                    <Banknote className="w-5 h-5 text-blue-600" />
-                  </div>
+                  <div className="w-1.5 h-8 md:h-9 bg-black rounded-full shrink-0 shadow-sm" />
                   <div className="min-w-0">
-                    <h1 className="text-lg md:text-xl font-bold text-gray-800 leading-tight truncate">
+                    <h1 className="text-lg md:text-xl font-bold text-black leading-tight truncate">
                       Thống kê doanh thu theo tuyến
                     </h1>
                   </div>
@@ -824,17 +845,17 @@ const SummaryRevenue = () => {
 
                 {/* Status pill */}
                 <div
-                  className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 shadow-sm"
+                  className="inline-flex items-center gap-2 rounded-lg border-2 border-black bg-white px-3 py-2 shadow-sm"
                   title="Trạng thái đang xem"
                 >
-                  <div className="p-1.5 rounded-lg bg-gray-50 border border-gray-200">
+                  <div className="p-1.5 rounded-lg bg-gray-100 border border-gray-300">
                     <StatusIcon
                       size={16}
                       className={currentStatusConfig.color}
                     />
                   </div>
                   <div className="leading-tight">
-                    <div className="text-xs font-bold text-gray-900">
+                    <div className="text-xs font-bold text-black">
                       {currentStatusConfig.label}
                     </div>
                   </div>
@@ -842,11 +863,11 @@ const SummaryRevenue = () => {
               </div>
 
               {/* Filters */}
-              <div className="pt-4 border-t border-gray-200">
+              <div className="pt-4 border-t-2 border-black">
                 <div className="grid gap-4 lg:grid-cols-2">
                   {/* Time filter */}
                   <div>
-                    <div className="mb-2 text-xs font-bold text-gray-700 uppercase tracking-wide">
+                    <div className="mb-2 text-xs font-bold text-black uppercase tracking-wide">
                       Khoảng thời gian
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
@@ -862,7 +883,7 @@ const SummaryRevenue = () => {
 
                   {/* Status filter */}
                   <div>
-                    <div className="mb-2 text-xs font-bold text-gray-700 uppercase tracking-wide">
+                    <div className="mb-2 text-xs font-bold text-black uppercase tracking-wide">
                       Trạng thái thanh toán
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
@@ -875,37 +896,37 @@ const SummaryRevenue = () => {
                   {/* Custom bar */}
                   {isCustom && (
                     <div className="lg:col-span-2">
-                      <div className="rounded-xl bg-white border border-gray-200 p-3 shadow-sm">
+                      <div className="rounded-xl bg-white border-2 border-black p-3 shadow-sm">
                         <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
                           <div className="flex flex-wrap items-center gap-3">
                             <div className="flex items-center gap-2">
-                              <Calendar className="h-4 w-4 text-gray-700" />
-                              <span className="text-sm font-semibold text-gray-900">
+                              <Calendar className="h-4 w-4 text-black" />
+                              <span className="text-sm font-semibold text-black">
                                 Tùy chỉnh
                               </span>
                             </div>
 
                             <div className="flex items-center gap-2">
-                              <span className="text-sm font-medium text-gray-700">
+                              <span className="text-sm font-medium text-black">
                                 Từ
                               </span>
                               <input
                                 type="date"
                                 value={startDate}
                                 onChange={(e) => setStartDate(e.target.value)}
-                                className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                                className="border-2 border-black rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 bg-white"
                               />
                             </div>
 
                             <div className="flex items-center gap-2">
-                              <span className="text-sm font-medium text-gray-700">
+                              <span className="text-sm font-medium text-black">
                                 Đến
                               </span>
                               <input
                                 type="date"
                                 value={endDate}
                                 onChange={(e) => setEndDate(e.target.value)}
-                                className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                                className="border-2 border-black rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 bg-white"
                               />
                             </div>
                           </div>
@@ -920,16 +941,16 @@ const SummaryRevenue = () => {
                               })
                             }
                             disabled={loading}
-                            className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            className="bg-black text-yellow-400 border-2 border-black px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
                           >
                             {loading ? "Đang tải..." : "Tìm kiếm"}
                           </button>
                         </div>
 
-                        <p className="mt-2 text-xs text-gray-500">
+                        <p className="mt-2 text-xs text-gray-700">
                           Chọn ngày rồi bấm{" "}
-                          <b className="text-gray-700">Tìm kiếm</b> để cập nhật
-                          dữ liệu.
+                          <b className="text-black">Tìm kiếm</b> để cập nhật dữ
+                          liệu.
                         </p>
                       </div>
                     </div>
@@ -938,19 +959,19 @@ const SummaryRevenue = () => {
 
                 {/* quick label row */}
                 <div className="mt-3 flex flex-wrap items-center gap-2">
-                  <div className="inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2">
-                    <Calendar className="w-4 h-4 text-blue-600" />
-                    <span className="text-xs md:text-sm font-semibold text-blue-800">
+                  <div className="inline-flex items-center gap-2 rounded-lg border-2 border-black bg-white px-3 py-2 shadow-sm">
+                    <Calendar className="w-4 h-4 text-black" />
+                    <span className="text-xs md:text-sm font-semibold text-black">
                       {FILTER_OPTIONS.find((f) => f.value === filterType)
                         ?.label || "—"}
                     </span>
                   </div>
-                  <div className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 shadow-sm">
-                    <div className="p-1.5 rounded-lg bg-gray-50 border border-gray-200">
-                      <Layers size={16} className="text-gray-700" />
+                  <div className="inline-flex items-center gap-2 rounded-lg border-2 border-black bg-white px-3 py-2 shadow-sm">
+                    <div className="p-1.5 rounded-lg bg-gray-100 border border-gray-300">
+                      <Layers size={16} className="text-black" />
                     </div>
                     <div className="leading-tight">
-                      <div className="text-xs font-bold text-gray-900">
+                      <div className="text-xs font-bold text-black">
                         {metrics ? metrics.totalRoutes : 0} tuyến
                       </div>
                     </div>
@@ -962,11 +983,11 @@ const SummaryRevenue = () => {
           </div>
         </div>
 
-        {/* ✅ Error đồng bộ */}
+        {/* ✅ Error */}
         {error && (
-          <div className="mb-6 bg-red-50 border border-red-200 rounded-xl p-4 shadow-sm">
+          <div className="mb-6 bg-red-50 border-2 border-black rounded-xl p-4 shadow-sm">
             <div className="flex items-start gap-3">
-              <div className="p-2 bg-red-100 rounded-lg">
+              <div className="p-2 bg-red-100 rounded-lg border border-red-300">
                 <AlertCircle className="w-5 h-5 text-red-600" />
               </div>
               <div className="flex-1 min-w-0">
@@ -981,22 +1002,43 @@ const SummaryRevenue = () => {
 
         {/* ✅ Loading */}
         {loading && (
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4 mb-6">
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-          </div>
+          <>
+            <SectionTitle>Tổng quan</SectionTitle>
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4 mb-6">
+              <SkeletonCard colorClass="from-yellow-300 to-yellow-400" />
+              <SkeletonCard colorClass="from-red-300 to-red-400" />
+              <SkeletonCard colorClass="from-green-300 to-green-400" />
+              <SkeletonCard colorClass="from-blue-300 to-blue-400" />
+            </div>
+
+            <div className="mt-2">
+              <div className="flex items-end justify-between mb-4">
+                <SectionTitle>Chi tiết theo từng tuyến</SectionTitle>
+                <div className="h-4 w-20 bg-gray-300 rounded animate-pulse" />
+              </div>
+
+              <div className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-4">
+                <SkeletonRouteCard />
+                <SkeletonRouteCard />
+                <SkeletonRouteCard />
+                <SkeletonRouteCard />
+                <SkeletonRouteCard />
+                <SkeletonRouteCard />
+                <SkeletonRouteCard />
+                <SkeletonRouteCard />
+              </div>
+            </div>
+          </>
         )}
 
         {/* ✅ No data */}
         {!loading && (!data || data.length === 0) && (
-          <div className="bg-white rounded-xl border border-gray-200 p-12 text-center shadow-sm">
-            <Banknote className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-700 text-sm font-bold mb-1">
+          <div className="bg-white rounded-xl border-2 border-black p-12 text-center shadow-lg">
+            <Banknote className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+            <p className="text-black text-sm font-bold mb-1">
               Không có dữ liệu
             </p>
-            <p className="text-gray-500 text-sm">
+            <p className="text-gray-600 text-sm">
               Thử đổi khoảng thời gian hoặc trạng thái thanh toán.
             </p>
           </div>
@@ -1005,93 +1047,93 @@ const SummaryRevenue = () => {
         {/* ✅ Data */}
         {!loading && data && data.length > 0 && metrics && (
           <>
-            {/* SUMMARY CARDS đồng bộ (white card + gradient nhẹ) */}
+            {/* SUMMARY CARDS - 4 MÀU */}
             <SectionTitle>Tổng quan</SectionTitle>
 
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4 mb-6">
-              {/* Tổng doanh thu */}
-              <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 min-h-[150px]">
-                <div className="p-5 md:p-6 bg-gradient-to-br from-blue-50 to-blue-100 h-full">
+              {/* Tổng doanh thu - VÀNG */}
+              <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all overflow-hidden border-2 border-black min-h-[150px]">
+                <div className="p-5 md:p-6 bg-gradient-to-br from-yellow-300 to-yellow-400 h-full">
                   <div className="flex items-center justify-between mb-4">
-                    <span className="text-gray-600 text-xs md:text-sm font-semibold uppercase tracking-wide truncate">
+                    <span className="text-black text-xs md:text-sm font-semibold uppercase tracking-wide truncate">
                       Tổng doanh thu
                     </span>
-                    <div className="p-2.5 rounded-lg bg-blue-600">
-                      <Banknote className="w-6 h-6 text-white" />
+                    <div className="p-2.5 rounded-lg bg-black">
+                      <Banknote className="w-6 h-6 text-yellow-400" />
                     </div>
                   </div>
-                  <div className="text-2xl md:text-3xl font-bold text-blue-600 leading-none tabular-nums break-words">
+                  <div className="text-2xl md:text-3xl font-bold text-black leading-none tabular-nums break-words">
                     {formatCurrency(metrics.totalRevenue)}
                   </div>
                 </div>
               </div>
 
-              {/* Số tuyến */}
-              <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 min-h-[150px]">
-                <div className="p-5 md:p-6 bg-gradient-to-br from-blue-50 to-blue-100 h-full">
+              {/* Số tuyến - ĐỎ */}
+              <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all overflow-hidden border-2 border-black min-h-[150px]">
+                <div className="p-5 md:p-6 bg-gradient-to-br from-red-300 to-red-400 h-full">
                   <div className="flex items-center justify-between mb-4">
-                    <span className="text-gray-600 text-xs md:text-sm font-semibold uppercase tracking-wide truncate">
+                    <span className="text-black text-xs md:text-sm font-semibold uppercase tracking-wide truncate">
                       Số tuyến
                     </span>
-                    <div className="p-2.5 rounded-lg bg-blue-600">
-                      <Layers className="w-6 h-6 text-white" />
+                    <div className="p-2.5 rounded-lg bg-black">
+                      <Layers className="w-6 h-6 text-red-400" />
                     </div>
                   </div>
-                  <div className="text-3xl md:text-4xl font-bold text-blue-600 leading-none tabular-nums">
+                  <div className="text-2xl md:text-3xl font-bold text-black leading-none tabular-nums">
                     {formatNumber(metrics.totalRoutes)}
                   </div>
                 </div>
               </div>
 
-              {/* Tuyến hàng đầu */}
-              <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 min-h-[150px]">
-                <div className="p-5 md:p-6 bg-gradient-to-br from-blue-50 to-blue-100 h-full">
+              {/* Tuyến hàng đầu - XANH LÁ */}
+              <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all overflow-hidden border-2 border-black min-h-[150px]">
+                <div className="p-5 md:p-6 bg-gradient-to-br from-green-300 to-green-400 h-full">
                   <div className="flex items-center justify-between mb-4">
-                    <span className="text-gray-600 text-xs md:text-sm font-semibold uppercase tracking-wide truncate">
+                    <span className="text-black text-xs md:text-sm font-semibold uppercase tracking-wide truncate">
                       Tuyến hàng đầu
                     </span>
-                    <div className="p-2.5 rounded-lg bg-blue-600">
-                      <Award className="w-6 h-6 text-white" />
+                    <div className="p-2.5 rounded-lg bg-black">
+                      <Award className="w-6 h-6 text-green-400" />
                     </div>
                   </div>
 
                   <div className="min-w-0">
-                    <div className="text-lg md:text-xl font-bold text-gray-800 truncate">
+                    <div className="text-lg md:text-xl font-bold text-black truncate">
                       {metrics.topRoute?.routeName || "N/A"}
                     </div>
-                    <div className="mt-2 text-sm md:text-base font-bold text-blue-600 tabular-nums">
+                    <div className="mt-2 text-sm md:text-base font-bold text-black tabular-nums">
                       {formatCurrency(metrics.topRoute?.totalRevenue || 0)}
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* TB/tuyến */}
-              <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 min-h-[150px]">
-                <div className="p-5 md:p-6 bg-gradient-to-br from-blue-50 to-blue-100 h-full">
+              {/* TB/tuyến - XANH DƯƠNG */}
+              <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all overflow-hidden border-2 border-black min-h-[150px]">
+                <div className="p-5 md:p-6 bg-gradient-to-br from-blue-300 to-blue-400 h-full">
                   <div className="flex items-center justify-between mb-4">
-                    <span className="text-gray-600 text-xs md:text-sm font-semibold uppercase tracking-wide truncate">
+                    <span className="text-black text-xs md:text-sm font-semibold uppercase tracking-wide truncate">
                       TB / tuyến
                     </span>
-                    <div className="p-2.5 rounded-lg bg-blue-600">
-                      <TrendingUp className="w-6 h-6 text-white" />
+                    <div className="p-2.5 rounded-lg bg-black">
+                      <TrendingUp className="w-6 h-6 text-blue-400" />
                     </div>
                   </div>
 
-                  <div className="text-lg md:text-xl font-bold text-blue-600 leading-none tabular-nums break-words">
+                  <div className="text-lg md:text-xl font-bold text-black leading-none tabular-nums break-words">
                     {formatCurrency(metrics.avgRevenuePerRoute)}
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* ROUTES GRID đồng bộ (white card + header gradient) */}
+            {/* ROUTES GRID - XÁM VIỀN ĐEN */}
             <div className="mt-2">
               <div className="flex items-end justify-between mb-4">
                 <SectionTitle>Chi tiết theo từng tuyến</SectionTitle>
-                <div className="text-xs text-gray-500">
+                <div className="text-xs text-gray-600">
                   Tổng:{" "}
-                  <b className="text-gray-800 tabular-nums">
+                  <b className="text-black tabular-nums">
                     {metrics.totalRoutes}
                   </b>{" "}
                   tuyến
@@ -1100,63 +1142,41 @@ const SummaryRevenue = () => {
 
               <div className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-4">
                 {data.map((route, index) => {
-                  const percentOfTotal =
-                    metrics.totalRevenue > 0
-                      ? (Number(route.totalRevenue || 0) /
-                          metrics.totalRevenue) *
-                        100
-                      : 0;
-
                   return (
                     <div
                       key={`${route.routeName}-${index}`}
-                      className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all overflow-hidden"
+                      className="bg-white rounded-xl border-2 border-black shadow-lg hover:shadow-xl transition-all overflow-hidden"
                     >
                       {/* header */}
-                      <div className="p-4 md:p-5 bg-gradient-to-br from-blue-50 to-blue-100 border-b border-blue-100">
+                      <div className="p-4 md:p-5 bg-gradient-to-br from-gray-200 to-gray-300 border-b-2 border-black">
                         <div className="flex items-center justify-between gap-3">
                           <div className="flex items-center gap-2 min-w-0">
-                            <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-white border border-gray-200 font-bold text-gray-900 text-xs shrink-0">
+                            <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-white border-2 border-black font-bold text-black text-xs shrink-0">
                               {index + 1}
                             </div>
-                            <h4 className="text-base md:text-lg font-bold text-gray-800 truncate">
+                            <h4 className="text-base md:text-lg font-bold text-black truncate">
                               {route.routeName}
                             </h4>
                           </div>
 
-                          <div className="p-2 rounded-lg bg-blue-600 shrink-0">
+                          <div className="p-2 rounded-lg bg-black shrink-0">
                             <DollarSign className="h-4 w-4 text-white" />
                           </div>
                         </div>
                       </div>
 
                       {/* body */}
-                      <div className="p-4 md:p-5">
-                        <div className="mb-3">
-                          <p className="text-xs md:text-sm font-semibold text-gray-600">
-                            Doanh thu
-                          </p>
-                          <p className="text-base md:text-lg font-bold text-gray-800 tabular-nums break-words">
-                            {formatCurrency(route.totalRevenue)}
-                          </p>
-                        </div>
-
-                        <div className="pt-4 border-t border-gray-200">
-                          <div className="flex items-center justify-between text-xs text-gray-500">
-                            <span>% tổng DT</span>
-                            <span className="font-bold text-gray-800 tabular-nums">
-                              {percentOfTotal.toFixed(1)}%
+                      <div className="p-4 md:p-5 bg-white">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <Banknote className="h-4 w-4 text-gray-600 shrink-0" />
+                            <span className="text-xs md:text-sm font-semibold text-gray-700 truncate">
+                              Doanh thu
                             </span>
                           </div>
-
-                          <div className="mt-2 w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                            <div
-                              className="bg-blue-600 h-2 rounded-full transition-all"
-                              style={{
-                                width: `${Math.min(100, percentOfTotal)}%`,
-                              }}
-                            />
-                          </div>
+                          <span className="text-sm md:text-base font-bold text-black tabular-nums whitespace-nowrap">
+                            {formatCurrency(route.totalRevenue)}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -1164,32 +1184,32 @@ const SummaryRevenue = () => {
                 })}
               </div>
 
-              {/* Footer summary đồng bộ */}
-              <div className="mt-6 bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+              {/* Footer summary */}
+              <div className="mt-6 bg-white rounded-xl border-2 border-black p-4 shadow-lg">
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
-                  <div className="p-3 rounded-lg bg-gray-50 border border-gray-100">
-                    <p className="text-xs text-gray-500 uppercase font-semibold mb-1">
+                  <div className="p-3 rounded-lg bg-gray-200 border-2 border-black">
+                    <p className="text-xs text-black uppercase font-semibold mb-1">
                       Tổng tuyến
                     </p>
-                    <p className="text-xl font-bold text-gray-800 tabular-nums">
+                    <p className="text-xl font-bold text-black tabular-nums">
                       {metrics.totalRoutes}
                     </p>
                   </div>
 
-                  <div className="p-3 rounded-lg bg-blue-50 border border-blue-100">
-                    <p className="text-xs text-gray-500 uppercase font-semibold mb-1">
+                  <div className="p-3 rounded-lg bg-gray-200 border-2 border-black">
+                    <p className="text-xs text-black uppercase font-semibold mb-1">
                       Tổng doanh thu
                     </p>
-                    <p className="text-base font-bold text-gray-800 tabular-nums break-words">
+                    <p className="text-base font-bold text-black tabular-nums break-words">
                       {formatCurrency(metrics.totalRevenue)}
                     </p>
                   </div>
 
-                  <div className="p-3 rounded-lg bg-blue-50 border border-blue-100">
-                    <p className="text-xs text-gray-500 uppercase font-semibold mb-1">
+                  <div className="p-3 rounded-lg bg-gray-200 border-2 border-black">
+                    <p className="text-xs text-black uppercase font-semibold mb-1">
                       TB / tuyến
                     </p>
-                    <p className="text-base font-bold text-gray-800 tabular-nums break-words">
+                    <p className="text-base font-bold text-black tabular-nums break-words">
                       {formatCurrency(metrics.avgRevenuePerRoute)}
                     </p>
                   </div>

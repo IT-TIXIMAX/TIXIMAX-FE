@@ -22,7 +22,7 @@ import {
   Landmark,
   Luggage,
   Banknote,
-  CopyPlus,
+  FolderInput,
   Rows2,
   Wallet,
   UserStar,
@@ -218,6 +218,11 @@ const StaffSaleSidebar = () => {
               icon: ListChecks,
               label: "Danh sách địa chỉ giao",
             },
+            {
+              to: "/staff-sale/export-order",
+              icon: FolderInput,
+              label: "Xuất kho đơn vị khác",
+            },
           ],
           isOpen: isWarehouseDropdownOpen,
           onToggle: () => setIsWarehouseDropdownOpen(!isWarehouseDropdownOpen),
@@ -281,7 +286,7 @@ const StaffSaleSidebar = () => {
 
     if (item.type === "dropdown") {
       const isDropdownActive = item.dropdownItems?.some((dropdownItem) =>
-        isActive(dropdownItem.to)
+        isActive(dropdownItem.to),
       );
 
       return (
@@ -446,7 +451,7 @@ const StaffSaleSidebar = () => {
             </h3>
             <div className="space-y-1">
               {section.items.map((item, itemIndex) =>
-                renderMenuItem(item, itemIndex)
+                renderMenuItem(item, itemIndex),
               )}
             </div>
           </div>

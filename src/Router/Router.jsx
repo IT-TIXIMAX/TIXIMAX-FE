@@ -159,6 +159,7 @@ import LockedDraftsList from "../components/Warehouse/LockedDraftsList";
 import DashboardWarehouseDomestic from "../components/Warehouse/DashboardWarehouseDomestic";
 import PerformancesCustomer from "../components/Manager/PerformancesCustomer";
 import LockedDraftsOtherList from "../components/Warehouse/LockedDraftsOtherList";
+import ExportOtherOrder from "../components/Warehouse/ExportOtherOrder";
 const Router = createBrowserRouter([
   {
     path: "/",
@@ -369,6 +370,7 @@ const Router = createBrowserRouter([
       { path: "create-customer", element: <CreateAccountUser /> },
       { path: "list-customers", element: <CustomerStaffList /> },
       { path: "add-shipping-order", element: <RelateOrder /> },
+      { path: "export-order", element: <ExportOtherOrder /> },
       { path: "prospects", element: <NotFound /> },
       { path: "list-orders", element: <OrderList /> },
       { path: "orders/pending", element: <NotFound /> }, // Chưa triển khai
