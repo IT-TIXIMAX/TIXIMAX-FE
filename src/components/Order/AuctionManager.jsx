@@ -43,7 +43,7 @@ const AuctionManager = ({
 
       toast.success(`Đã chọn website: ${website.websiteName}`);
     },
-    [setProducts]
+    [setProducts],
   );
 
   const handleClearWebsite = useCallback(
@@ -62,7 +62,7 @@ const AuctionManager = ({
 
       toast("Đã xóa thông tin website");
     },
-    [setProducts]
+    [setProducts],
   );
 
   const handleWebsiteInputChange = useCallback(
@@ -86,7 +86,7 @@ const AuctionManager = ({
         });
       }
     },
-    [setProducts, selectedWebsites]
+    [setProducts, selectedWebsites],
   );
 
   const formatCurrency = (value) => {
@@ -106,8 +106,7 @@ const AuctionManager = ({
 
   const getRawValue = (value) => value.toString().replace(/,/g, "");
 
-  const isValidDecimal = (value) =>
-    /^\d*\.?\d*$/.test(value) || value === "";
+  const isValidDecimal = (value) => /^\d*\.?\d*$/.test(value) || value === "";
 
   const handleQuantityBlur = useCallback(
     (index) => {
@@ -125,7 +124,7 @@ const AuctionManager = ({
         return updated;
       });
     },
-    [setProducts]
+    [setProducts],
   );
 
   const handleCurrencyBlur = useCallback(
@@ -144,7 +143,7 @@ const AuctionManager = ({
         return updated;
       });
     },
-    [setProducts]
+    [setProducts],
   );
 
   const handleProductChange = useCallback(
@@ -155,16 +154,12 @@ const AuctionManager = ({
 
         if (name === "productTypeId") {
           const typeId = Number(value);
-          const type = productTypes.find(
-            (p) => p.productTypeId === typeId
-          );
+          const type = productTypes.find((p) => p.productTypeId === typeId);
 
           updated[index] = {
             ...updated[index],
             [name]: typeId,
-            extraCharge: type?.fee
-              ? updated[index].extraCharge
-              : "0",
+            extraCharge: type?.fee ? updated[index].extraCharge : "0",
           };
         } else {
           if (["priceWeb", "shipWeb", "extraCharge"].includes(name)) {
@@ -202,7 +197,7 @@ const AuctionManager = ({
         return updated;
       });
     },
-    [productTypes, setProducts]
+    [productTypes, setProducts],
   );
 
   const handleImageUpload = useCallback(
@@ -215,7 +210,7 @@ const AuctionManager = ({
 
       toast.success(`Upload ảnh sản phẩm ${index + 1} thành công!`);
     },
-    [setProducts]
+    [setProducts],
   );
 
   const handleImageRemove = useCallback(
@@ -228,7 +223,7 @@ const AuctionManager = ({
 
       toast.success("Đã xóa ảnh sản phẩm thành công");
     },
-    [setProducts]
+    [setProducts],
   );
 
   const addProduct = useCallback(() => {
@@ -278,7 +273,7 @@ const AuctionManager = ({
 
       toast.success("Đã xóa sản phẩm");
     },
-    [setProducts]
+    [setProducts],
   );
 
   const shouldAutoCollapse = (index) =>
@@ -300,14 +295,14 @@ const AuctionManager = ({
             </span>
           </p>
 
-          <button
+          {/* <button
             onClick={addProduct}
             className="bg-blue-500 text-white px-4 py-2 text-sm rounded hover:bg-blue-600 flex items-center gap-2 transition-colors disabled:opacity-50"
             disabled={!isFormEnabled}
           >
             <Plus className="w-4 h-4" />
             Thêm sản phẩm
-          </button>
+          </button> */}
         </div>
       </div>
 
@@ -315,7 +310,7 @@ const AuctionManager = ({
         {products.map((product, index) => {
           const collapsed = isCollapsed(index);
           const productType = productTypes.find(
-            (p) => p.productTypeId === product.productTypeId
+            (p) => p.productTypeId === product.productTypeId,
           );
 
           return (
@@ -373,9 +368,7 @@ const AuctionManager = ({
                     {(shouldAutoCollapse(index) ||
                       collapsedProducts[index] !== undefined) && (
                       <button
-                        onClick={() =>
-                          handleToggleCollapse(index)
-                        }
+                        onClick={() => handleToggleCollapse(index)}
                         className="p-1.5 hover:bg-gray-200 rounded"
                       >
                         <ChevronDown
@@ -412,9 +405,7 @@ const AuctionManager = ({
                         type="text"
                         name="productName"
                         value={product.productName}
-                        onChange={(e) =>
-                          handleProductChange(index, e)
-                        }
+                        onChange={(e) => handleProductChange(index, e)}
                         className="w-full px-4 py-2 text-sm border rounded"
                         disabled={!isFormEnabled}
                         placeholder="Nhập tên sản phẩm..."
@@ -428,12 +419,8 @@ const AuctionManager = ({
                       <input
                         type="text"
                         name="quantity"
-                        value={formatCurrency(
-                          product.quantity || ""
-                        )}
-                        onChange={(e) =>
-                          handleProductChange(index, e)
-                        }
+                        value={formatCurrency(product.quantity || "")}
+                        onChange={(e) => handleProductChange(index, e)}
                         onBlur={() => handleQuantityBlur(index)}
                         className="w-full px-4 py-2 text-sm border rounded"
                         disabled={!isFormEnabled}
@@ -450,9 +437,7 @@ const AuctionManager = ({
                           handleSelectWebsite(index, website)
                         }
                         value={product.website}
-                        onChange={(e) =>
-                          handleWebsiteInputChange(index, e)
-                        }
+                        onChange={(e) => handleWebsiteInputChange(index, e)}
                         onClear={() => handleClearWebsite(index)}
                       />
                     </div>
@@ -469,9 +454,7 @@ const AuctionManager = ({
                       type="text"
                       name="productLink"
                       value={product.productLink}
-                      onChange={(e) =>
-                        handleProductChange(index, e)
-                      }
+                      onChange={(e) => handleProductChange(index, e)}
                       className="w-full px-4 py-2 text-sm border rounded"
                       disabled={!isFormEnabled}
                       placeholder="https://..."
@@ -479,7 +462,7 @@ const AuctionManager = ({
                   </div>
 
                   {/* GIÁ + SHIP + PHÍ MUA */}
-                  <div >
+                  <div>
                     <div className="col-span-5">
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Giá sản phẩm <span className="text-red-500">*</span>
@@ -524,7 +507,9 @@ const AuctionManager = ({
                             name="purchaseFee"
                             value={product.purchaseFee || ""}
                             onChange={(e) => handleProductChange(index, e)}
-                            onBlur={() => handleCurrencyBlur(index, "purchaseFee")}
+                            onBlur={() =>
+                              handleCurrencyBlur(index, "purchaseFee")
+                            }
                             className="w-full px-4 py-2 text-sm border rounded"
                             disabled={!isFormEnabled}
                             placeholder="%"
@@ -553,8 +538,12 @@ const AuctionManager = ({
                       >
                         <option value="">Chọn loại sản phẩm</option>
                         {productTypes.map((type) => (
-                          <option key={type.productTypeId} value={type.productTypeId}>
-                            {type.productTypeName} {type.fee ? "(Có phí)" : "(Miễn phí)"}
+                          <option
+                            key={type.productTypeId}
+                            value={type.productTypeId}
+                          >
+                            {type.productTypeName}{" "}
+                            {type.fee ? "(Có phí)" : "(Miễn phí)"}
                           </option>
                         ))}
                       </select>
@@ -571,7 +560,9 @@ const AuctionManager = ({
                           name="extraCharge"
                           value={formatCurrency(product.extraCharge || "")}
                           onChange={(e) => handleProductChange(index, e)}
-                          onBlur={() => handleCurrencyBlur(index, "extraCharge")}
+                          onBlur={() =>
+                            handleCurrencyBlur(index, "extraCharge")
+                          }
                           className="w-full px-4 py-2 text-sm border rounded"
                           disabled={!isFormEnabled}
                           placeholder="0"

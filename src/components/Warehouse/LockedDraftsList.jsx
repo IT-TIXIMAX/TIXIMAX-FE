@@ -318,7 +318,7 @@ const LockedDraftsList = () => {
 
       const { fileName, count } = buildAndSaveExcel({
         rows,
-        filePrefix: "locked_drafts_export",
+        filePrefix: "Xuất_Kho_VNPOST_Ngày",
         endDate: filterDate,
       });
 
@@ -383,7 +383,7 @@ const LockedDraftsList = () => {
                 <Lock size={22} className="text-white" />
               </div>
               <h1 className="text-xl font-semibold text-white">
-                Locked Drafts (Kho nội địa)
+                Khóa & Xuất hàng nội địa
               </h1>
             </div>
             <button

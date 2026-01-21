@@ -74,7 +74,7 @@ const InputField = React.memo(
         </p>
       )}
     </div>
-  )
+  ),
 );
 
 // Empty state khi chưa có account
@@ -139,7 +139,7 @@ const CreateAccountUser = () => {
       address: "",
       source: "",
     }),
-    []
+    [],
   );
 
   // Optimized copy function
@@ -183,7 +183,7 @@ const CreateAccountUser = () => {
         }, 500);
       }
     },
-    [errors]
+    [errors],
   );
 
   // Optimized form submission
@@ -214,7 +214,7 @@ const CreateAccountUser = () => {
         const registrationData = { username: "", password: "", ...formData };
         const result = await registrationByStaffService.registerCustomerByStaff(
           registrationData,
-          token
+          token,
         );
 
         setCreatedAccount(result);
@@ -243,7 +243,7 @@ const CreateAccountUser = () => {
         setLoading(false);
       }
     },
-    [formData]
+    [formData],
   );
 
   // Optimized reset function
@@ -441,6 +441,7 @@ const CreateAccountUser = () => {
                   name="address"
                   placeholder="Nhập địa chỉ (không bắt buộc)"
                   isTextarea
+                  required
                   value={formData.address}
                   onChange={handleInputChange}
                   error={errors.address}
