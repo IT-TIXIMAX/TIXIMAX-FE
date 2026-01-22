@@ -111,11 +111,11 @@ const buildAndSaveExcel = ({
       "STT",
       "Mã ship",
       "Nhân viên",
+      "Số mã",
+      "Danh sách mã",
       "Tên khách hàng",
       "SĐT",
       "Địa chỉ",
-      "Số mã",
-      "Danh sách mã",
       "Trọng lượng",
       "VNPost tracking",
     ],
@@ -128,11 +128,11 @@ const buildAndSaveExcel = ({
       stt++,
       it.shipCode ?? "",
       it.staffCode ?? "",
+      list.length,
+      list.join(", "),
       it.customerName ?? "",
       it.phoneNumber ?? "",
       (it.address ?? "").replace(/\r\n/g, "\n"),
-      list.length,
-      list.join(", "),
       it.weight !== undefined && it.weight !== null ? Number(it.weight) : "",
       it.vnpostTrackingCode ?? "",
     ]);
@@ -141,14 +141,14 @@ const buildAndSaveExcel = ({
   const ws = XLSX.utils.aoa_to_sheet(excelData);
 
   ws["!cols"] = [
-    { wch: 6 }, // STT
+    { wch: 4 }, // STT
     { wch: 16 }, // Mã ship
-    { wch: 10 }, // Nhân viên
+    { wch: 6 }, // Nhân viên
+    { wch: 6 }, // Số mã
+    { wch: 45 }, // Danh sách mã
     { wch: 22 }, // Tên khách hàng
     { wch: 14 }, // SĐT
     { wch: 50 }, // Địa chỉ
-    { wch: 10 }, // Số mã
-    { wch: 45 }, // Danh sách mã
     { wch: 12 }, // Trọng lượng
     { wch: 18 }, // VNPost tracking
   ];
@@ -625,10 +625,10 @@ const LockedDraftsList = () => {
                       Số mã
                     </th>
                     <th className="px-4 py-4 text-left text-sm font-semibold">
-                      Shipping List
+                      Danh sách mã
                     </th>
                     <th className="px-4 py-4 text-center text-sm font-semibold whitespace-nowrap">
-                      Weight (kg)
+                      Trọng lượng (kg)
                     </th>
                     <th className="px-4 py-4 text-center text-sm font-semibold whitespace-nowrap">
                       Trạng thái

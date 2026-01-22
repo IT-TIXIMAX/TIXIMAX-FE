@@ -18,16 +18,20 @@ import {
   X,
 } from "lucide-react";
 
+/* ===================== Animated number (supports decimals) ===================== */
 const useCountAnimation = (
   targetValue,
-  shouldAnimate = true,
-  duration = 800,
+  {
+    shouldAnimate = true,
+    duration = 800,
+    decimals = 0, // ✅ support decimals (useful for weight)
+  } = {},
 ) => {
-  const [displayValue, setDisplayValue] = useState(targetValue);
-  const prevTargetRef = useRef(targetValue);
+  const [displayValue, setDisplayValue] = useState(Number(targetValue) || 0);
+  const prevTargetRef = useRef(Number(targetValue) || 0);
   const animationRef = useRef(null);
   const startTimeRef = useRef(null);
-  const startValueRef = useRef(targetValue);
+  const startValueRef = useRef(Number(targetValue) || 0);
 
   useEffect(() => {
     const numTarget = Number(targetValue) || 0;
@@ -40,16 +44,19 @@ const useCountAnimation = (
     }
 
     const startValue = numPrev;
-    const difference = numTarget - startValue;
+    const diff = numTarget - startValue;
+
     startValueRef.current = startValue;
     startTimeRef.current = performance.now();
 
-    const animate = (currentTime) => {
-      const elapsed = currentTime - startTimeRef.current;
+    const animate = (t) => {
+      const elapsed = t - startTimeRef.current;
       const progress = Math.min(elapsed / duration, 1);
-      const easeProgress = 1 - Math.pow(1 - progress, 4);
-      const current = startValueRef.current + difference * easeProgress;
-      setDisplayValue(Math.round(current));
+      const ease = 1 - Math.pow(1 - progress, 4);
+      const current = startValueRef.current + diff * ease;
+
+      const factor = Math.pow(10, decimals);
+      setDisplayValue(Math.round(current * factor) / factor);
 
       if (progress < 1) {
         animationRef.current = requestAnimationFrame(animate);
@@ -64,7 +71,7 @@ const useCountAnimation = (
     return () => {
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
-  }, [targetValue, shouldAnimate, duration]);
+  }, [targetValue, shouldAnimate, duration, decimals]);
 
   return displayValue;
 };
@@ -74,13 +81,22 @@ const AnimatedNumber = ({
   suffix = "",
   shouldAnimate = true,
   className = "",
+  decimals = 0,
 }) => {
-  const animatedValue = useCountAnimation(value || 0, shouldAnimate, 800);
-  const formatNumber = (val) => Number(val).toLocaleString("vi-VN");
+  const animatedValue = useCountAnimation(value ?? 0, {
+    shouldAnimate,
+    duration: 800,
+    decimals,
+  });
+
+  const formatted = Number(animatedValue).toLocaleString("vi-VN", {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  });
 
   return (
     <span className={className}>
-      {formatNumber(animatedValue)}
+      {formatted}
       {suffix}
     </span>
   );
@@ -134,19 +150,28 @@ const DashboardManager = () => {
   const { messages, isConnected } = useWebSocket("/topic/Tiximax");
 
   const formatNumber = (value) => {
-    if (value == null) return 0;
+    if (value == null) return "0";
     return Number(value).toLocaleString("vi-VN");
   };
 
+  // prevent stale responses (rapid filter changes)
+  const overviewReqIdRef = useRef(0);
+  const detailsReqIdRef = useRef(0);
+
   const fetchOverview = async (currentFilter) => {
+    const reqId = ++overviewReqIdRef.current;
+
     setLoadingOverview(true);
     setError(null);
     try {
       const filterRes =
         await dashboardService.getDashboardFilter(currentFilter);
+      if (reqId !== overviewReqIdRef.current) return;
       setStats(filterRes?.data || DEFAULT_STATS);
     } catch (err) {
       console.error(err);
+      if (reqId !== overviewReqIdRef.current) return;
+
       setError(
         err?.response?.data?.message ||
           err?.message ||
@@ -154,11 +179,13 @@ const DashboardManager = () => {
       );
       setStats(DEFAULT_STATS);
     } finally {
-      setLoadingOverview(false);
+      if (reqId === overviewReqIdRef.current) setLoadingOverview(false);
     }
   };
 
   const fetchDetails = async (currentFilter, silent = false) => {
+    const reqId = ++detailsReqIdRef.current;
+
     try {
       if (!silent) {
         setLoadingDetails(true);
@@ -175,6 +202,8 @@ const DashboardManager = () => {
           dashboardService.getCustomers({ filterType: currentFilter }),
         ]);
 
+      if (reqId !== detailsReqIdRef.current) return;
+
       setWeights(weightsRes?.data || { totalNetWeight: 0, totalWeight: 0 });
       setPayments(
         paymentsRes?.data || { totalCollectedAmount: 0, totalShipAmount: 0 },
@@ -182,6 +211,7 @@ const DashboardManager = () => {
       setOrders(ordersRes?.data || { newOrderLinks: 0, newOrders: 0 });
       setCustomers(customersRes?.data || { newCustomers: 0 });
 
+      // bump animation on silent refresh (live)
       if (silent) {
         setTimeout(() => setAnimationKey((prev) => prev + 1), 50);
       }
@@ -189,13 +219,13 @@ const DashboardManager = () => {
       setHasLoadedDetailsOnce(true);
     } catch (err) {
       console.error(err);
-      setError(
-        err?.response?.data?.message ||
-          err?.message ||
-          "Đã xảy ra lỗi khi tải dữ liệu Chi tiết.",
-      );
 
       if (!silent) {
+        setError(
+          err?.response?.data?.message ||
+            err?.message ||
+            "Đã xảy ra lỗi khi tải dữ liệu Chi tiết.",
+        );
         setWeights({ totalNetWeight: 0, totalWeight: 0 });
         setPayments({ totalCollectedAmount: 0, totalShipAmount: 0 });
         setOrders({ newOrderLinks: 0, newOrders: 0 });
@@ -254,7 +284,7 @@ const DashboardManager = () => {
     return type?.label || "Hôm nay";
   };
 
-  // ✅ Skeleton
+  /* ===================== Skeletons ===================== */
   const SkeletonCard = () => (
     <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 animate-pulse">
       <div className="p-5 md:p-6 bg-gradient-to-br from-gray-50 to-gray-100">
@@ -290,22 +320,20 @@ const DashboardManager = () => {
 
   const shouldAnimate = animationKey > 0;
 
-  // ✅ class chống bể form
-  const cardTitleCls =
-    "text-gray-700 text-xs md:text-sm font-semibold uppercase tracking-wide truncate";
   const bigNumberCls =
     "text-2xl md:text-3xl font-bold text-gray-900 leading-none break-words tabular-nums";
   const subBigNumberCls =
     "text-2xl md:text-3xl font-bold text-gray-900 leading-none break-words tabular-nums";
-  const subValueCls =
-    "text-sm md:text-base font-bold text-gray-900 whitespace-nowrap";
+
+  const handleCardKeyDown = (e, to) => {
+    if (e.key === "Enter" || e.key === " ") navigate(to);
+  };
 
   return (
     <div className="min-h-screen">
       <div className="mx-auto p-4 md:p-6 lg:p-8">
-        {/* ✅ Header + FILTER INLINE (không popup) */}
         <div className="mb-6 md:mb-8">
-          <div className="bg-gradient-to-r from-yellow-300 via-yellow-300 to-yellow-300 border-2 border-black rounded-xl shadow-lg p-4 md:p-5">
+          <div className="bg-gradient-to-r from-yellow-300 via-yellow-300 to-yellow-300 border-[1px] border-black rounded-xl shadow-lg p-4 md:p-5">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               {/* Left */}
               <div className="flex items-center gap-3 min-w-0">
@@ -357,9 +385,9 @@ const DashboardManager = () => {
                     <button
                       key={opt.value}
                       onClick={() => setFilterType(opt.value)}
-                      className={`px-3.5 py-2 rounded-lg text-xs md:text-sm font-semibold transition-all border-2 border-black shadow-sm ${
+                      className={`px-3.5 py-2 rounded-lg text-xs md:text-sm font-semibold transition-all border-2 border-yellow-600 shadow-sm ${
                         active
-                          ? "bg-black text-yellow-400"
+                          ? "bg-yellow-400 text-black"
                           : "bg-white text-black hover:bg-gray-100"
                       }`}
                     >
@@ -403,7 +431,7 @@ const DashboardManager = () => {
 
           {loadingOverview ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-              {Array(7)
+              {Array(8) /* ✅ now 8 cards (split weight into 2) */
                 .fill(0)
                 .map((_, i) => (
                   <SkeletonCard key={i} />
@@ -414,7 +442,12 @@ const DashboardManager = () => {
               {/* ✅ Tổng doanh thu */}
               <div
                 onClick={() => navigate("/manager/dashboard/revenue")}
-                className="cursor-pointer bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border-2 border-black min-h-[150px]"
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) =>
+                  handleCardKeyDown(e, "/manager/dashboard/revenue")
+                }
+                className="cursor-pointer bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border-1 border-black min-h-[150px]"
               >
                 <div className="p-5 md:p-6 bg-gradient-to-br from-gray-200 to-gray-300 h-full">
                   <div className="flex items-center justify-between mb-4 min-w-0">
@@ -425,6 +458,7 @@ const DashboardManager = () => {
                       <Banknote className="w-6 h-6 md:w-7 md:h-7 text-black" />
                     </div>
                   </div>
+
                   <div className="flex items-baseline gap-2 min-w-0">
                     <span className={bigNumberCls}>
                       {formatNumber(stats.totalRevenue)}
@@ -439,7 +473,12 @@ const DashboardManager = () => {
               {/* ✅ Tổng tiền nhập */}
               <div
                 onClick={() => navigate("/manager/dashboard/revenue")}
-                className="cursor-pointer bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border-2 border-black min-h-[150px]"
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) =>
+                  handleCardKeyDown(e, "/manager/dashboard/revenue")
+                }
+                className="cursor-pointer bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border-1 border-black min-h-[150px]"
               >
                 <div className="p-5 md:p-6 bg-gradient-to-br from-gray-200 to-gray-300 h-full">
                   <div className="flex items-center justify-between mb-4 min-w-0">
@@ -464,7 +503,12 @@ const DashboardManager = () => {
               {/* ✅ Tổng phí ship */}
               <div
                 onClick={() => navigate("/manager/dashboard/revenue")}
-                className="cursor-pointer bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border-2 border-black min-h-[150px]"
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) =>
+                  handleCardKeyDown(e, "/manager/dashboard/revenue")
+                }
+                className="cursor-pointer bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border-1 border-black min-h-[150px]"
               >
                 <div className="p-5 md:p-6 bg-gradient-to-br from-gray-200 to-gray-300 h-full">
                   <div className="flex items-center justify-between mb-4 min-w-0">
@@ -489,7 +533,12 @@ const DashboardManager = () => {
               {/* ✅ Tổng đơn hàng */}
               <div
                 onClick={() => navigate("/manager/dashboard/order")}
-                className="cursor-pointer bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border-2 border-black min-h-[150px]"
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) =>
+                  handleCardKeyDown(e, "/manager/dashboard/order")
+                }
+                className="cursor-pointer bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border-1 border-black min-h-[150px]"
               >
                 <div className="p-5 md:p-6 bg-gradient-to-br from-gray-200 to-gray-300 h-full">
                   <div className="flex items-center justify-between mb-4 min-w-0">
@@ -511,7 +560,12 @@ const DashboardManager = () => {
               {/* ✅ Tổng link đơn */}
               <div
                 onClick={() => navigate("/manager/dashboard/order")}
-                className="cursor-pointer bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border-2 border-black min-h-[150px]"
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) =>
+                  handleCardKeyDown(e, "/manager/dashboard/order")
+                }
+                className="cursor-pointer bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border-1 border-black min-h-[150px]"
               >
                 <div className="p-5 md:p-6 bg-gradient-to-br from-gray-200 to-gray-300 h-full">
                   <div className="flex items-center justify-between mb-4 min-w-0">
@@ -533,7 +587,12 @@ const DashboardManager = () => {
               {/* ✅ Khách hàng mới */}
               <div
                 onClick={() => navigate("/manager/dashboard/customer")}
-                className="cursor-pointer bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border-2 border-black min-h-[150px]"
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) =>
+                  handleCardKeyDown(e, "/manager/dashboard/customer")
+                }
+                className="cursor-pointer bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border-1 border-black min-h-[150px]"
               >
                 <div className="p-5 md:p-6 bg-gradient-to-br from-gray-200 to-gray-300 h-full">
                   <div className="flex items-center justify-between mb-4 min-w-0">
@@ -552,54 +611,68 @@ const DashboardManager = () => {
                 </div>
               </div>
 
-              {/* ✅ Khối lượng */}
+              {/* ✅ Khối lượng thực (NEW) */}
               <div
                 onClick={() => navigate("/manager/dashboard/weight")}
-                className="cursor-pointer bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border-2 border-black"
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) =>
+                  handleCardKeyDown(e, "/manager/dashboard/weight")
+                }
+                className="cursor-pointer bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border-1 border-black min-h-[150px]"
               >
-                <div className="p-5 md:p-6 bg-gradient-to-br from-gray-200 to-gray-300">
+                <div className="p-5 md:p-6 bg-gradient-to-br from-gray-200 to-gray-300 h-full">
                   <div className="flex items-center justify-between mb-4 min-w-0">
                     <span className="text-black text-xs md:text-sm font-semibold uppercase tracking-wide truncate">
-                      Khối lượng
+                      Khối lượng thực
                     </span>
                     <div className="p-2.5 rounded-lg bg-white shrink-0">
                       <Scale className="w-6 h-6 md:w-7 md:h-7 text-black" />
                     </div>
                   </div>
 
-                  <div className="space-y-4">
-                    <div className="flex items-baseline gap-2 min-w-0">
-                      <span className={bigNumberCls}>
-                        {formatNumber(stats.totalWeight)}
-                      </span>
-                      <span className="text-sm md:text-base text-black font-medium shrink-0">
-                        kg
-                      </span>
-                    </div>
-
-                    <div className="pt-4 border-t-2 border-black">
-                      <div className="grid grid-cols-1 gap-2">
-                        <div className="flex items-center justify-between gap-3">
-                          <span className="text-xs md:text-sm text-black font-medium truncate">
-                            Khối lượng thực
-                          </span>
-                          <span className="text-sm md:text-base font-bold text-black whitespace-nowrap">
-                            {formatNumber(stats.totalWeight)} kg
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between gap-3">
-                          <span className="text-xs md:text-sm text-black font-medium truncate">
-                            Khối lượng thu
-                          </span>
-                          <span className="text-sm md:text-base font-bold text-black whitespace-nowrap">
-                            {formatNumber(stats.totalNetWeight)} kg
-                          </span>
-                        </div>
-                      </div>
-                    </div>
+                  <div className="flex items-baseline gap-2 min-w-0">
+                    <span className={bigNumberCls}>
+                      {formatNumber(stats.totalWeight)}
+                    </span>
+                    <span className="text-sm md:text-base text-black font-medium shrink-0">
+                      kg
+                    </span>
                   </div>
                 </div>
               </div>
+
+              {/* ✅ Khối lượng thu (NEW) */}
+              <div
+                onClick={() => navigate("/manager/dashboard/weight")}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) =>
+                  handleCardKeyDown(e, "/manager/dashboard/weight")
+                }
+                className="cursor-pointer bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border-1 border-black min-h-[150px]"
+              >
+                <div className="p-5 md:p-6 bg-gradient-to-br from-gray-200 to-gray-300 h-full">
+                  <div className="flex items-center justify-between mb-4 min-w-0">
+                    <span className="text-black text-xs md:text-sm font-semibold uppercase tracking-wide truncate">
+                      Khối lượng thu
+                    </span>
+                    <div className="p-2.5 rounded-lg bg-white shrink-0">
+                      <Scale className="w-6 h-6 md:w-7 md:h-7 text-black" />
+                    </div>
+                  </div>
+
+                  <div className="flex items-baseline gap-2 min-w-0">
+                    <span className={bigNumberCls}>
+                      {formatNumber(stats.totalNetWeight)}
+                    </span>
+                    <span className="text-sm md:text-base text-black font-medium shrink-0">
+                      kg
+                    </span>
+                  </div>
+                </div>
+              </div>
+
               {/* end overview */}
             </div>
           )}
@@ -624,14 +697,19 @@ const DashboardManager = () => {
               {/* ✅ Weights - VÀNG */}
               <div
                 onClick={() => navigate("/manager/dashboard/weight")}
-                className="cursor-pointer bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border-2 border-black min-h-[220px]"
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) =>
+                  handleCardKeyDown(e, "/manager/dashboard/weight")
+                }
+                className="cursor-pointer bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border-1 border-black min-h-[220px]"
               >
-                <div className="p-5 md:p-6 bg-gradient-to-br from-yellow-300 to-yellow-300 h-full">
+                <div className="p-5 md:p-6 bg-gradient-to-br from-yellow-200 to-yellow-300 h-full">
                   <div className="flex items-center justify-between mb-4 min-w-0">
                     <span className="text-black text-xs md:text-sm font-semibold uppercase tracking-wide truncate">
                       Cân nặng
                     </span>
-                    <div className="p-2.5 rounded-lg bg-yellow-500 shrink-0">
+                    <div className="p-2.5 rounded-lg bg-purple-500 shrink-0">
                       <Scale className="w-6 h-6 md:w-7 md:h-7 text-white" />
                     </div>
                   </div>
@@ -642,6 +720,7 @@ const DashboardManager = () => {
                         <AnimatedNumber
                           key={`weight-total-${animationKey}`}
                           value={weights.totalWeight}
+                          decimals={2}
                           shouldAnimate={shouldAnimate}
                         />
                       </span>
@@ -660,6 +739,7 @@ const DashboardManager = () => {
                             <AnimatedNumber
                               key={`weight-total-detail-${animationKey}`}
                               value={weights.totalWeight}
+                              decimals={2}
                               suffix=" kg"
                               shouldAnimate={shouldAnimate}
                             />
@@ -673,6 +753,7 @@ const DashboardManager = () => {
                             <AnimatedNumber
                               key={`weight-net-${animationKey}`}
                               value={weights.totalNetWeight}
+                              decimals={2}
                               suffix=" kg"
                               shouldAnimate={shouldAnimate}
                             />
@@ -687,9 +768,14 @@ const DashboardManager = () => {
               {/* ✅ Payments - ĐỎ */}
               <div
                 onClick={() => navigate("/manager/dashboard/revenue")}
-                className="cursor-pointer bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border-2 border-black min-h-[220px]"
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) =>
+                  handleCardKeyDown(e, "/manager/dashboard/revenue")
+                }
+                className="cursor-pointer bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border-1 border-black min-h-[220px]"
               >
-                <div className="p-5 md:p-6 bg-gradient-to-br from-red-300 to-red-400 h-full">
+                <div className="p-5 md:p-6 bg-gradient-to-br from-red-200 to-red-300 h-full">
                   <div className="flex items-center justify-between mb-4 min-w-0">
                     <span className="text-black text-xs md:text-sm font-semibold uppercase tracking-wide truncate">
                       Thanh toán
@@ -750,9 +836,14 @@ const DashboardManager = () => {
               {/* ✅ Orders - XANH LÁ */}
               <div
                 onClick={() => navigate("/manager/dashboard/order")}
-                className="cursor-pointer bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border-2 border-black min-h-[220px]"
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) =>
+                  handleCardKeyDown(e, "/manager/dashboard/order")
+                }
+                className="cursor-pointer bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border-1 border-black min-h-[220px]"
               >
-                <div className="p-5 md:p-6 bg-gradient-to-br from-green-300 to-green-400 h-full">
+                <div className="p-5 md:p-6 bg-gradient-to-br from-green-200 to-green-300 h-full">
                   <div className="flex items-center justify-between mb-4 min-w-0">
                     <span className="text-black text-xs md:text-sm font-semibold uppercase tracking-wide truncate">
                       Đơn hàng
@@ -808,9 +899,14 @@ const DashboardManager = () => {
               {/* ✅ Customers - XANH DƯƠNG */}
               <div
                 onClick={() => navigate("/manager/dashboard/customer")}
-                className="cursor-pointer bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border-2 border-black min-h-[220px]"
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) =>
+                  handleCardKeyDown(e, "/manager/dashboard/customer")
+                }
+                className="cursor-pointer bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border-1 border-black min-h-[220px]"
               >
-                <div className="p-5 md:p-6 bg-gradient-to-br from-blue-300 to-blue-400 h-full flex flex-col">
+                <div className="p-5 md:p-6 bg-gradient-to-br from-blue-200 to-blue-300 h-full flex flex-col">
                   <div className="flex items-center justify-between mb-4 min-w-0">
                     <span className="text-black text-xs md:text-sm font-semibold uppercase tracking-wide truncate">
                       Khách hàng mới
@@ -820,7 +916,6 @@ const DashboardManager = () => {
                     </div>
                   </div>
 
-                  {/* main value */}
                   <div className="flex items-baseline gap-2 min-w-0">
                     <span className={subBigNumberCls}>
                       <AnimatedNumber
@@ -831,7 +926,6 @@ const DashboardManager = () => {
                     </span>
                   </div>
 
-                  {/* footer */}
                   <div className="mt-auto pt-4 border-t-2 border-black">
                     <p className="text-xs md:text-sm text-black font-medium truncate">
                       Trong hôm nay
