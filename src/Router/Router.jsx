@@ -37,7 +37,6 @@ import StaffWarehouseDomesticPage from "../components/WarehouseDomestic/StaffWar
 
 //Manager components
 import ManagerPage from "../components/Manager/ManagerPage";
-import ManagerDashboard from "../components/Manager/ManagerDashboard";
 
 //StaffSale components
 // import StaffSalePage from "../components/StaffSale/StaffSalePage";
@@ -160,6 +159,7 @@ import DashboardWarehouseDomestic from "../components/Warehouse/DashboardWarehou
 import PerformancesCustomer from "../components/Manager/PerformancesCustomer";
 import LockedDraftsOtherList from "../components/Warehouse/LockedDraftsOtherList";
 import ExportOtherOrder from "../components/Warehouse/ExportOtherOrder";
+import DashboardWarehouseForeign from "../components/Dashboard/Manager/DashboardWarehouseForeign";
 const Router = createBrowserRouter([
   {
     path: "/",
@@ -272,15 +272,16 @@ const Router = createBrowserRouter([
       { path: "team", element: <StaffList /> },
       { path: "customers", element: <CustomerList /> },
       { path: "kpistaff", element: <DashboardKPI /> },
-      { path: "dashboardprofit", element: <DashboardManagerProfit /> },
+      { path: "profit", element: <DashboardManagerProfit /> },
       { path: "permission", element: <Permission /> },
       { path: "stafflead", element: <StaffListPermission /> },
       { path: "createstaff", element: <CreateAccountStaff /> },
       { path: "kpicustomer", element: <PerformancesCustomer /> },
+      { path: "warehouseperformance", element: <DashboardWarehouseForeign /> },
       { path: "quote", element: <PaymentOrderList /> },
       { path: "refund", element: <RefundOrder /> },
       { path: "cost/paylater", element: <ManagerBankAccountList /> },
-      { path: "cost/paybefore", element: <ManagerDashboard /> },
+      { path: "cost/paybefore", element: <NotFound /> },
       { path: "routes", element: <ManagerRoutes /> },
       { path: "transfer", element: <ManagerDestination /> },
       { path: "dashboard", element: <DashboardManager /> },

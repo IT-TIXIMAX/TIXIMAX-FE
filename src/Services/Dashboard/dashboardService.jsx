@@ -118,6 +118,8 @@ const dashboardService = {
 
     return response.data;
   },
+  dailyInventory: (p = {}) =>
+    api.get("/dashboard/daily-inventory", { params: p }).then((r) => r.data),
 };
 
 export default dashboardService;

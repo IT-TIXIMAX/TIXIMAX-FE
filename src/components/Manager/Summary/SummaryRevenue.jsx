@@ -40,24 +40,23 @@ const STATUS_OPTIONS = [
 
 /* ===================== Skeleton Components ===================== */
 const Skeleton = ({ className = "" }) => (
-  <div className={`animate-pulse bg-gray-200 rounded ${className}`} />
+  <div className={`animate-pulse bg-gray-300 rounded ${className}`} />
 );
 
-const SummaryCardSkeleton = ({ bgGradient = "from-gray-50 to-gray-100" }) => (
-  <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
-    <div className={`p-4 md:p-5 bg-gradient-to-br ${bgGradient}`}>
-      <div className="flex items-center justify-between mb-3">
-        <Skeleton className="h-4 w-28" />
+const SummaryCardSkeleton = ({ bgGradient = "from-gray-200 to-gray-300" }) => (
+  <div className="bg-white rounded-xl shadow-md overflow-hidden border-1 border-black">
+    <div className={`p-5 md:p-6 bg-gradient-to-br ${bgGradient}`}>
+      <div className="flex items-center justify-between mb-4">
+        <Skeleton className="h-4 w-24" />
         <Skeleton className="h-10 w-10 rounded-lg" />
       </div>
-      <Skeleton className="h-8 w-32 mb-2" />
-      <Skeleton className="h-4 w-16" />
+      <Skeleton className="h-10 md:h-12 w-32" />
     </div>
   </div>
 );
 
 const RouteCardSkeleton = () => (
-  <div className="bg-white rounded-xl border-2 border-black shadow-lg overflow-hidden animate-pulse">
+  <div className="bg-white rounded-xl border-1 border-black shadow-md overflow-hidden animate-pulse">
     <div className="p-4 md:p-5 bg-gradient-to-br from-gray-200 to-gray-300 border-b-2 border-black">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2 min-w-0 flex-1">
@@ -71,35 +70,6 @@ const RouteCardSkeleton = () => (
       <div className="flex items-center justify-between gap-3">
         <Skeleton className="h-4 w-20" />
         <Skeleton className="h-4 w-24" />
-      </div>
-    </div>
-  </div>
-);
-
-/* ===================== Summary Card ===================== */
-const SummaryCard = ({
-  icon: Icon,
-  label,
-  value,
-  unit,
-  iconColor,
-  bgGradient,
-}) => (
-  <div className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-100">
-    <div className={`p-4 md:p-5 bg-gradient-to-br ${bgGradient}`}>
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-black font-bold text-xl md:text-sm font-semibold uppercase tracking-wide">
-          {label}
-        </span>
-        <div className={`p-2 rounded-lg ${iconColor}`}>
-          <Icon className="w-5 h-5 md:w-6 md:h-6 text-white" />
-        </div>
-      </div>
-      <div className="text-2xl md:text-3xl font-bold text-gray-800">
-        {value}
-      </div>
-      <div className="text-black text-xs md:text-sm font-medium mt-1">
-        {unit}
       </div>
     </div>
   </div>
@@ -122,7 +92,7 @@ const SummaryRevenue = () => {
 
   const formatCurrency = (value) => {
     const n = Number(value || 0);
-    return `${n.toLocaleString("vi-VN")} đ`;
+    return n.toLocaleString("vi-VN");
   };
 
   const formatNumber = (value) => Number(value || 0).toLocaleString("vi-VN");
@@ -212,141 +182,144 @@ const SummaryRevenue = () => {
     <div className="min-h-screen">
       <div className="mx-auto p-4 md:p-6 lg:p-8">
         {/* ✅ Breadcrumb Navigation */}
-        <div className="mb-4">
-          <div className="flex items-center gap-2 flex-wrap">
-            <button
-              onClick={() => navigate("/manager/dashboard")}
-              className="group flex items-center gap-2 px-3 py-2 bg-white border-2 border-black rounded-lg hover:bg-yellow-300 transition-all shadow-sm font-semibold"
-            >
-              <ArrowLeft className="w-4 h-4 text-black group-hover:animate-pulse" />
-              <span className="text-sm text-black hidden sm:inline">
-                Dashboard
-              </span>
-            </button>
-
-            <ChevronRight className="w-4 h-4 text-gray-400" />
-
-            <div className="flex items-center gap-2 px-3 py-2 bg-yellow-300 border-2 border-black rounded-lg shadow-sm">
-              <Banknote className="w-4 h-4 text-black" />
-              <span className="text-sm font-semibold text-black">
-                Doanh thu theo tuyến
-              </span>
-            </div>
-          </div>
+        <div className="mb-4 flex items-center gap-2 text-xs font-semibold text-gray-700">
+          <button
+            onClick={() => navigate("/manager/dashboard")}
+            className="px-2.5 py-1.5 text-black rounded-lg bg-white border-2 border-black hover:bg-yellow-300 transition-colors flex items-center gap-1 shadow-sm"
+          >
+            <ArrowLeft size={14} />
+            Dashboard
+          </button>
+          <ChevronRight className="w-4 h-4 text-gray-400" />
+          <span className="px-2.5 py-1.5 text-black rounded-lg bg-yellow-300 border-2 border-black shadow-sm">
+            Doanh thu theo tuyến
+          </span>
         </div>
 
-        {/* ✅ Header - Yellow + Black Theme */}
+        {/* ✅ Header - Yellow Gradient */}
         <div className="mb-6 md:mb-8">
           <div className="bg-gradient-to-r from-yellow-300 via-yellow-300 to-yellow-300 border-[1px] border-black rounded-xl shadow-lg p-4 md:p-5">
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-1.5 h-8 md:h-9 bg-black rounded-full shrink-0 shadow-sm" />
-                <div className="min-w-0">
-                  <h1 className="text-lg md:text-xl font-bold text-black leading-tight truncate">
-                    Thống kê doanh thu theo tuyến
-                  </h1>
-                  <div className="flex items-center gap-2 mt-1 flex-wrap">
-                    <div className="flex items-center gap-2 px-3 py-1.5 bg-white border-2 border-black rounded-lg shadow-sm">
-                      <Calendar className="w-4 h-4 text-black" />
-                      <span className="text-xs md:text-sm font-semibold text-black whitespace-nowrap">
-                        {getFilterLabel()}
-                      </span>
+            <div className="flex flex-col gap-4">
+              {/* Top row */}
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-1.5 h-8 md:h-9 bg-black rounded-full shrink-0 shadow-sm" />
+                  <div className="min-w-0">
+                    <h1 className="text-lg md:text-xl font-bold text-black leading-tight truncate">
+                      Thống Kê Doanh Thu Theo Tuyến
+                    </h1>
+                    <div className="flex items-center gap-2 mt-1 flex-wrap">
+                      <div className="flex items-center gap-2 px-3 py-1.5 bg-white border-2 border-black rounded-lg shadow-sm">
+                        <Calendar className="w-4 h-4 text-black" />
+                        <span className="text-xs md:text-sm font-semibold text-black whitespace-nowrap">
+                          {getFilterLabel()}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 px-3 py-1.5 bg-white border-2 border-black rounded-lg shadow-sm">
+                        <span className="text-xs md:text-sm font-semibold text-black whitespace-nowrap">
+                          TT: {getStatusLabel()}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 px-3 py-1.5 bg-white border-2 border-black rounded-lg shadow-sm">
-                      <span className="text-xs md:text-sm font-semibold text-black whitespace-nowrap">
-                        TT: {getStatusLabel()}
-                      </span>
-                    </div>
+                  </div>
+                </div>
+
+                {/* Right: Filter buttons inline */}
+                <div className="flex flex-col gap-2">
+                  {/* Time Filters */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    {FILTER_OPTIONS.map((opt) => {
+                      const active = opt.value === filterType;
+                      return (
+                        <button
+                          key={opt.value}
+                          onClick={() => setFilterType(opt.value)}
+                          disabled={loading}
+                          className={`px-3.5 py-2 rounded-lg text-xs md:text-sm font-semibold transition-all border-2 border-yellow-600 shadow-sm ${
+                            active
+                              ? "bg-yellow-400 text-black"
+                              : "bg-white text-black hover:bg-gray-100"
+                          } ${loading ? "opacity-60 cursor-not-allowed" : ""}`}
+                        >
+                          {opt.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Status Filters */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    {STATUS_OPTIONS.map((opt) => {
+                      const active = opt.value === status;
+                      const Icon = opt.icon;
+                      return (
+                        <button
+                          key={opt.value}
+                          onClick={() => setStatus(opt.value)}
+                          disabled={loading}
+                          className={`px-3 py-2 rounded-lg text-xs font-semibold transition-all border-2 border-yellow-600 shadow-sm flex items-center gap-1.5 ${
+                            active
+                              ? "bg-yellow-400 text-black"
+                              : "bg-white text-black hover:bg-gray-100"
+                          } ${loading ? "opacity-60 cursor-not-allowed" : ""}`}
+                        >
+                          <Icon className="w-3.5 h-3.5" />
+                          {opt.label}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
 
-              <div className="flex flex-col gap-2">
-                {/* Time Filters */}
-                <div className="flex flex-wrap items-center gap-2">
-                  {FILTER_OPTIONS.map((opt) => {
-                    const active = opt.value === filterType;
-                    return (
-                      <button
-                        key={opt.value}
-                        onClick={() => setFilterType(opt.value)}
-                        disabled={loading}
-                        className={`px-3.5 py-2 rounded-lg text-xs md:text-sm font-semibold transition-all border-2 border-yellow-600 shadow-sm ${
-                          active
-                            ? "bg-yellow-400 text-black"
-                            : "bg-white text-black hover:bg-gray-100"
-                        } ${loading ? "opacity-60 cursor-not-allowed" : ""}`}
-                      >
-                        {opt.label}
-                      </button>
-                    );
-                  })}
-                </div>
+              {/* Custom date row */}
+              {isCustom && (
+                <div className="pt-4 border-t-2 border-black">
+                  <div className="mb-2 text-xs font-bold text-black uppercase tracking-wide">
+                    Khoảng thời gian tùy chỉnh
+                  </div>
+                  <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                    <div className="flex flex-wrap items-center gap-3">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-black" />
+                      </div>
 
-                {/* Status Filters */}
-                <div className="flex flex-wrap items-center gap-2">
-                  {STATUS_OPTIONS.map((opt) => {
-                    const active = opt.value === status;
-                    const Icon = opt.icon;
-                    return (
-                      <button
-                        key={opt.value}
-                        onClick={() => setStatus(opt.value)}
-                        disabled={loading}
-                        className={`px-3 py-2 rounded-lg text-xs font-semibold transition-all border-2 border-yellow-600 shadow-sm flex items-center gap-1.5 ${
-                          active
-                            ? "bg-yellow-400 text-black"
-                            : "bg-white text-black hover:bg-gray-100"
-                        } ${loading ? "opacity-60 cursor-not-allowed" : ""}`}
-                      >
-                        <Icon className="w-3.5 h-3.5" />
-                        {opt.label}
-                      </button>
-                    );
-                  })}
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold text-black">
+                          Từ
+                        </span>
+                        <input
+                          type="date"
+                          value={startDate}
+                          onChange={(e) => setStartDate(e.target.value)}
+                          className="border-2 border-black rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 bg-white"
+                        />
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold text-black">
+                          Đến
+                        </span>
+                        <input
+                          type="date"
+                          value={endDate}
+                          onChange={(e) => setEndDate(e.target.value)}
+                          className="border-2 border-black rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 bg-white"
+                        />
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={fetchSummary}
+                      disabled={loading}
+                      className="bg-yellow-400 text-black border-2 border-yellow-600 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-yellow-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+                    >
+                      {loading ? "Đang tải..." : "Tìm kiếm"}
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
-
-            {isCustom && (
-              <div className="mt-4 pt-4 border-t-2 border-black">
-                <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold text-black">
-                        Từ
-                      </span>
-                      <input
-                        type="date"
-                        value={startDate}
-                        onChange={(e) => setStartDate(e.target.value)}
-                        className="border-2 border-black rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 bg-white"
-                      />
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold text-black">
-                        Đến
-                      </span>
-                      <input
-                        type="date"
-                        value={endDate}
-                        onChange={(e) => setEndDate(e.target.value)}
-                        className="border-2 border-black rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 bg-white"
-                      />
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={fetchSummary}
-                    disabled={loading}
-                    className="bg-yellow-400 text-black border-2 border-black px-4 py-2 rounded-lg text-sm font-semibold hover:bg-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
-                  >
-                    {loading ? "Đang tải..." : "Tìm kiếm"}
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
         </div>
 
@@ -355,7 +328,7 @@ const SummaryRevenue = () => {
           <div className="mb-6 bg-red-50 border border-red-200 rounded-xl p-4 shadow-sm">
             <div className="flex items-start gap-3">
               <div className="p-2 bg-red-100 rounded-lg">
-                <AlertCircle className="w-5 h-5 text-red-600" />
+                <X className="w-5 h-5 text-red-600" />
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="text-sm font-bold text-red-800 mb-1">
@@ -379,60 +352,108 @@ const SummaryRevenue = () => {
             Tổng quan
           </h3>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
             {loading ? (
               <>
-                <SummaryCardSkeleton bgGradient="from-yellow-50 to-yellow-100" />
-                <SummaryCardSkeleton bgGradient="from-red-50 to-red-100" />
-                <SummaryCardSkeleton bgGradient="from-green-50 to-green-100" />
-                <SummaryCardSkeleton bgGradient="from-blue-50 to-blue-100" />
+                <SummaryCardSkeleton bgGradient="from-yellow-200 to-yellow-300" />
+                <SummaryCardSkeleton bgGradient="from-red-200 to-red-300" />
+                <SummaryCardSkeleton bgGradient="from-green-200 to-green-300" />
+                <SummaryCardSkeleton bgGradient="from-blue-200 to-blue-300" />
               </>
             ) : metrics ? (
               <>
-                <SummaryCard
-                  icon={Banknote}
-                  label="Tổng doanh thu"
-                  value={formatCurrency(metrics.totalRevenue)}
-                  unit=""
-                  iconColor="bg-yellow-600"
-                  bgGradient="from-yellow-50 to-yellow-100"
-                />
-
-                <SummaryCard
-                  icon={Layers}
-                  label="Số tuyến"
-                  value={formatNumber(metrics.totalRoutes)}
-                  unit="Tuyến hoạt động"
-                  iconColor="bg-red-600"
-                  bgGradient="from-red-50 to-red-100"
-                />
-
-                <SummaryCard
-                  icon={Award}
-                  label="Tuyến hàng đầu"
-                  value={
-                    <div className="truncate">
-                      <div className="text-lg font-bold truncate">
-                        {metrics.topRoute?.routeName || "N/A"}
-                      </div>
-                      <div className="text-sm font-semibold text-gray-600">
-                        {formatCurrency(metrics.topRoute?.totalRevenue || 0)}
+                {/* Tổng doanh thu - VÀNG */}
+                <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border-1 border-black min-h-[150px]">
+                  <div className="p-5 md:p-6 bg-gradient-to-br from-yellow-200 to-yellow-300 h-full">
+                    <div className="flex items-center justify-between mb-4 min-w-0">
+                      <span className="text-black text-xs md:text-sm font-semibold uppercase tracking-wide truncate">
+                        Tổng doanh thu
+                      </span>
+                      <div className="p-2.5 rounded-lg bg-purple-500 shrink-0">
+                        <Banknote className="w-6 h-6 md:w-7 md:h-7 text-white" />
                       </div>
                     </div>
-                  }
-                  unit=""
-                  iconColor="bg-green-600"
-                  bgGradient="from-green-50 to-green-100"
-                />
 
-                <SummaryCard
-                  icon={TrendingUp}
-                  label="TB / tuyến"
-                  value={formatCurrency(metrics.avgRevenuePerRoute)}
-                  unit=""
-                  iconColor="bg-blue-600"
-                  bgGradient="from-blue-50 to-blue-100"
-                />
+                    <div className="flex items-baseline gap-2 min-w-0">
+                      <span className="text-2xl md:text-3xl font-bold text-gray-900 leading-none break-words tabular-nums">
+                        {formatCurrency(metrics.totalRevenue)}
+                      </span>
+                      <span className="text-sm md:text-base text-black font-medium shrink-0">
+                        đ
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Số tuyến - ĐỎ */}
+                <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border-1 border-black min-h-[150px]">
+                  <div className="p-5 md:p-6 bg-gradient-to-br from-red-200 to-red-300 h-full">
+                    <div className="flex items-center justify-between mb-4 min-w-0">
+                      <span className="text-black text-xs md:text-sm font-semibold uppercase tracking-wide truncate">
+                        Số tuyến
+                      </span>
+                      <div className="p-2.5 rounded-lg bg-red-500 shrink-0">
+                        <Layers className="w-6 h-6 md:w-7 md:h-7 text-white" />
+                      </div>
+                    </div>
+
+                    <div className="flex items-baseline gap-2 min-w-0">
+                      <span className="text-2xl md:text-3xl font-bold text-gray-900 leading-none break-words tabular-nums">
+                        {formatNumber(metrics.totalRoutes)}
+                      </span>
+                    </div>
+
+                    <div className="mt-3 text-xs md:text-sm text-black font-medium">
+                      Tuyến hoạt động
+                    </div>
+                  </div>
+                </div>
+
+                {/* Tuyến hàng đầu - XANH LÁ */}
+                <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border-1 border-black min-h-[150px]">
+                  <div className="p-5 md:p-6 bg-gradient-to-br from-green-200 to-green-300 h-full">
+                    <div className="flex items-center justify-between mb-4 min-w-0">
+                      <span className="text-black text-xs md:text-sm font-semibold uppercase tracking-wide truncate">
+                        Tuyến hàng đầu
+                      </span>
+                      <div className="p-2.5 rounded-lg bg-green-600 shrink-0">
+                        <Award className="w-6 h-6 md:w-7 md:h-7 text-white" />
+                      </div>
+                    </div>
+
+                    <div className="min-w-0">
+                      <div className="text-lg md:text-xl font-bold text-gray-900 truncate leading-none mb-2">
+                        {metrics.topRoute?.routeName || "N/A"}
+                      </div>
+                      <div className="text-sm md:text-base font-bold text-black tabular-nums">
+                        {formatCurrency(metrics.topRoute?.totalRevenue || 0)} đ
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* TB / tuyến - XANH DƯƠNG */}
+                <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border-1 border-black min-h-[150px]">
+                  <div className="p-5 md:p-6 bg-gradient-to-br from-blue-200 to-blue-300 h-full">
+                    <div className="flex items-center justify-between mb-4 min-w-0">
+                      <span className="text-black text-xs md:text-sm font-semibold uppercase tracking-wide truncate">
+                        TB / tuyến
+                      </span>
+                      <div className="p-2.5 rounded-lg bg-blue-600 shrink-0">
+                        <TrendingUp className="w-6 h-6 md:w-7 md:h-7 text-white" />
+                      </div>
+                    </div>
+
+                    <div className="flex items-baseline gap-2 min-w-0">
+                      <span className="text-2xl md:text-3xl font-bold text-gray-900 leading-none break-words tabular-nums">
+                        {formatCurrency(metrics.avgRevenuePerRoute)}
+                      </span>
+                      <span className="text-sm md:text-base text-black font-medium shrink-0">
+                        đ
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </>
             ) : null}
           </div>
@@ -440,12 +461,14 @@ const SummaryRevenue = () => {
 
         {/* ✅ No Data State */}
         {!loading && (!data || data.length === 0) && (
-          <div className="bg-white rounded-xl shadow-md p-10 md:p-16 text-center border border-gray-100">
-            <BarChart3 className="w-14 h-14 md:w-16 md:h-16 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600 text-base md:text-lg font-semibold mb-2">
+          <div className="bg-white rounded-xl border-1 border-black p-12 md:p-16 text-center shadow-lg">
+            <div className="p-4 bg-gray-100 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+              <BarChart3 className="w-10 h-10 text-gray-400" />
+            </div>
+            <p className="text-gray-800 text-base md:text-lg font-bold mb-2">
               Không có dữ liệu
             </p>
-            <p className="text-gray-500 text-sm md:text-base">
+            <p className="text-gray-600 text-sm">
               Vui lòng thử lại với bộ lọc khác
             </p>
           </div>
@@ -457,7 +480,7 @@ const SummaryRevenue = () => {
             <h3 className="text-xl font-bold text-gray-800 uppercase mb-3">
               Chi tiết theo từng tuyến
             </h3>
-            <div className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-4">
+            <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
               {Array.from({ length: skeletonRouteCount }).map((_, i) => (
                 <RouteCardSkeleton key={i} />
               ))}
@@ -481,17 +504,17 @@ const SummaryRevenue = () => {
                 </div>
               </div>
 
-              <div className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-4">
+              <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
                 {data.map((route, index) => (
                   <div
                     key={`${route.routeName}-${index}`}
-                    className="bg-white rounded-xl border-1 border-black shadow-lg hover:shadow-xl transition-all overflow-hidden"
+                    className="bg-white rounded-xl border-1 border-black shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden"
                   >
                     {/* Header */}
                     <div className="p-4 md:p-5 bg-gradient-to-br from-gray-200 to-gray-300 border-b-2 border-black">
                       <div className="flex items-center justify-between gap-3">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-white border-1 border-black font-bold text-black text-xs shrink-0">
+                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                          <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-white border-2 border-black font-bold text-black text-xs shrink-0">
                             {index + 1}
                           </div>
                           <h4 className="text-base md:text-lg font-bold text-black truncate">
@@ -499,8 +522,8 @@ const SummaryRevenue = () => {
                           </h4>
                         </div>
 
-                        <div className="p-2 rounded-lg bg-black shrink-0">
-                          <DollarSign className="h-4 w-4 text-white" />
+                        <div className="p-2 rounded-lg bg-white shrink-0">
+                          <DollarSign className="h-4 w-4 text-black" />
                         </div>
                       </div>
                     </div>
@@ -513,8 +536,8 @@ const SummaryRevenue = () => {
                             Doanh thu
                           </span>
                         </div>
-                        <span className="text-sm md:text-base font-bold text-black tabular-nums whitespace-nowrap">
-                          {formatCurrency(route.totalRevenue)}
+                        <span className="text-sm md:text-base font-bold text-gray-900 tabular-nums whitespace-nowrap">
+                          {formatCurrency(route.totalRevenue)} đ
                         </span>
                       </div>
                     </div>
@@ -523,33 +546,33 @@ const SummaryRevenue = () => {
               </div>
 
               {/* Footer Summary */}
-              <div className="mt-6 bg-yellow-300 border-[1px] border-black rounded-xl p-5 shadow-md">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="text-center p-4 bg-white border-2 border-black rounded-lg">
-                    <div className="text-xs text-gray-600 uppercase font-bold mb-2 tracking-wide">
+              <div className="mt-6 bg-white rounded-xl border-1 border-black p-4 shadow-lg">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
+                  <div className="p-3 rounded-lg bg-gradient-to-br from-gray-200 to-gray-300 border-2 border-black">
+                    <p className="text-xs text-black uppercase font-semibold mb-1">
                       Tổng tuyến
-                    </div>
-                    <div className="text-3xl font-black text-gray-900 tabular-nums">
+                    </p>
+                    <p className="text-xl font-bold text-gray-900 tabular-nums">
                       {formatNumber(metrics.totalRoutes)}
-                    </div>
+                    </p>
                   </div>
 
-                  <div className="text-center p-4 bg-white border-2 border-black rounded-lg">
-                    <div className="text-xs text-gray-600 uppercase font-bold mb-2 tracking-wide">
+                  <div className="p-3 rounded-lg bg-gradient-to-br from-gray-200 to-gray-300 border-2 border-black">
+                    <p className="text-xs text-black uppercase font-semibold mb-1">
                       Tổng doanh thu
-                    </div>
-                    <div className="text-2xl font-black text-gray-900 tabular-nums break-words">
-                      {formatCurrency(metrics.totalRevenue)}
-                    </div>
+                    </p>
+                    <p className="text-base font-bold text-gray-900 tabular-nums break-words">
+                      {formatCurrency(metrics.totalRevenue)} đ
+                    </p>
                   </div>
 
-                  <div className="text-center p-4 bg-white border-2 border-black rounded-lg">
-                    <div className="text-xs text-gray-600 uppercase font-bold mb-2 tracking-wide">
+                  <div className="p-3 rounded-lg bg-gradient-to-br from-gray-200 to-gray-300 border-2 border-black">
+                    <p className="text-xs text-black uppercase font-semibold mb-1">
                       TB / tuyến
-                    </div>
-                    <div className="text-2xl font-black text-gray-900 tabular-nums break-words">
-                      {formatCurrency(metrics.avgRevenuePerRoute)}
-                    </div>
+                    </p>
+                    <p className="text-base font-bold text-gray-900 tabular-nums break-words">
+                      {formatCurrency(metrics.avgRevenuePerRoute)} đ
+                    </p>
                   </div>
                 </div>
               </div>

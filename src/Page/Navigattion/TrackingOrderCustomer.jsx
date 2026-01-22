@@ -1,3 +1,903 @@
+// // src/components/TrackingOrderCustomer/TrackingOrderCustomer.jsx
+// import React, { useState, useMemo } from "react";
+// import {
+//   Search,
+//   Package,
+//   Phone,
+//   ClipboardList,
+//   ShoppingCart,
+//   Warehouse,
+//   Ship,
+//   Truck,
+//   CheckCircle2,
+//   XCircle,
+//   CircleAlert,
+//   MapPin,
+//   RefreshCcw,
+//   ChevronDown,
+//   ChevronUp,
+//   Loader,
+//   ExternalLink,
+//   Clock,
+//   PackageCheck,
+//   ArrowRight,
+//   Filter,
+//   Box,
+// } from "lucide-react";
+// import trackingCustomerService from "../../Services/Customer/trackingCustomerService";
+
+// const STATUS_CONFIG = {
+//   CHO_MUA: {
+//     label: "Chờ mua",
+//     color: "bg-amber-500",
+//     gradient: "from-amber-300 to-amber-500",
+//     icon: Clock,
+//     order: 1,
+//   },
+//   DA_MUA: {
+//     label: "Đã mua",
+//     color: "bg-purple-500",
+//     gradient: "from-purple-500 to-purple-600",
+//     icon: ShoppingCart,
+//     order: 2,
+//   },
+//   DAU_GIA_THANH_CONG: {
+//     label: "Đấu giá thành công",
+//     color: "bg-purple-500",
+//     gradient: "from-purple-500 to-purple-600",
+//     icon: ShoppingCart,
+//     order: 2,
+//   },
+//   DA_NHAP_KHO_NN: {
+//     label: "Đã về kho NN",
+//     color: "bg-indigo-500",
+//     gradient: "from-indigo-500 to-indigo-600",
+//     icon: Warehouse,
+//     order: 3,
+//   },
+//   DANG_CHUYEN_VN: {
+//     label: "Đang về VN",
+//     color: "bg-blue-500",
+//     gradient: "from-blue-400 to-blue-600",
+//     icon: Ship,
+//     order: 4,
+//   },
+//   DA_NHAP_KHO_VN: {
+//     label: "Đã về kho VN",
+//     color: "bg-cyan-500",
+//     gradient: "from-cyan-400 to-cyan-600",
+//     icon: PackageCheck,
+//     order: 5,
+//   },
+//   DANG_GIAO: {
+//     label: "Đang giao nội địa",
+//     color: "bg-orange-500",
+//     gradient: "from-orange-400 to-orange-600",
+//     icon: Truck,
+//     order: 6,
+//   },
+//   DA_GIAO: {
+//     label: "Đã giao",
+//     color: "bg-green-500",
+//     gradient: "from-green-400 to-green-600",
+//     icon: CheckCircle2,
+//     order: 7,
+//   },
+//   DA_HUY: {
+//     label: "Đã hủy",
+//     color: "bg-red-500",
+//     gradient: "from-red-400 to-red-600",
+//     icon: XCircle,
+//     order: 0,
+//   },
+// };
+
+// const STATUS_GROUPS = {
+//   CHO_MUA: {
+//     displayLabel: "Chờ mua",
+//     statuses: ["CHO_MUA"],
+//     color: "bg-amber-500",
+//     gradient: "from-amber-300 to-amber-500",
+//     icon: Clock,
+//     order: 1,
+//   },
+//   DA_MUA_GROUP: {
+//     displayLabel: "Đã mua",
+//     statuses: ["DA_MUA", "DAU_GIA_THANH_CONG"],
+//     color: "bg-purple-500",
+//     gradient: "from-purple-400 to-purple-600",
+//     icon: ShoppingCart,
+//     order: 2,
+//   },
+//   DA_NHAP_KHO_NN: {
+//     displayLabel: "Đã về kho NN",
+//     statuses: ["DA_NHAP_KHO_NN"],
+//     color: "bg-indigo-500",
+//     gradient: "from-indigo-400 to-indigo-600",
+//     icon: Warehouse,
+//     order: 3,
+//   },
+//   DANG_CHUYEN_VN: {
+//     displayLabel: "Đang về VN",
+//     statuses: ["DANG_CHUYEN_VN"],
+//     color: "bg-blue-500",
+//     gradient: "from-blue-400 to-blue-600",
+//     icon: Ship,
+//     order: 4,
+//   },
+//   DA_NHAP_KHO_VN: {
+//     displayLabel: "Đã về kho VN",
+//     statuses: ["DA_NHAP_KHO_VN"],
+//     color: "bg-cyan-500",
+//     gradient: "from-cyan-400 to-cyan-600",
+//     icon: PackageCheck,
+//     order: 5,
+//   },
+//   DANG_GIAO: {
+//     displayLabel: "Đang giao nội địa",
+//     statuses: ["DANG_GIAO"],
+//     color: "bg-orange-500",
+//     gradient: "from-orange-400 to-orange-600",
+//     icon: Truck,
+//     order: 6,
+//   },
+//   DA_GIAO: {
+//     displayLabel: "Đã giao",
+//     statuses: ["DA_GIAO"],
+//     color: "bg-green-500",
+//     gradient: "from-green-400 to-green-600",
+//     icon: CheckCircle2,
+//     order: 7,
+//   },
+// };
+
+// const STATUS_ORDER = [
+//   "CHO_MUA",
+//   "DA_MUA",
+//   "DAU_GIA_THANH_CONG",
+//   "DA_NHAP_KHO_NN",
+//   "DANG_CHUYEN_VN",
+//   "DA_NHAP_KHO_VN",
+//   "DANG_GIAO",
+//   "DA_GIAO",
+// ];
+
+// const GROUP_ORDER = [
+//   "CHO_MUA",
+//   "DA_MUA_GROUP",
+//   "DA_NHAP_KHO_NN",
+//   "DANG_CHUYEN_VN",
+//   "DA_NHAP_KHO_VN",
+//   "DANG_GIAO",
+//   "DA_GIAO",
+// ];
+
+// const percentageFromStatus = (status) => {
+//   if (status === "DA_HUY") return 0;
+//   if (status === "DA_GIAO") return 100;
+
+//   const index = STATUS_ORDER.indexOf(status);
+//   if (index === -1) return 0;
+
+//   const totalSteps = STATUS_ORDER.length;
+//   const currentStep = index + 1;
+//   return Math.round((currentStep / totalSteps) * 100);
+// };
+
+// const TrackingOrderCustomer = () => {
+//   const [phoneNumber, setPhoneNumber] = useState("");
+//   const [shipments, setShipments] = useState([]);
+//   const [loading, setLoading] = useState(false);
+//   const [error, setError] = useState("");
+//   const [searched, setSearched] = useState(false);
+//   const [expandedOrders, setExpandedOrders] = useState(new Set());
+//   const [selectedStatusGroup, setSelectedStatusGroup] = useState(null);
+
+//   const onSearch = async () => {
+//     setError("");
+//     setSearched(false);
+
+//     const cleanPhone = phoneNumber.trim().replace(/\s+/g, "");
+
+//     if (!cleanPhone) {
+//       setError("Vui lòng nhập số điện thoại");
+//       setShipments([]);
+//       return;
+//     }
+
+//     if (!/^(0|\+84)[3|5|7|8|9]\d{8}$/.test(cleanPhone.replace(/\+84/, "0"))) {
+//       setError("Số điện thoại không hợp lệ. Vui lòng nhập số Việt Nam (10 số)");
+//       setShipments([]);
+//       return;
+//     }
+
+//     setLoading(true);
+//     setShipments([]);
+//     setExpandedOrders(new Set());
+//     setSelectedStatusGroup(null);
+
+//     try {
+//       const response = await trackingCustomerService.getShipmentsByPhone(
+//         cleanPhone
+//       );
+
+//       if (response.data && Array.isArray(response.data)) {
+//         setShipments(response.data);
+//         setSearched(true);
+//         if (response.data.length === 0) {
+//           setError("Không tìm thấy đơn hàng nào với số điện thoại này");
+//         }
+//       } else {
+//         setShipments([]);
+//         setSearched(true);
+//         setError("Không có dữ liệu trả về");
+//       }
+//     } catch (err) {
+//       console.error("Search error:", err);
+//       setSearched(true);
+//       if (err.response?.status === 404) {
+//         setError("Không tìm thấy đơn hàng nào với số điện thoại này");
+//       } else {
+//         setError("Lỗi kết nối đến server. Vui lòng thử lại sau.");
+//       }
+//       setShipments([]);
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   const handleKeyPress = (e) => {
+//     if (e.key === "Enter") {
+//       onSearch();
+//     }
+//   };
+
+//   const toggleExpanded = (orderCode) => {
+//     const newExpanded = new Set(expandedOrders);
+//     if (newExpanded.has(orderCode)) {
+//       newExpanded.delete(orderCode);
+//     } else {
+//       newExpanded.add(orderCode);
+//     }
+//     setExpandedOrders(newExpanded);
+//   };
+
+//   const resetSearch = () => {
+//     setPhoneNumber("");
+//     setShipments([]);
+//     setError("");
+//     setSearched(false);
+//     setExpandedOrders(new Set());
+//     setSelectedStatusGroup(null);
+//   };
+
+//   const getStatusStyle = (status) => {
+//     return (
+//       STATUS_CONFIG[status] || {
+//         label: status,
+//         color: "bg-gray-500",
+//         gradient: "from-gray-400 to-gray-600",
+//         desc: "Trạng thái không xác định",
+//         icon: Package,
+//         order: 0,
+//       }
+//     );
+//   };
+
+//   const groupCounts = useMemo(() => {
+//     if (!searched || shipments.length === 0) return {};
+
+//     const counts = {};
+
+//     Object.keys(STATUS_GROUPS).forEach((groupKey) => {
+//       counts[groupKey] = 0;
+//     });
+//     counts["DA_HUY"] = 0;
+
+//     shipments.forEach((shipment) => {
+//       if (shipment.status === "DA_HUY") {
+//         counts["DA_HUY"]++;
+//         return;
+//       }
+
+//       for (const [groupKey, groupConfig] of Object.entries(STATUS_GROUPS)) {
+//         if (groupConfig.statuses.includes(shipment.status)) {
+//           counts[groupKey]++;
+//           break;
+//         }
+//       }
+//     });
+
+//     return counts;
+//   }, [shipments, searched]);
+
+//   const filteredShipments = useMemo(() => {
+//     if (!selectedStatusGroup) return shipments;
+
+//     if (selectedStatusGroup === "DA_HUY") {
+//       return shipments.filter((s) => s.status === "DA_HUY");
+//     }
+
+//     const groupConfig = STATUS_GROUPS[selectedStatusGroup];
+//     if (!groupConfig) return shipments;
+
+//     return shipments.filter((s) => groupConfig.statuses.includes(s.status));
+//   }, [shipments, selectedStatusGroup]);
+
+//   const activeGroups = useMemo(() => {
+//     return GROUP_ORDER.filter((groupKey) => groupCounts[groupKey] > 0);
+//   }, [groupCounts]);
+
+//   return (
+//     <div className="min-h-screen py-8 px-6">
+//       <div className="max-w-7xl mx-auto space-y-6">
+//         {/* HEADER */}
+//         <div className="bg-gradient-to-r from-yellow-400 to-yellow-300 rounded-xl p-8">
+//           <h2 className="text-4xl font-bold text-gray-900 text-center">
+//             TRA CỨU &amp; THEO DÕI ĐƠN HÀNG
+//           </h2>
+//         </div>
+
+//         {/* SEARCH BOX */}
+//         <div className="max-w-3xl mx-auto">
+//           <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+//             <div className="flex flex-col md:flex-row gap-3">
+//               <div className="flex-1 relative">
+//                 <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+//                   <Phone className="w-5 h-5 text-amber-500" />
+//                 </div>
+//                 <input
+//                   value={phoneNumber}
+//                   onChange={(e) => setPhoneNumber(e.target.value)}
+//                   onKeyPress={handleKeyPress}
+//                   placeholder="Nhập số điện thoại của bạn"
+//                   className="w-full pl-10 pr-3 py-3 text-base border-2 border-gray-200 rounded-lg outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100 transition-all placeholder:text-gray-400"
+//                   type="tel"
+//                   maxLength={11}
+//                 />
+//               </div>
+//               <button
+//                 onClick={onSearch}
+//                 disabled={loading}
+//                 className="px-6 py-3 rounded-lg text-white font-semibold text-base bg-yellow-400 hover:bg-yellow-500 shadow-md hover:shadow-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 min-w-[110px]"
+//               >
+//                 {loading ? (
+//                   <>
+//                     <Loader className="w-5 h-5 animate-spin" />
+//                     Đang tìm...
+//                   </>
+//                 ) : (
+//                   <>
+//                     <Search className="w-5 h-5" />
+//                     Tra cứu
+//                   </>
+//                 )}
+//               </button>
+//             </div>
+
+//             {error && (
+//               <div className="mt-3 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3">
+//                 <CircleAlert className="w-5 h-5 text-red-600 flex-shrink-0" />
+//                 <p className="text-sm text-red-700">{error}</p>
+//               </div>
+//             )}
+//           </div>
+//         </div>
+
+//         {/* RESULTS */}
+//         {!searched ? (
+//           <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-12 text-center">
+//             <div className="max-w-md mx-auto">
+//               <div className="w-16 h-16 bg-gradient-to-br from-amber-100 to-amber-200 rounded-full flex items-center justify-center mx-auto mb-6">
+//                 <Package className="w-8 h-8 text-amber-600" />
+//               </div>
+//               <h3 className="text-xl font-bold text-gray-900 mb-2">
+//                 Bắt đầu tra cứu
+//               </h3>
+//             </div>
+//           </div>
+//         ) : shipments.length === 0 ? (
+//           <div className="bg-white rounded-xl shadow-lg border-2 border-amber-200 p-8">
+//             <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+//               <div className="w-16 h-16 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0">
+//                 <CircleAlert className="w-7 h-7 text-amber-600" />
+//               </div>
+//               <div className="flex-1">
+//                 <h3 className="text-xl font-bold text-gray-900 mb-2">
+//                   Không tìm thấy đơn hàng
+//                 </h3>
+//                 <p className="text-base text-gray-700 mb-3">
+//                   Không có đơn hàng nào với số điện thoại{" "}
+//                   <strong className="text-amber-600">{phoneNumber}</strong>
+//                 </p>
+//                 <div className="space-y-2 text-sm text-gray-600">
+//                   <p className="flex items-center gap-2">
+//                     <span className="w-1 h-1 bg-amber-500 rounded-full"></span>
+//                     Kiểm tra lại số điện thoại
+//                   </p>
+//                   <p className="flex items-center gap-2">
+//                     <span className="w-1 h-1 bg-amber-500 rounded-full"></span>
+//                     Thử số điện thoại khác đã đăng ký
+//                   </p>
+//                   <p className="flex items-center gap-2">
+//                     <span className="w-1 h-1 bg-amber-500 rounded-full"></span>
+//                     Liên hệ CSKH:{" "}
+//                     <a
+//                       href="tel:1900xxxx"
+//                       className="text-amber-600 font-semibold hover:underline"
+//                     >
+//                       1900 xxxx
+//                     </a>
+//                   </p>
+//                 </div>
+//               </div>
+//               <button
+//                 onClick={resetSearch}
+//                 className="px-6 py-3 bg-gradient-to-r from-amber-300 to-amber-500 hover:from-amber-400 to-amber-600 text-white font-semibold rounded-lg flex items-center gap-2 text-sm shadow-md hover:shadow-lg transition-all"
+//               >
+//                 <RefreshCcw className="w-4 h-4" /> Tra cứu lại
+//               </button>
+//             </div>
+//           </div>
+//         ) : (
+//           <>
+//             {/* Summary Header */}
+//             <div className="bg-gradient-to-r from-yellow-400 to-yellow-400 rounded-xl shadow-lg p-6 text-white">
+//               <div className="flex flex-wrap items-center justify-between gap-6">
+//                 <div className="flex items-center gap-4">
+//                   <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
+//                     <Phone className="w-6 h-6 text-black" />
+//                   </div>
+//                   <div>
+//                     <p className="text-sm font-medium text-black">
+//                       Số điện thoại tra cứu
+//                     </p>
+//                     <p className="text-lg font-bold text-black">
+//                       {phoneNumber}
+//                     </p>
+//                   </div>
+//                 </div>
+//                 <div className="flex items-center gap-4">
+//                   <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
+//                     <Box className="w-6 h-6 text-black" />
+//                   </div>
+//                   <div>
+//                     <p className="text-sm font-medium text-black">
+//                       Tổng số đơn hàng
+//                     </p>
+//                     <p className="text-lg font-bold text-black">
+//                       {shipments.length} đơn
+//                     </p>
+//                   </div>
+//                 </div>
+//                 <button
+//                   onClick={resetSearch}
+//                   className="px-6 py-3 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white font-semibold rounded-lg flex items-center gap-2 transition-all text-sm"
+//                 >
+//                   <RefreshCcw className="w-4 h-4 text-black" />
+//                 </button>
+//               </div>
+//             </div>
+
+//             {/* Status Timeline */}
+//             <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+//               <div className="flex items-center justify-between mb-6">
+//                 <h3 className="text-lg font-bold text-gray-900 flex items-center gap-3">
+//                   <div className="w-10 h-10 bg-gradient-to-br from-amber-100 to-amber-200 rounded-lg flex items-center justify-center">
+//                     <ClipboardList className="w-5 h-5 text-amber-600" />
+//                   </div>
+//                   Quy trình vận chuyển
+//                 </h3>
+//               </div>
+
+//               {/* Desktop Timeline */}
+//               <div className="hidden lg:block">
+//                 <div className="relative px-2 py-4">
+//                   <div className="grid grid-cols-7 gap-2 relative">
+//                     {GROUP_ORDER.map((groupKey, index) => {
+//                       const groupConfig = STATUS_GROUPS[groupKey];
+//                       const Icon = groupConfig.icon;
+//                       const count = groupCounts[groupKey] || 0;
+//                       const isActive = count > 0;
+//                       const isSelected = selectedStatusGroup === groupKey;
+
+//                       return (
+//                         <div key={groupKey} className="relative">
+//                           <button
+//                             onClick={() =>
+//                               setSelectedStatusGroup(
+//                                 isSelected ? null : groupKey
+//                               )
+//                             }
+//                             disabled={!isActive}
+//                             className={`w-full flex flex-col items-center transition-all ${
+//                               isActive
+//                                 ? "cursor-pointer"
+//                                 : "opacity-30 cursor-not-allowed"
+//                             }`}
+//                           >
+//                             <div
+//                               className={`relative w-12 h-12 rounded-lg bg-gradient-to-br ${
+//                                 groupConfig.gradient
+//                               } flex items-center justify-center shadow-md z-10 transform transition-all ${
+//                                 isActive && "hover:scale-105"
+//                               } ${
+//                                 isSelected
+//                                   ? "ring-2 ring-amber-300 scale-105"
+//                                   : ""
+//                               }`}
+//                             >
+//                               <Icon className="w-6 h-6 text-white" />
+//                             </div>
+
+//                             <p className="mt-2 text-sm font-semibold text-gray-900 text-center leading-tight">
+//                               {groupConfig.displayLabel}
+//                             </p>
+
+//                             {count > 0 && (
+//                               <div className="mt-2 min-w-[28px] h-6 px-3 bg-amber-500 text-white text-sm font-bold rounded-full flex items-center justify-center shadow-sm">
+//                                 {count}
+//                               </div>
+//                             )}
+//                           </button>
+
+//                           {index < GROUP_ORDER.length - 1 && (
+//                             <div className="absolute top-6 -right-0.5 z-0">
+//                               <ArrowRight className="w-5 h-5 text-gray-400" />
+//                             </div>
+//                           )}
+//                         </div>
+//                       );
+//                     })}
+//                   </div>
+//                 </div>
+//               </div>
+
+//               {/* Mobile Timeline - Horizontal Scroll */}
+//               <div className="lg:hidden">
+//                 <div className="relative -mx-6 px-6 overflow-x-auto scrollbar-hide">
+//                   <div className="flex gap-3 pb-2 min-w-max">
+//                     {GROUP_ORDER.map((groupKey, index) => {
+//                       const groupConfig = STATUS_GROUPS[groupKey];
+//                       const Icon = groupConfig.icon;
+//                       const count = groupCounts[groupKey] || 0;
+//                       const isActive = count > 0;
+//                       const isSelected = selectedStatusGroup === groupKey;
+
+//                       return (
+//                         <div
+//                           key={groupKey}
+//                           className="relative flex items-center"
+//                         >
+//                           <button
+//                             onClick={() =>
+//                               isActive &&
+//                               setSelectedStatusGroup(
+//                                 isSelected ? null : groupKey
+//                               )
+//                             }
+//                             disabled={!isActive}
+//                             className={`flex flex-col items-center transition-all ${
+//                               isActive
+//                                 ? "cursor-pointer"
+//                                 : "opacity-30 cursor-not-allowed"
+//                             }`}
+//                           >
+//                             <div
+//                               className={`relative w-14 h-14 rounded-lg bg-gradient-to-br ${
+//                                 groupConfig.gradient
+//                               } flex items-center justify-center shadow-md transform transition-all ${
+//                                 isActive && "active:scale-95"
+//                               } ${
+//                                 isSelected
+//                                   ? "ring-2 ring-amber-400 scale-105"
+//                                   : ""
+//                               }`}
+//                             >
+//                               <Icon className="w-6 h-6 text-white" />
+//                             </div>
+
+//                             <p className="mt-2 text-xs font-semibold text-gray-900 text-center leading-tight max-w-[64px]">
+//                               {groupConfig.displayLabel}
+//                             </p>
+
+//                             {count > 0 && (
+//                               <div className="mt-1.5 min-w-[24px] h-5 px-2 bg-amber-500 text-white text-xs font-bold rounded-full flex items-center justify-center shadow-sm">
+//                                 {count}
+//                               </div>
+//                             )}
+//                           </button>
+
+//                           {index < GROUP_ORDER.length - 1 && (
+//                             <div className="mx-1 flex-shrink-0">
+//                               <ArrowRight className="w-4 h-4 text-gray-400" />
+//                             </div>
+//                           )}
+//                         </div>
+//                       );
+//                     })}
+//                   </div>
+//                 </div>
+
+//                 {/* Mobile Scroll Hint */}
+//                 <div className="mt-3 text-center">
+//                   <p className="text-xs text-gray-500 flex items-center justify-center gap-1">
+//                     <span className="inline-block w-1 h-1 bg-amber-500 rounded-full animate-pulse"></span>
+//                     Vuốt ngang để xem thêm
+//                   </p>
+//                 </div>
+//               </div>
+
+//               {/* Cancelled Orders */}
+//               {groupCounts["DA_HUY"] > 0 && (
+//                 <div className="mt-6 pt-6 border-t border-gray-200">
+//                   <button
+//                     onClick={() =>
+//                       setSelectedStatusGroup(
+//                         selectedStatusGroup === "DA_HUY" ? null : "DA_HUY"
+//                       )
+//                     }
+//                     className={`w-full flex items-center gap-4 p-4 rounded-lg transition-all ${
+//                       selectedStatusGroup === "DA_HUY"
+//                         ? "bg-red-50 ring-2 ring-red-400 shadow-sm"
+//                         : "bg-gray-50 hover:bg-red-50"
+//                     }`}
+//                   >
+//                     <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center shadow-sm">
+//                       <XCircle className="w-5 h-5 text-white" />
+//                     </div>
+//                     <div className="flex-1 text-left">
+//                       <p className="text-sm font-semibold text-gray-900">
+//                         Đơn hàng đã hủy
+//                       </p>
+//                     </div>
+//                     <div className="min-w-[32px] h-8 px-3 bg-red-500 text-white text-sm font-bold rounded-full flex items-center justify-center shadow-sm">
+//                       {groupCounts["DA_HUY"]}
+//                     </div>
+//                   </button>
+//                 </div>
+//               )}
+
+//               {/* Filter Info */}
+//               {selectedStatusGroup && (
+//                 <div className="mt-6 p-4 bg-gradient-to-r from-amber-50 to-amber-50 border-2 border-amber-300 rounded-lg">
+//                   <div className="flex items-center justify-between flex-wrap gap-3">
+//                     <div className="flex items-center gap-3">
+//                       <Filter className="w-5 h-5 text-amber-600" />
+//                       <div>
+//                         <p className="text-sm font-semibold text-gray-900">
+//                           Đang lọc:{" "}
+//                           {selectedStatusGroup === "DA_HUY"
+//                             ? "Đã hủy"
+//                             : STATUS_GROUPS[selectedStatusGroup]?.displayLabel}
+//                         </p>
+//                       </div>
+//                     </div>
+//                     <button
+//                       onClick={() => setSelectedStatusGroup(null)}
+//                       className="text-xs text-amber-600 hover:text-amber-700 font-semibold underline"
+//                     >
+//                       Xem tất cả
+//                     </button>
+//                   </div>
+//                 </div>
+//               )}
+//             </div>
+
+//             {/* Shipments List - Grouped by Status */}
+//             {filteredShipments.length > 0 ? (
+//               <div className="space-y-6">
+//                 {(() => {
+//                   const groupedShipments = {};
+
+//                   filteredShipments.forEach((shipment) => {
+//                     const status = shipment.status;
+//                     if (!groupedShipments[status]) {
+//                       groupedShipments[status] = [];
+//                     }
+//                     groupedShipments[status].push(shipment);
+//                   });
+
+//                   const sortedGroups = Object.entries(groupedShipments).sort(
+//                     ([statusA], [statusB]) => {
+//                       const orderA = STATUS_CONFIG[statusA]?.order || 0;
+//                       const orderB = STATUS_CONFIG[statusB]?.order || 0;
+//                       return orderB - orderA;
+//                     }
+//                   );
+
+//                   return sortedGroups.map(([status, shipmentsInGroup]) => {
+//                     const statusStyle = getStatusStyle(status);
+//                     const StatusIcon = statusStyle.icon;
+
+//                     return (
+//                       <div
+//                         key={status}
+//                         className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden"
+//                       >
+//                         {/* Status Group Header */}
+//                         <div
+//                           className={`p-6 bg-gradient-to-r ${statusStyle.gradient}`}
+//                         >
+//                           <div className="flex items-center justify-between">
+//                             <div className="flex items-center gap-3">
+//                               <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
+//                                 <StatusIcon className="w-5 h-5 text-white" />
+//                               </div>
+//                               <div className="text-white">
+//                                 <h3 className="text-base font-bold">
+//                                   {statusStyle.label}
+//                                 </h3>
+//                                 <p className="text-xs text-white/90">
+//                                   {statusStyle.desc}
+//                                 </p>
+//                               </div>
+//                             </div>
+//                             <div className="bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-lg">
+//                               <span className="text-white font-bold text-sm">
+//                                 {shipmentsInGroup.length} đơn
+//                               </span>
+//                             </div>
+//                           </div>
+//                         </div>
+
+//                         {/* Shipments List */}
+//                         <div className="divide-y divide-gray-100">
+//                           {shipmentsInGroup.map((shipment) => {
+//                             const isExpanded = expandedOrders.has(
+//                               shipment.orderCode
+//                             );
+//                             const progress = percentageFromStatus(
+//                               shipment.status
+//                             );
+
+//                             return (
+//                               <div key={shipment.orderCode}>
+//                                 {/* Shipment Row */}
+//                                 <div
+//                                   className="p-6 cursor-pointer hover:bg-gray-50 transition-colors"
+//                                   onClick={() =>
+//                                     toggleExpanded(shipment.orderCode)
+//                                   }
+//                                 >
+//                                   <div className="flex items-center justify-between gap-6">
+//                                     <div className="flex-1 min-w-0">
+//                                       {/* Order Code */}
+//                                       <div className="flex items-center gap-3 mb-4 flex-wrap">
+//                                         <h4 className="text-base font-bold text-gray-900">
+//                                           {shipment.orderCode}
+//                                         </h4>
+//                                         {shipment.shipmentCode && (
+//                                           <div className="flex items-center gap-1.5 text-gray-600">
+//                                             <MapPin className="w-3.5 h-3.5 text-amber-500" />
+//                                             <span className="text-sm font-medium">
+//                                               {shipment.shipmentCode}
+//                                             </span>
+//                                           </div>
+//                                         )}
+//                                       </div>
+
+//                                       {/* Progress Bar */}
+//                                       <div className="mb-4">
+//                                         <div className="flex items-center justify-between mb-2">
+//                                           <span className="text-xs font-semibold text-gray-600">
+//                                             Tiến độ vận chuyển
+//                                           </span>
+//                                           <span className="text-sm font-bold text-amber-600">
+//                                             {progress}%
+//                                           </span>
+//                                         </div>
+//                                         <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
+//                                           <div
+//                                             className="h-full bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500 transition-all duration-500"
+//                                             style={{ width: `${progress}%` }}
+//                                           />
+//                                         </div>
+//                                       </div>
+
+//                                       {/* Product Count */}
+//                                       <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 rounded text-xs font-medium text-gray-700">
+//                                         <Package className="w-3.5 h-3.5" />
+//                                         {shipment.products?.length || 0} sản
+//                                         phẩm
+//                                       </div>
+//                                     </div>
+
+//                                     {/* Expand Button */}
+//                                     <button className="w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex-shrink-0">
+//                                       {isExpanded ? (
+//                                         <ChevronUp className="w-5 h-5 text-gray-600" />
+//                                       ) : (
+//                                         <ChevronDown className="w-5 h-5 text-gray-600" />
+//                                       )}
+//                                     </button>
+//                                   </div>
+//                                 </div>
+
+//                                 {/* Expanded Content */}
+//                                 {isExpanded && (
+//                                   <div className="px-6 pb-6 bg-gradient-to-br from-gray-50 to-white">
+//                                     {/* Products */}
+//                                     {shipment.products &&
+//                                       shipment.products.length > 0 && (
+//                                         <div className="pt-3">
+//                                           <h5 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
+//                                             <Package className="w-4 h-4 text-amber-600" />
+//                                             Danh sách sản phẩm (
+//                                             {shipment.products.length})
+//                                           </h5>
+//                                           <div className="space-y-3">
+//                                             {shipment.products.map(
+//                                               (product, index) => (
+//                                                 <div
+//                                                   key={index}
+//                                                   className="bg-white rounded-lg p-3 border border-gray-200 hover:border-amber-300 hover:shadow-sm transition-all"
+//                                                 >
+//                                                   <div className="flex items-start gap-3">
+//                                                     <div className="w-7 h-7 rounded bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center flex-shrink-0">
+//                                                       <span className="text-xs font-bold text-amber-700">
+//                                                         {index + 1}
+//                                                       </span>
+//                                                     </div>
+//                                                     <div className="flex-1 min-w-0">
+//                                                       <p className="font-semibold text-gray-900 text-sm mb-2">
+//                                                         {product.productName}
+//                                                       </p>
+//                                                       {product.productLink && (
+//                                                         <a
+//                                                           href={
+//                                                             product.productLink.startsWith(
+//                                                               "http"
+//                                                             )
+//                                                               ? product.productLink
+//                                                               : `https://${product.productLink}`
+//                                                           }
+//                                                           target="_blank"
+//                                                           rel="noopener noreferrer"
+//                                                           className="inline-flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-700 font-medium hover:underline"
+//                                                         >
+//                                                           <ExternalLink className="w-3.5 h-3.5" />
+//                                                           Xem sản phẩm
+//                                                         </a>
+//                                                       )}
+//                                                     </div>
+//                                                   </div>
+//                                                 </div>
+//                                               )
+//                                             )}
+//                                           </div>
+//                                         </div>
+//                                       )}
+//                                   </div>
+//                                 )}
+//                               </div>
+//                             );
+//                           })}
+//                         </div>
+//                       </div>
+//                     );
+//                   });
+//                 })()}
+//               </div>
+//             ) : (
+//               <div className="bg-white rounded-xl shadow-lg p-12 text-center">
+//                 <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+//                   <Package className="w-7 h-7 text-gray-400" />
+//                 </div>
+//                 <p className="text-base text-gray-600">
+//                   Không có đơn hàng trong trạng thái này
+//                 </p>
+//               </div>
+//             )}
+//           </>
+//         )}
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default TrackingOrderCustomer;
+
 // src/components/TrackingOrderCustomer/TrackingOrderCustomer.jsx
 import React, { useState, useMemo } from "react";
 import {
@@ -23,6 +923,7 @@ import {
   ArrowRight,
   Filter,
   Box,
+  Image as ImageIcon,
 } from "lucide-react";
 import trackingCustomerService from "../../Services/Customer/trackingCustomerService";
 
@@ -33,6 +934,7 @@ const STATUS_CONFIG = {
     gradient: "from-amber-300 to-amber-500",
     icon: Clock,
     order: 1,
+    desc: "Đơn đang chờ mua hàng",
   },
   DA_MUA: {
     label: "Đã mua",
@@ -40,6 +942,7 @@ const STATUS_CONFIG = {
     gradient: "from-purple-500 to-purple-600",
     icon: ShoppingCart,
     order: 2,
+    desc: "Đơn đã mua thành công",
   },
   DAU_GIA_THANH_CONG: {
     label: "Đấu giá thành công",
@@ -47,6 +950,7 @@ const STATUS_CONFIG = {
     gradient: "from-purple-500 to-purple-600",
     icon: ShoppingCart,
     order: 2,
+    desc: "Đơn đấu giá thành công",
   },
   DA_NHAP_KHO_NN: {
     label: "Đã về kho NN",
@@ -54,6 +958,7 @@ const STATUS_CONFIG = {
     gradient: "from-indigo-500 to-indigo-600",
     icon: Warehouse,
     order: 3,
+    desc: "Đơn đã về kho nước ngoài",
   },
   DANG_CHUYEN_VN: {
     label: "Đang về VN",
@@ -61,6 +966,7 @@ const STATUS_CONFIG = {
     gradient: "from-blue-400 to-blue-600",
     icon: Ship,
     order: 4,
+    desc: "Đơn đang vận chuyển về Việt Nam",
   },
   DA_NHAP_KHO_VN: {
     label: "Đã về kho VN",
@@ -68,6 +974,7 @@ const STATUS_CONFIG = {
     gradient: "from-cyan-400 to-cyan-600",
     icon: PackageCheck,
     order: 5,
+    desc: "Đơn đã về kho Việt Nam",
   },
   DANG_GIAO: {
     label: "Đang giao nội địa",
@@ -75,6 +982,7 @@ const STATUS_CONFIG = {
     gradient: "from-orange-400 to-orange-600",
     icon: Truck,
     order: 6,
+    desc: "Đơn đang giao tới khách",
   },
   DA_GIAO: {
     label: "Đã giao",
@@ -82,6 +990,7 @@ const STATUS_CONFIG = {
     gradient: "from-green-400 to-green-600",
     icon: CheckCircle2,
     order: 7,
+    desc: "Đơn đã giao thành công",
   },
   DA_HUY: {
     label: "Đã hủy",
@@ -89,6 +998,7 @@ const STATUS_CONFIG = {
     gradient: "from-red-400 to-red-600",
     icon: XCircle,
     order: 0,
+    desc: "Đơn đã bị hủy",
   },
 };
 
@@ -184,6 +1094,11 @@ const percentageFromStatus = (status) => {
   return Math.round((currentStep / totalSteps) * 100);
 };
 
+const normalizeUrl = (url) => {
+  if (!url) return "";
+  return url.startsWith("http") ? url : `https://${url}`;
+};
+
 const TrackingOrderCustomer = () => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [shipments, setShipments] = useState([]);
@@ -217,11 +1132,11 @@ const TrackingOrderCustomer = () => {
     setSelectedStatusGroup(null);
 
     try {
-      const response = await trackingCustomerService.getShipmentsByPhone(
-        cleanPhone
-      );
+      const response =
+        await trackingCustomerService.getShipmentsByPhone(cleanPhone);
 
-      if (response.data && Array.isArray(response.data)) {
+      // Bạn đang dùng response.data (giữ nguyên theo code của bạn)
+      if (response?.data && Array.isArray(response.data)) {
         setShipments(response.data);
         setSearched(true);
         if (response.data.length === 0) {
@@ -246,19 +1161,14 @@ const TrackingOrderCustomer = () => {
     }
   };
 
-  const handleKeyPress = (e) => {
-    if (e.key === "Enter") {
-      onSearch();
-    }
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") onSearch();
   };
 
   const toggleExpanded = (orderCode) => {
     const newExpanded = new Set(expandedOrders);
-    if (newExpanded.has(orderCode)) {
-      newExpanded.delete(orderCode);
-    } else {
-      newExpanded.add(orderCode);
-    }
+    if (newExpanded.has(orderCode)) newExpanded.delete(orderCode);
+    else newExpanded.add(orderCode);
     setExpandedOrders(newExpanded);
   };
 
@@ -288,10 +1198,7 @@ const TrackingOrderCustomer = () => {
     if (!searched || shipments.length === 0) return {};
 
     const counts = {};
-
-    Object.keys(STATUS_GROUPS).forEach((groupKey) => {
-      counts[groupKey] = 0;
-    });
+    Object.keys(STATUS_GROUPS).forEach((groupKey) => (counts[groupKey] = 0));
     counts["DA_HUY"] = 0;
 
     shipments.forEach((shipment) => {
@@ -299,7 +1206,6 @@ const TrackingOrderCustomer = () => {
         counts["DA_HUY"]++;
         return;
       }
-
       for (const [groupKey, groupConfig] of Object.entries(STATUS_GROUPS)) {
         if (groupConfig.statuses.includes(shipment.status)) {
           counts[groupKey]++;
@@ -324,10 +1230,6 @@ const TrackingOrderCustomer = () => {
     return shipments.filter((s) => groupConfig.statuses.includes(s.status));
   }, [shipments, selectedStatusGroup]);
 
-  const activeGroups = useMemo(() => {
-    return GROUP_ORDER.filter((groupKey) => groupCounts[groupKey] > 0);
-  }, [groupCounts]);
-
   return (
     <div className="min-h-screen py-8 px-6">
       <div className="max-w-7xl mx-auto space-y-6">
@@ -349,7 +1251,7 @@ const TrackingOrderCustomer = () => {
                 <input
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
-                  onKeyPress={handleKeyPress}
+                  onKeyDown={handleKeyDown}
                   placeholder="Nhập số điện thoại của bạn"
                   className="w-full pl-10 pr-3 py-3 text-base border-2 border-gray-200 rounded-lg outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100 transition-all placeholder:text-gray-400"
                   type="tel"
@@ -457,6 +1359,7 @@ const TrackingOrderCustomer = () => {
                     </p>
                   </div>
                 </div>
+
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
                     <Box className="w-6 h-6 text-black" />
@@ -470,9 +1373,11 @@ const TrackingOrderCustomer = () => {
                     </p>
                   </div>
                 </div>
+
                 <button
                   onClick={resetSearch}
                   className="px-6 py-3 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white font-semibold rounded-lg flex items-center gap-2 transition-all text-sm"
+                  aria-label="Tra cứu lại"
                 >
                   <RefreshCcw className="w-4 h-4 text-black" />
                 </button>
@@ -506,7 +1411,7 @@ const TrackingOrderCustomer = () => {
                           <button
                             onClick={() =>
                               setSelectedStatusGroup(
-                                isSelected ? null : groupKey
+                                isSelected ? null : groupKey,
                               )
                             }
                             disabled={!isActive}
@@ -521,11 +1426,7 @@ const TrackingOrderCustomer = () => {
                                 groupConfig.gradient
                               } flex items-center justify-center shadow-md z-10 transform transition-all ${
                                 isActive && "hover:scale-105"
-                              } ${
-                                isSelected
-                                  ? "ring-2 ring-amber-300 scale-105"
-                                  : ""
-                              }`}
+                              } ${isSelected ? "ring-2 ring-amber-300 scale-105" : ""}`}
                             >
                               <Icon className="w-6 h-6 text-white" />
                             </div>
@@ -553,7 +1454,7 @@ const TrackingOrderCustomer = () => {
                 </div>
               </div>
 
-              {/* Mobile Timeline - Horizontal Scroll */}
+              {/* Mobile Timeline */}
               <div className="lg:hidden">
                 <div className="relative -mx-6 px-6 overflow-x-auto scrollbar-hide">
                   <div className="flex gap-3 pb-2 min-w-max">
@@ -573,7 +1474,7 @@ const TrackingOrderCustomer = () => {
                             onClick={() =>
                               isActive &&
                               setSelectedStatusGroup(
-                                isSelected ? null : groupKey
+                                isSelected ? null : groupKey,
                               )
                             }
                             disabled={!isActive}
@@ -588,11 +1489,7 @@ const TrackingOrderCustomer = () => {
                                 groupConfig.gradient
                               } flex items-center justify-center shadow-md transform transition-all ${
                                 isActive && "active:scale-95"
-                              } ${
-                                isSelected
-                                  ? "ring-2 ring-amber-400 scale-105"
-                                  : ""
-                              }`}
+                              } ${isSelected ? "ring-2 ring-amber-400 scale-105" : ""}`}
                             >
                               <Icon className="w-6 h-6 text-white" />
                             </div>
@@ -619,7 +1516,6 @@ const TrackingOrderCustomer = () => {
                   </div>
                 </div>
 
-                {/* Mobile Scroll Hint */}
                 <div className="mt-3 text-center">
                   <p className="text-xs text-gray-500 flex items-center justify-center gap-1">
                     <span className="inline-block w-1 h-1 bg-amber-500 rounded-full animate-pulse"></span>
@@ -634,7 +1530,7 @@ const TrackingOrderCustomer = () => {
                   <button
                     onClick={() =>
                       setSelectedStatusGroup(
-                        selectedStatusGroup === "DA_HUY" ? null : "DA_HUY"
+                        selectedStatusGroup === "DA_HUY" ? null : "DA_HUY",
                       )
                     }
                     className={`w-full flex items-center gap-4 p-4 rounded-lg transition-all ${
@@ -689,21 +1585,20 @@ const TrackingOrderCustomer = () => {
               <div className="space-y-6">
                 {(() => {
                   const groupedShipments = {};
-
                   filteredShipments.forEach((shipment) => {
                     const status = shipment.status;
-                    if (!groupedShipments[status]) {
+                    if (!groupedShipments[status])
                       groupedShipments[status] = [];
-                    }
                     groupedShipments[status].push(shipment);
                   });
 
+                  // Giữ logic cũ: trạng thái gần giao (order cao) lên trước
                   const sortedGroups = Object.entries(groupedShipments).sort(
                     ([statusA], [statusB]) => {
                       const orderA = STATUS_CONFIG[statusA]?.order || 0;
                       const orderB = STATUS_CONFIG[statusB]?.order || 0;
                       return orderB - orderA;
-                    }
+                    },
                   );
 
                   return sortedGroups.map(([status, shipmentsInGroup]) => {
@@ -729,7 +1624,7 @@ const TrackingOrderCustomer = () => {
                                   {statusStyle.label}
                                 </h3>
                                 <p className="text-xs text-white/90">
-                                  {statusStyle.desc}
+                                  {statusStyle.desc || "Đang xử lý đơn hàng"}
                                 </p>
                               </div>
                             </div>
@@ -745,11 +1640,12 @@ const TrackingOrderCustomer = () => {
                         <div className="divide-y divide-gray-100">
                           {shipmentsInGroup.map((shipment) => {
                             const isExpanded = expandedOrders.has(
-                              shipment.orderCode
+                              shipment.orderCode,
                             );
                             const progress = percentageFromStatus(
-                              shipment.status
+                              shipment.status,
                             );
+                            const st = getStatusStyle(shipment.status);
 
                             return (
                               <div key={shipment.orderCode}>
@@ -763,10 +1659,19 @@ const TrackingOrderCustomer = () => {
                                   <div className="flex items-center justify-between gap-6">
                                     <div className="flex-1 min-w-0">
                                       {/* Order Code */}
-                                      <div className="flex items-center gap-3 mb-4 flex-wrap">
+                                      <div className="flex items-center gap-3 mb-3 flex-wrap">
                                         <h4 className="text-base font-bold text-gray-900">
                                           {shipment.orderCode}
                                         </h4>
+
+                                        {/* Badge status */}
+                                        <span
+                                          className={`px-2.5 py-1 text-xs font-bold rounded-md text-white ${st.color}`}
+                                        >
+                                          {st.label}
+                                        </span>
+
+                                        {/* Shipment code */}
                                         {shipment.shipmentCode && (
                                           <div className="flex items-center gap-1.5 text-gray-600">
                                             <MapPin className="w-3.5 h-3.5 text-amber-500" />
@@ -826,6 +1731,7 @@ const TrackingOrderCustomer = () => {
                                             Danh sách sản phẩm (
                                             {shipment.products.length})
                                           </h5>
+
                                           <div className="space-y-3">
                                             {shipment.products.map(
                                               (product, index) => (
@@ -834,24 +1740,51 @@ const TrackingOrderCustomer = () => {
                                                   className="bg-white rounded-lg p-3 border border-gray-200 hover:border-amber-300 hover:shadow-sm transition-all"
                                                 >
                                                   <div className="flex items-start gap-3">
+                                                    {/* Index */}
                                                     <div className="w-7 h-7 rounded bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center flex-shrink-0">
                                                       <span className="text-xs font-bold text-amber-700">
                                                         {index + 1}
                                                       </span>
                                                     </div>
+
+                                                    {/* Thumbnail */}
+                                                    <div className="w-16 h-16 rounded-lg overflow-hidden border border-gray-200 bg-gray-50 flex-shrink-0">
+                                                      {product.productImage ? (
+                                                        <img
+                                                          src={
+                                                            product.productImage
+                                                          }
+                                                          alt={
+                                                            product.productName ||
+                                                            "product"
+                                                          }
+                                                          className="w-full h-full object-cover"
+                                                          loading="lazy"
+                                                          onError={(e) => {
+                                                            e.currentTarget.onerror =
+                                                              null;
+                                                            e.currentTarget.src =
+                                                              "https://via.placeholder.com/150?text=No+Image";
+                                                          }}
+                                                        />
+                                                      ) : (
+                                                        <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">
+                                                          <ImageIcon className="w-4 h-4" />
+                                                        </div>
+                                                      )}
+                                                    </div>
+
                                                     <div className="flex-1 min-w-0">
                                                       <p className="font-semibold text-gray-900 text-sm mb-2">
                                                         {product.productName}
                                                       </p>
+
+                                                      {/* Link sản phẩm */}
                                                       {product.productLink && (
                                                         <a
-                                                          href={
-                                                            product.productLink.startsWith(
-                                                              "http"
-                                                            )
-                                                              ? product.productLink
-                                                              : `https://${product.productLink}`
-                                                          }
+                                                          href={normalizeUrl(
+                                                            product.productLink,
+                                                          )}
                                                           target="_blank"
                                                           rel="noopener noreferrer"
                                                           className="inline-flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-700 font-medium hover:underline"
@@ -860,10 +1793,35 @@ const TrackingOrderCustomer = () => {
                                                           Xem sản phẩm
                                                         </a>
                                                       )}
+
+                                                      {/* Ảnh kiểm tra nếu có */}
+                                                      {product.productImageCheck && (
+                                                        <div className="mt-3">
+                                                          <p className="text-xs font-semibold text-gray-700 mb-1">
+                                                            Ảnh kiểm tra
+                                                          </p>
+                                                          <div className="w-24 h-24 rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
+                                                            <img
+                                                              src={
+                                                                product.productImageCheck
+                                                              }
+                                                              alt={`${product.productName || "product"} check`}
+                                                              className="w-full h-full object-cover"
+                                                              loading="lazy"
+                                                              onError={(e) => {
+                                                                e.currentTarget.onerror =
+                                                                  null;
+                                                                e.currentTarget.src =
+                                                                  "https://via.placeholder.com/150?text=No+Check";
+                                                              }}
+                                                            />
+                                                          </div>
+                                                        </div>
+                                                      )}
                                                     </div>
                                                   </div>
                                                 </div>
-                                              )
+                                              ),
                                             )}
                                           </div>
                                         </div>

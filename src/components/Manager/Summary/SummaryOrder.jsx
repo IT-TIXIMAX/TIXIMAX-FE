@@ -231,7 +231,6 @@ const SummaryOrder = () => {
             <ChevronRight className="w-4 h-4 text-gray-400" />
 
             <div className="flex items-center gap-2 px-3 py-2 bg-yellow-300 border-2 border-black rounded-lg shadow-sm">
-              <ShoppingBag className="w-4 h-4 text-black" />
               <span className="text-sm font-semibold text-black">
                 Đơn hàng theo tuyến
               </span>

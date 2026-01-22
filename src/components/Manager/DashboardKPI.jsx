@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import dashboardService from "../../Services/Dashboard/dashboardService";
-import managerRoutesService from "../../Services/Manager/managerRoutesService";
 import {
   Truck,
   DollarSign,
@@ -8,13 +7,11 @@ import {
   Users,
   Calendar,
   BarChart3,
-  Filter,
-  X,
 } from "lucide-react";
-import FilterRoute from "../Filter/FilterRoute"; // ✅ chỉnh path đúng theo project bạn
 
 const FILTER_TYPES = [
   { value: "DAY", label: "Hôm nay" },
+  { value: "WEEK", label: "Tuần này" },
   { value: "MONTH", label: "Tháng này" },
   { value: "QUARTER", label: "Quý này" },
   { value: "HALF_YEAR", label: "6 tháng" },
@@ -44,18 +41,17 @@ const getPerformanceColor = (value, max) => {
 
 /* ===================== Loading skeleton ===================== */
 const Skeleton = ({ className = "" }) => (
-  <div className={`animate-pulse bg-gray-200 rounded ${className}`} />
+  <div className={`animate-pulse bg-gray-300 rounded ${className}`} />
 );
 
-const SummaryCardSkeleton = ({ bgGradient = "from-gray-50 to-gray-100" }) => (
-  <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
-    <div className={`p-4 md:p-5 bg-gradient-to-br ${bgGradient}`}>
-      <div className="flex items-center justify-between mb-3">
-        <Skeleton className="h-4 w-28" />
+const SummaryCardSkeleton = ({ bgGradient = "from-gray-200 to-gray-300" }) => (
+  <div className="bg-white rounded-xl shadow-md overflow-hidden border-1 border-black">
+    <div className={`p-5 md:p-6 bg-gradient-to-br ${bgGradient}`}>
+      <div className="flex items-center justify-between mb-4">
+        <Skeleton className="h-4 w-24" />
         <Skeleton className="h-10 w-10 rounded-lg" />
       </div>
-      <Skeleton className="h-8 w-32 mb-2" />
-      <Skeleton className="h-4 w-16" />
+      <Skeleton className="h-10 md:h-12 w-32" />
     </div>
   </div>
 );
@@ -174,177 +170,27 @@ const SummaryCard = ({
   iconColor,
   bgGradient,
 }) => (
-  <div className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-100">
-    <div className={`p-4 md:p-5 bg-gradient-to-br ${bgGradient}`}>
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-black font-bold text-xl md:text-sm font-semibold uppercase tracking-wide">
+  <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border-1 border-black min-h-[150px]">
+    <div className={`p-5 md:p-6 bg-gradient-to-br ${bgGradient} h-full`}>
+      <div className="flex items-center justify-between mb-4 min-w-0">
+        <span className="text-black text-xs md:text-sm font-semibold uppercase tracking-wide truncate">
           {label}
         </span>
-        <div className={`p-2 rounded-lg ${iconColor}`}>
-          <Icon className="w-5 h-5 md:w-6 md:h-6 text-white" />
+        <div className={`p-2.5 rounded-lg ${iconColor} shrink-0`}>
+          <Icon className="w-6 h-6 md:w-7 md:h-7 text-white" />
         </div>
       </div>
-      <div className="text-2xl md:text-3xl font-bold text-gray-800">
-        {value}
+      <div className="flex items-baseline gap-2 min-w-0 mb-3">
+        <span className="text-2xl md:text-3xl font-bold text-gray-900 leading-none break-words tabular-nums">
+          {value}
+        </span>
       </div>
-      <div className="text-black text-xs md:text-sm font-medium mt-1">
-        {unit}
-      </div>
+      {unit && (
+        <div className="text-xs md:text-sm text-black font-medium">{unit}</div>
+      )}
     </div>
   </div>
 );
-
-const FilterDialog = ({ show, filters, onClose, onApply }) => {
-  const [tempFilters, setTempFilters] = useState({ ...filters });
-
-  useEffect(() => {
-    if (show) setTempFilters({ ...filters });
-  }, [show, filters]);
-
-  const handleChange = (key, value) => {
-    setTempFilters((prev) => ({ ...prev, [key]: value }));
-  };
-
-  const handleApply = () => {
-    if (tempFilters.filterType === "CUSTOM") {
-      if (!tempFilters.startDate || !tempFilters.endDate) return;
-      if (tempFilters.startDate > tempFilters.endDate) return;
-    }
-    onApply(tempFilters);
-  };
-
-  const handleReset = () => setTempFilters(DEFAULT_FILTERS);
-
-  if (!show) return null;
-
-  return (
-    <>
-      <div
-        className="fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity"
-        onClick={onClose}
-      ></div>
-
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden animate-in fade-in zoom-in duration-200">
-          <div className="px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-700 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Filter className="w-5 h-5 text-white" />
-              <h2 className="text-xl font-bold text-white">Bộ lọc dữ liệu</h2>
-            </div>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-white/20 rounded-lg transition-colors"
-            >
-              <X className="w-5 h-5 text-white" />
-            </button>
-          </div>
-
-          <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
-            <div className="space-y-5">
-              {/* ✅ FilterRoute */}
-              <div>
-                <FilterRoute
-                  value={tempFilters.routeId}
-                  onChange={(v) => handleChange("routeId", v)}
-                  showLabel={true}
-                  label="Chọn tuyến"
-                  placeholder="Tất cả tuyến"
-                  showNote={true}
-                  selectClassName="!rounded-lg !border !border-gray-300 !h-[48px] focus:!ring-2 focus:!ring-blue-500 focus:!border-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Khoảng thời gian
-                </label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {FILTER_TYPES.map((type) => (
-                    <button
-                      key={type.value}
-                      onClick={() => handleChange("filterType", type.value)}
-                      className={`px-4 py-3 rounded-lg text-sm font-medium transition-all ${
-                        tempFilters.filterType === type.value
-                          ? "bg-blue-600 text-white shadow-md"
-                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                      }`}
-                    >
-                      {type.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {tempFilters.filterType === "CUSTOM" && (
-                <div className="p-4 bg-blue-50 rounded-lg border-2 border-blue-200 space-y-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Calendar className="w-5 h-5 text-blue-600" />
-                    <span className="text-sm font-semibold text-blue-900">
-                      Chọn khoảng thời gian tùy chỉnh
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Từ ngày
-                      </label>
-                      <input
-                        type="date"
-                        value={tempFilters.startDate}
-                        onChange={(e) =>
-                          handleChange("startDate", e.target.value)
-                        }
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Đến ngày
-                      </label>
-                      <input
-                        type="date"
-                        value={tempFilters.endDate}
-                        onChange={(e) =>
-                          handleChange("endDate", e.target.value)
-                        }
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-between gap-3">
-            <button
-              onClick={handleReset}
-              className="px-5 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm font-semibold"
-            >
-              Đặt lại
-            </button>
-            <div className="flex gap-3">
-              <button
-                onClick={onClose}
-                className="px-5 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm font-semibold"
-              >
-                Hủy
-              </button>
-              <button
-                onClick={handleApply}
-                className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg text-sm font-semibold"
-              >
-                Áp dụng
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </>
-  );
-};
 
 const RouteCard = ({ routeData, maxValues }) => {
   const routeTotal = useMemo(() => {
@@ -396,7 +242,6 @@ const RouteCard = ({ routeData, maxValues }) => {
             </div>
           </div>
 
-          {/* ✅ Tổng giá trị: gắn theo currency = routeName */}
           <div className="text-center p-3 bg-red-200 rounded-lg border border-gray-100 shadow-sm">
             <div className="text-xl text-black mb-1 font-medium">
               Tổng giá trị
@@ -579,21 +424,7 @@ const RouteCard = ({ routeData, maxValues }) => {
 const DashboardKPI = () => {
   const [data, setData] = useState({});
   const [loading, setLoading] = useState(false);
-  const [routes, setRoutes] = useState([]);
-  const [showFilterDialog, setShowFilterDialog] = useState(false);
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
-
-  useEffect(() => {
-    const fetchRoutes = async () => {
-      try {
-        const list = await managerRoutesService.getRoutes();
-        setRoutes(list || []);
-      } catch {
-        setRoutes([]);
-      }
-    };
-    fetchRoutes();
-  }, []);
 
   const fetchKPI = useCallback(
     async (signal) => {
@@ -605,8 +436,6 @@ const DashboardKPI = () => {
           params.startDate = filters.startDate;
           params.endDate = filters.endDate;
         }
-
-        if (filters.routeId) params.routeId = filters.routeId;
 
         const res = await dashboardService.getRoutesKPI(params, { signal });
         setData(res?.data || {});
@@ -626,28 +455,13 @@ const DashboardKPI = () => {
     return () => controller.abort();
   }, [fetchKPI]);
 
-  const handleApplyFilter = useCallback((newFilters) => {
-    setFilters(newFilters);
-    setShowFilterDialog(false);
-  }, []);
-
   const getFilterLabel = () => {
     const type = FILTER_TYPES.find((t) => t.value === filters.filterType);
-    const route = routes.find(
-      (r) => String(r.routeId) === String(filters.routeId),
-    );
-
     let label = type?.label || "Tháng này";
-    if (route) label += ` - ${route.name}`;
 
-    if (
-      filters.filterType === "CUSTOM" &&
-      filters.startDate &&
-      filters.endDate
-    ) {
+    if (filters.filterType === "CUSTOM" && filters.startDate && filters.endDate)
       label = `${filters.startDate} đến ${filters.endDate}`;
-      if (route) label += ` - ${route.name}`;
-    }
+
     return label;
   };
 
@@ -665,7 +479,6 @@ const DashboardKPI = () => {
     return { totalWeight, totalStaff };
   }, [data]);
 
-  /** ✅ Tính "Giá trị tuyến cao nhất" + routeName */
   const bestRoute = useMemo(() => {
     let best = { value: 0, currency: "", routeKey: "" };
 
@@ -707,124 +520,229 @@ const DashboardKPI = () => {
     );
   }, [data]);
 
-  const skeletonRouteCount = Math.max(2, Math.min(8, routes?.length || 4));
+  const skeletonRouteCount = Math.max(
+    2,
+    Math.min(8, Object.keys(data || {}).length || 4),
+  );
 
   return (
-    <div className="min-h-screen ">
+    <div className="min-h-screen">
       <div className="mx-auto p-4 md:p-6 lg:p-8">
-        {/* Header */}
+        {/* ✅ Header - Yellow Gradient */}
         <div className="mb-6 md:mb-8">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-3">
-              <div className="w-1.5 h-8 md:h-10 bg-gradient-to-b from-blue-600 to-blue-700 rounded-full"></div>
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
-                Thống kê hiệu suất nhân viên
-              </h1>
+          <div className="bg-gradient-to-r from-yellow-300 via-yellow-300 to-yellow-300 border-[1px] border-black rounded-xl shadow-lg p-4 md:p-5">
+            <div className="flex flex-col gap-4">
+              {/* Top row */}
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-1.5 h-8 md:h-9 bg-black rounded-full shrink-0 shadow-sm" />
+                  <div className="min-w-0">
+                    <h1 className="text-lg md:text-xl font-bold text-black leading-tight truncate">
+                      Thống Kê Hiệu Suất Nhân Viên
+                    </h1>
+                    <div className="flex items-center gap-2 mt-1 flex-wrap">
+                      <div className="flex items-center gap-2 px-3 py-1.5 bg-white border-2 border-black rounded-lg shadow-sm">
+                        <Calendar className="w-4 h-4 text-black" />
+                        <span className="text-xs md:text-sm font-semibold text-black whitespace-nowrap">
+                          {getFilterLabel()}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 px-3 py-1.5 bg-white border-2 border-black rounded-lg shadow-sm">
+                        <span className="text-xs md:text-sm font-semibold text-black whitespace-nowrap">
+                          Tất cả tuyến
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right: Filter buttons inline */}
+                <div className="flex flex-wrap items-center gap-2">
+                  {FILTER_TYPES.map((type) => {
+                    const active = filters.filterType === type.value;
+                    return (
+                      <button
+                        key={type.value}
+                        onClick={() =>
+                          setFilters((prev) => ({
+                            ...prev,
+                            routeId: "",
+                            filterType: type.value,
+                            ...(type.value !== "CUSTOM"
+                              ? { startDate: "", endDate: "" }
+                              : {}),
+                          }))
+                        }
+                        disabled={loading}
+                        className={`px-3.5 py-2 rounded-lg text-xs md:text-sm font-semibold transition-all border-2 border-yellow-600 shadow-sm ${
+                          active
+                            ? "bg-yellow-400 text-black"
+                            : "bg-white text-black hover:bg-gray-100"
+                        } ${loading ? "opacity-60 cursor-not-allowed" : ""}`}
+                      >
+                        {type.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Custom date row */}
+              {filters.filterType === "CUSTOM" && (
+                <div className="pt-4 border-t-2 border-black">
+                  <div className="mb-2 text-xs font-bold text-black uppercase tracking-wide">
+                    Khoảng thời gian tùy chỉnh
+                  </div>
+                  <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                    <div className="flex flex-wrap items-center gap-3">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-black" />
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold text-black">
+                          Từ
+                        </span>
+                        <input
+                          type="date"
+                          value={filters.startDate}
+                          onChange={(e) =>
+                            setFilters((prev) => ({
+                              ...prev,
+                              routeId: "",
+                              startDate: e.target.value,
+                            }))
+                          }
+                          className="border-2 border-black rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 bg-white"
+                        />
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold text-black">
+                          Đến
+                        </span>
+                        <input
+                          type="date"
+                          value={filters.endDate}
+                          onChange={(e) =>
+                            setFilters((prev) => ({
+                              ...prev,
+                              routeId: "",
+                              endDate: e.target.value,
+                            }))
+                          }
+                          className="border-2 border-black rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 bg-white"
+                        />
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => setFilters(DEFAULT_FILTERS)}
+                      className="bg-white text-black border-2 border-black px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 transition-colors shadow-sm"
+                    >
+                      Đặt lại
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
-
-            <button
-              onClick={() => setShowFilterDialog(true)}
-              className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-md hover:shadow-lg font-semibold"
-            >
-              <Filter className="w-4 h-4" />
-              <span className="hidden sm:inline text-sm">Bộ lọc</span>
-            </button>
-          </div>
-
-          <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg w-fit">
-            <Calendar className="w-4 h-4 text-blue-600" />
-            <span className="text-sm font-semibold text-blue-800">
-              {getFilterLabel()}
-            </span>
           </div>
         </div>
 
-        <FilterDialog
-          show={showFilterDialog}
-          filters={filters}
-          onClose={() => setShowFilterDialog(false)}
-          onApply={handleApplyFilter}
-        />
+        {/* ✅ Summary Cards - Tổng quan */}
+        <div className="mb-6 md:mb-8">
+          <h3 className="text-xl font-bold text-gray-800 uppercase mb-3">
+            Tổng quan
+          </h3>
 
-        {/* Summary Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 md:mb-8">
+          <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+            {loading ? (
+              <>
+                <SummaryCardSkeleton bgGradient="from-yellow-200 to-yellow-300" />
+                <SummaryCardSkeleton bgGradient="from-red-200 to-red-300" />
+                <SummaryCardSkeleton bgGradient="from-green-200 to-green-300" />
+                <SummaryCardSkeleton bgGradient="from-blue-200 to-blue-300" />
+              </>
+            ) : (
+              <>
+                <SummaryCard
+                  icon={Truck}
+                  label="Tổng tuyến"
+                  value={Object.keys(data).length}
+                  unit="Đang hoạt động"
+                  iconColor="bg-purple-500"
+                  bgGradient="from-yellow-200 to-yellow-300"
+                />
+
+                <SummaryCard
+                  icon={DollarSign}
+                  label="Giá trị cao nhất"
+                  value={formatMoney(bestRoute.value, bestRoute.currency)}
+                  unit={
+                    bestRoute.currency ? `Tuyến: ${bestRoute.currency}` : ""
+                  }
+                  iconColor="bg-red-500"
+                  bgGradient="from-red-200 to-red-300"
+                />
+
+                <SummaryCard
+                  icon={Weight}
+                  label="Trọng lượng"
+                  value={totals.totalWeight.toFixed(2)}
+                  unit="Kilogram"
+                  iconColor="bg-green-600"
+                  bgGradient="from-green-200 to-green-300"
+                />
+
+                <SummaryCard
+                  icon={Users}
+                  label="Nhân viên"
+                  value={totals.totalStaff}
+                  unit="Tổng số"
+                  iconColor="bg-blue-600"
+                  bgGradient="from-blue-200 to-blue-300"
+                />
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* ✅ Routes Grid - Chi tiết theo tuyến */}
+        <div>
+          <h3 className="text-xl font-bold text-gray-800 uppercase mb-3">
+            Chi tiết theo tuyến
+          </h3>
+
           {loading ? (
-            <>
-              <SummaryCardSkeleton bgGradient="from-blue-50 to-blue-100" />
-              <SummaryCardSkeleton bgGradient="from-green-50 to-green-100" />
-              <SummaryCardSkeleton bgGradient="from-orange-50 to-orange-100" />
-              <SummaryCardSkeleton bgGradient="from-purple-50 to-purple-100" />
-            </>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 md:gap-6">
+              {Array.from({ length: skeletonRouteCount }).map((_, i) => (
+                <RouteCardSkeleton key={i} />
+              ))}
+            </div>
+          ) : Object.keys(data).length === 0 ? (
+            <div className="bg-white rounded-xl border-1 border-black p-12 md:p-16 text-center shadow-lg">
+              <div className="p-4 bg-gray-100 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+                <BarChart3 className="w-10 h-10 text-gray-400" />
+              </div>
+              <p className="text-gray-800 text-base md:text-lg font-bold mb-2">
+                Không có dữ liệu
+              </p>
+              <p className="text-gray-600 text-sm">
+                Vui lòng thử lại với bộ lọc khác
+              </p>
+            </div>
           ) : (
-            <>
-              <SummaryCard
-                icon={Truck}
-                label="Tổng tuyến"
-                value={Object.keys(data).length}
-                unit="Đang hoạt động"
-                iconColor="bg-blue-600"
-                bgGradient="from-red-200 to-red-200"
-              />
-
-              {/* ✅ Đổi: "Tổng giá trị" -> "Giá trị tuyến cao nhất" */}
-              <SummaryCard
-                icon={DollarSign}
-                label="Giá trị tuyến cao nhất"
-                value={formatMoney(bestRoute.value, bestRoute.currency)}
-                unit={bestRoute.currency ? `Tuyến: ${bestRoute.currency}` : ""}
-                iconColor="bg-green-600"
-                bgGradient="from-green-50 to-green-100"
-              />
-
-              <SummaryCard
-                icon={Weight}
-                label="Trọng lượng"
-                value={totals.totalWeight.toFixed(2)}
-                unit="Kilogram"
-                iconColor="bg-orange-600"
-                bgGradient="from-orange-50 to-orange-100"
-              />
-
-              <SummaryCard
-                icon={Users}
-                label="Nhân viên"
-                value={totals.totalStaff}
-                unit="Tổng số"
-                iconColor="bg-purple-600"
-                bgGradient="from-purple-50 to-purple-100"
-              />
-            </>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 md:gap-6">
+              {Object.entries(data).map(([routeKey, routeData]) => (
+                <RouteCard
+                  key={routeKey}
+                  routeData={routeData}
+                  maxValues={maxValues}
+                />
+              ))}
+            </div>
           )}
         </div>
-
-        {/* Routes Grid */}
-        {loading ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 md:gap-6">
-            {Array.from({ length: skeletonRouteCount }).map((_, i) => (
-              <RouteCardSkeleton key={i} />
-            ))}
-          </div>
-        ) : Object.keys(data).length === 0 ? (
-          <div className="bg-white rounded-xl shadow-md p-10 md:p-16 text-center border border-gray-100">
-            <BarChart3 className="w-14 h-14 md:w-16 md:h-16 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600 text-base md:text-lg font-semibold mb-2">
-              Không có dữ liệu
-            </p>
-            <p className="text-gray-500 text-sm md:text-base">
-              Vui lòng thử lại với bộ lọc khác
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 md:gap-6">
-            {Object.entries(data).map(([routeKey, routeData]) => (
-              <RouteCard
-                key={routeKey}
-                routeData={routeData}
-                maxValues={maxValues}
-              />
-            ))}
-          </div>
-        )}
       </div>
     </div>
   );

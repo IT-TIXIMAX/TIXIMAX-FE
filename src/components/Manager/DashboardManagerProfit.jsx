@@ -25,7 +25,7 @@ const useCountUp = (
   targetValue,
   shouldAnimate = true,
   duration = 3000,
-  resetKey = 0
+  resetKey = 0,
 ) => {
   const [displayValue, setDisplayValue] = useState(0);
   const rafRef = useRef(null);
@@ -211,7 +211,7 @@ const DashboardManagerProfit = () => {
       setLoadingRevenue(true);
       const res = await dashboardService.getFlightRevenue(
         flightCode,
-        inputCost
+        inputCost,
       );
       setFlightRevenue(res?.data ?? null);
       setFlightAnimKey((k) => k + 1);
@@ -292,7 +292,7 @@ const DashboardManagerProfit = () => {
 
   const formatWeight = (n) =>
     new Intl.NumberFormat("vi-VN", { maximumFractionDigits: 0 }).format(
-      Number(n || 0)
+      Number(n || 0),
     );
 
   const netBalance = useMemo(() => {
