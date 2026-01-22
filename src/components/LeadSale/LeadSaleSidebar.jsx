@@ -16,6 +16,10 @@ import {
   FileText,
   Megaphone,
   List,
+  Warehouse,
+  MapPinHouse,
+  ListChecks,
+  FolderInput,
   TrendingUp,
   Luggage,
   Landmark,
@@ -40,6 +44,7 @@ const LeadSaleSideBar = () => {
   const [isStaffLeadDropdownOpen, setIsStaffLeadDropdownOpen] = useState(false);
   const [isShippingDropdownOpen, setIsShippingDropdownOpen] = useState(false);
   const [isQuotationDropdownOpen, setIsQuotationDropdownOpen] = useState(false);
+  const [isWarehouseDropdownOpen, setIsWarehouseDropdownOpen] = useState(false);
   const [isPaymentSupportDropdownOpen, setIsPaymentSupportDropdownOpen] =
     useState(false);
   const [profile, setProfile] = useState(null);
@@ -182,15 +187,16 @@ const LeadSaleSideBar = () => {
           label: "Quản lý khách hàng",
           dropdownItems: [
             {
-              to: "/lead-sale/customers",
-              icon: Users,
-              label: "Danh sách khách hàng",
-            },
-            {
               to: "/lead-sale/createaccountuser",
               icon: UserPlus,
               label: "Tạo khách hàng",
             },
+            {
+              to: "/lead-sale/customers",
+              icon: Users,
+              label: "Danh sách khách hàng",
+            },
+
             {
               to: "/lead-sale/prospects",
               icon: UserStar,
@@ -200,6 +206,7 @@ const LeadSaleSideBar = () => {
           isOpen: isCustomerDropdownOpen,
           onToggle: () => setIsCustomerDropdownOpen(!isCustomerDropdownOpen),
         },
+
         {
           type: "dropdown",
           icon: List,
@@ -218,6 +225,35 @@ const LeadSaleSideBar = () => {
           ],
           isOpen: isOrderDropdownOpen,
           onToggle: () => setIsOrderDropdownOpen(!isOrderDropdownOpen),
+        },
+        {
+          type: "dropdown",
+          icon: Warehouse,
+          label: "Theo dõi kho hàng",
+          dropdownItems: [
+            {
+              to: "/lead-sale/warehouses",
+              icon: Warehouse,
+              label: "Kho hàng",
+            },
+            {
+              to: "/lead-sale/confirm-shipping",
+              icon: MapPinHouse,
+              label: "Xác nhận địa chỉ giao",
+            },
+            {
+              to: "/lead-sale/list-order-shipping",
+              icon: ListChecks,
+              label: "Danh sách địa chỉ giao",
+            },
+            {
+              to: "/lead-sale/export-order",
+              icon: FolderInput,
+              label: "Xuất kho đơn vị khác",
+            },
+          ],
+          isOpen: isWarehouseDropdownOpen,
+          onToggle: () => setIsWarehouseDropdownOpen(!isWarehouseDropdownOpen),
         },
         {
           type: "dropdown",
@@ -286,7 +322,7 @@ const LeadSaleSideBar = () => {
 
     if (item.type === "dropdown") {
       const isDropdownActive = item.dropdownItems?.some((dropdownItem) =>
-        isActive(dropdownItem.to)
+        isActive(dropdownItem.to),
       );
 
       return (
@@ -451,7 +487,7 @@ const LeadSaleSideBar = () => {
             </h3>
             <div className="space-y-1">
               {section.items.map((item, itemIndex) =>
-                renderMenuItem(item, itemIndex)
+                renderMenuItem(item, itemIndex),
               )}
             </div>
           </div>
