@@ -370,7 +370,7 @@ const DashboardWarehouseForeign = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
               <StatCard
                 icon={Package}
-                label="Chờ xử lý - Kiện hàng"
+                label="Chờ nhập kho - Kiện hàng"
                 value={fmtInt(pending.packages)}
                 sub={`Đơn hàng: ${fmtInt(pending.orders)} • Link: ${fmtInt(
                   pending.orderLinks,
@@ -433,7 +433,7 @@ const DashboardWarehouseForeign = () => {
           ) : (
             <div className="space-y-6">
               <LocationTable
-                title="Chờ xử lý theo khu vực"
+                title="Chờ nhập kho theo khu vực"
                 tone="yellow"
                 rows={pendingByLocation}
                 columns={[
