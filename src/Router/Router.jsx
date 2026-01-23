@@ -160,6 +160,8 @@ import PerformancesCustomer from "../components/Manager/PerformancesCustomer";
 import LockedDraftsOtherList from "../components/Warehouse/LockedDraftsOtherList";
 import ExportOtherOrder from "../components/Warehouse/ExportOtherOrder";
 import DashboardWarehouseForeign from "../components/Dashboard/Manager/DashboardWarehouseForeign";
+import CreateInforFlight from "../components/LeadSale/CreateInforFlight";
+import ManagerInfoFlight from "../components/Manager/ManagerInfoFlight";
 const Router = createBrowserRouter([
   {
     path: "/",
@@ -278,6 +280,7 @@ const Router = createBrowserRouter([
       { path: "createstaff", element: <CreateAccountStaff /> },
       { path: "kpicustomer", element: <PerformancesCustomer /> },
       { path: "warehouseperformance", element: <DashboardWarehouseForeign /> },
+      { path: "flightinfo", element: <ManagerInfoFlight /> },
       { path: "quote", element: <PaymentOrderList /> },
       { path: "refund", element: <RefundOrder /> },
       { path: "cost/paylater", element: <ManagerBankAccountList /> },
@@ -320,7 +323,7 @@ const Router = createBrowserRouter([
       { path: "dashboard", element: <DashboardLeadSale /> },
       { path: "team", element: <ManagerTeam /> },
       { path: "salesreport", element: <DashboardSale /> },
-      { path: "team-performance", element: <NotFound /> },
+      { path: "team-performance", element: <CreateInforFlight /> },
       { path: "customers", element: <CustomerStaffList /> },
       { path: "warehouses", element: <OrderWarehouse /> },
       { path: "confirm-shipping", element: <OrderShippingAddress /> },

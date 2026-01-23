@@ -174,7 +174,7 @@ const LeadSaleSideBar = () => {
         {
           to: "/lead-sale/team-performance",
           icon: TrendingUp,
-          label: "Hiệu suất đội nhóm",
+          label: "Cập nhật thông tin bay",
         },
       ],
     },

@@ -39,6 +39,44 @@ const uploadImageService = {
 
     return response.data;
   },
+
+  /**
+   * Upload file to server (NEW endpoint)
+   * Endpoint: POST /images/upload-file
+   * @param {File} file - File to upload
+   * @param {Object} options - Axios options (onUploadProgress, etc.)
+   * @param {string} fieldName - field name in multipart (default: "file")
+   * @returns {Promise<Object>} Upload response
+   */
+  uploadFile: async (file, options = {}, fieldName = "file") => {
+    if (!file) throw new Error("File is required");
+
+    const formData = new FormData();
+    formData.append(fieldName, file);
+
+    const response = await api.post("/images/upload-file", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+      ...options,
+    });
+
+    return response.data;
+  },
+
+  /**
+   * Delete file by path (NEW endpoint)
+   * Endpoint: DELETE /images/delete-file?filePath=...
+   * @param {string} filePath - file path/url to delete
+   * @returns {Promise<Object>} Delete response
+   */
+  deleteFile: async (filePath) => {
+    if (!filePath) throw new Error("filePath is required");
+
+    const response = await api.delete("/images/delete-file", {
+      params: { filePath },
+    });
+
+    return response.data;
+  },
 };
 
 export default uploadImageService;
