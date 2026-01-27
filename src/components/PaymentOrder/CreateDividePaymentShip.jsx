@@ -35,7 +35,7 @@ const getErrorMessage = (error) => {
 
 const formatVnd = (v) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(
-    Number(v || 0)
+    Number(v || 0),
   );
 
 const formatTimeVN = (iso) => {
@@ -108,8 +108,8 @@ const PaymentSuccessModal = ({ isOpen, onClose, paymentData }) => {
     data?.status === "DA_THANH_TOAN"
       ? "bg-green-100 text-green-800"
       : data?.status === "HUY"
-      ? "bg-red-100 text-red-800"
-      : "bg-yellow-100 text-yellow-800";
+        ? "bg-red-100 text-red-800"
+        : "bg-yellow-100 text-yellow-800";
 
   const handleOverlayMouseDown = (e) => {
     if (e.target === e.currentTarget) onClose?.();
@@ -427,16 +427,6 @@ const DividePaymentShipConfigModal = ({
                 ₫
               </span>
             </div>
-            {priceError && (
-              <p className="mt-1.5 text-sm text-red-600 font-medium">
-                {priceError}
-              </p>
-            )}
-            {priceInput && !priceError && (
-              <p className="mt-1.5 text-sm font-medium text-green-600">
-                ✓ {formatVnd(priceShipDos)}
-              </p>
-            )}
           </div>
 
           {/* Voucher */}
@@ -505,9 +495,6 @@ const DividePaymentShipConfigModal = ({
                 <span className="text-sm font-semibold text-gray-900 block">
                   Sử dụng số dư tài khoản
                 </span>
-                <p className="text-xs text-gray-600 mt-1">
-                  Tự động trừ số dư khách hàng để thanh toán
-                </p>
               </div>
             </label>
           </div>
@@ -595,15 +582,15 @@ const DividePaymentShipConfigModal = ({
                 ? bankLoading
                   ? "Đang tải tài khoản ngân hàng..."
                   : voucherLoading
-                  ? "Đang tải voucher..."
-                  : !bankId
-                  ? "Vui lòng chọn tài khoản nhận cước"
-                  : priceShipDos == null ||
-                    Number.isNaN(Number(priceShipDos)) ||
-                    Number(priceShipDos) < 0 ||
-                    priceError
-                  ? "Vui lòng nhập giá vận chuyển hợp lệ"
-                  : "Không thể xác nhận lúc này"
+                    ? "Đang tải voucher..."
+                    : !bankId
+                      ? "Vui lòng chọn tài khoản nhận cước"
+                      : priceShipDos == null ||
+                          Number.isNaN(Number(priceShipDos)) ||
+                          Number(priceShipDos) < 0 ||
+                          priceError
+                        ? "Vui lòng nhập giá vận chuyển hợp lệ"
+                        : "Không thể xác nhận lúc này"
                 : "Xác nhận tạo thanh toán"
             }
           >
@@ -674,7 +661,7 @@ const CreateDividePaymentShip = ({
           payload.bankId,
           payload.customerVoucherId,
           payload.priceShipDos,
-          selectedShipmentCodes
+          selectedShipmentCodes,
         );
 
         const data = res?.data ?? res;
@@ -693,7 +680,7 @@ const CreateDividePaymentShip = ({
         setIsCreating(false);
       }
     },
-    [onSuccess, onError, selectedShipmentCodes]
+    [onSuccess, onError, selectedShipmentCodes],
   );
 
   const handleCloseSuccessModal = async () => {

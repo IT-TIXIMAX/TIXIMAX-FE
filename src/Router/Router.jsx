@@ -97,12 +97,9 @@ import RefundOrder from "../components/Order/RefundOrder";
 import ManagerBankAccountList from "../components/Manager/ManagerBankAccountList";
 import DividePaymentOrder from "../components/PaymentOrder/DividePaymentOrder";
 import UpdateShipmentCodeList from "../components/StaffPurchaser/UpdateShipmentCodeList";
-// import RemoveShipment from "../components/WarehouseForeign/RemoveShipment";
 import PackingProblem from "../components/WarehouseForeign/PackingProblem";
 import DenyRoles from "./DenyRoles";
-// import PerformanceStaff from "../components/StaffSale/PerformanceStaff";
-import DashboardSale from "../components/StaffSale/DashboardSale";
-// import PerformnanceMy from "../components/StaffSale/PerformanceMy";
+
 import AboutUs from "../Page/Navigattion/AboutUs";
 import ServiceAuction from "../Page/Navigattion/ServiceAuction";
 import ServicesStorage from "../Page/Navigattion/ServicesStorage";
@@ -322,7 +319,7 @@ const Router = createBrowserRouter([
       { path: "prospects", element: <NotFound /> },
       { path: "dashboard", element: <DashboardLeadSale /> },
       { path: "team", element: <ManagerTeam /> },
-      { path: "salesreport", element: <DashboardSale /> },
+      { path: "salesreport", element: <NotFound /> },
       { path: "team-performance", element: <CreateInforFlight /> },
       { path: "customers", element: <CustomerStaffList /> },
       { path: "warehouses", element: <OrderWarehouse /> },
@@ -341,7 +338,7 @@ const Router = createBrowserRouter([
       { path: "createpaymentshipping", element: <MergedPaymentShip /> },
       { path: "warehouse-staff", element: <NotFound /> },
       { path: "sales-staff", element: <NotFound /> },
-      { path: "schedule", element: <DashboardSale /> },
+      { path: "schedule", element: <NotFound /> },
       { path: "destination", element: <NotFound /> },
       { path: "campaigns", element: <SearchWebsite /> },
       { path: "camp", element: <AccountSearch /> },
@@ -388,7 +385,7 @@ const Router = createBrowserRouter([
       { path: "telesale", element: <NotFound /> },
       { path: "knowledge", element: <NotFound /> }, // Chưa triển khai
       { path: "schedule", element: <NotFound /> }, // Chưa triển khai
-      { path: "dashboard", element: <DashboardSale /> },
+      { path: "dashboard", element: <NotFound /> },
       { path: "performance", element: <DashboadStaffPerformance /> },
     ],
   },

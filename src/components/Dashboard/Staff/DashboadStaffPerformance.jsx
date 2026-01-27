@@ -8,10 +8,7 @@ import {
   Weight,
   Calendar,
   BarChart3,
-  Users,
   CheckCircle2,
-  XCircle,
-  TrendingUp as TrendingUpIcon,
   User,
 } from "lucide-react";
 import {
@@ -105,19 +102,27 @@ const DashboadStaffPerformance = () => {
 
   const staffRows = useMemo(() => {
     return toStaffRows(staffData).sort((a, b) =>
-      a.currency.localeCompare(b.currency)
+      a.currency.localeCompare(b.currency),
     );
   }, [staffData]);
 
   const totals = useMemo(() => {
-    return rows.reduce(
-      (acc, r) => {
-        acc.totalGoods += r.totalGoods;
-        acc.totalNetWeight += r.totalNetWeight;
-        return acc;
+    // Tìm tuyến có tổng tiền hàng cao nhất
+    const maxGoodsRow = rows.reduce(
+      (max, r) => {
+        return r.totalGoods > max.totalGoods ? r : max;
       },
-      { totalGoods: 0, totalNetWeight: 0 }
+      { totalGoods: 0, totalNetWeight: 0, currency: "" },
     );
+
+    // Vẫn tính tổng trọng lượng
+    const totalNetWeight = rows.reduce((acc, r) => acc + r.totalNetWeight, 0);
+
+    return {
+      totalGoods: maxGoodsRow.totalGoods,
+      totalNetWeight: totalNetWeight,
+      currency: maxGoodsRow.currency,
+    };
   }, [rows]);
 
   const staffTotals = useMemo(() => {
@@ -128,7 +133,7 @@ const DashboadStaffPerformance = () => {
         acc.totalParcels += r.totalParcels;
         return acc;
       },
-      { totalOrders: 0, completedOrders: 0, totalParcels: 0 }
+      { totalOrders: 0, completedOrders: 0, totalParcels: 0 },
     );
   }, [staffRows]);
 
@@ -362,10 +367,10 @@ const DashboadStaffPerformance = () => {
                       </div>
                     </div>
                     <div className="text-gray-600 text-sm font-medium mb-2">
-                      Tổng tiền hàng
+                      Tiền hàng cao nhất
                     </div>
                     <div className="text-3xl font-bold text-gray-900">
-                      {formatNumber(totals.totalGoods)}
+                      {formatNumber(totals.totalGoods)} {totals.currency}
                     </div>
                   </div>
 
@@ -437,17 +442,24 @@ const DashboadStaffPerformance = () => {
                       <tfoot>
                         <tr className="bg-gray-50 border-t border-gray-200">
                           <td className="px-6 py-4 font-medium text-gray-900 text-sm uppercase">
-                            Tổng cộng
+                            Tổng cộng / Cao nhất
                           </td>
                           <td className="px-6 py-4 text-right">
                             <span className="text-lg font-bold text-blue-700">
-                              {formatNumber(totals.totalGoods)}
+                              {formatNumber(totals.totalGoods)}{" "}
+                              {totals.currency}
                             </span>
+                            <div className="text-xs text-gray-500 mt-0.5">
+                              Cao nhất
+                            </div>
                           </td>
                           <td className="px-6 py-4 text-right">
                             <span className="text-lg font-bold text-purple-700">
                               {formatWeight(totals.totalNetWeight)} Kg
                             </span>
+                            <div className="text-xs text-gray-500 mt-0.5">
+                              Tổng
+                            </div>
                           </td>
                         </tr>
                       </tfoot>
@@ -498,7 +510,7 @@ const DashboadStaffPerformance = () => {
                   <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
                     <div className="flex items-start justify-between mb-3">
                       <div className="bg-purple-100 rounded-lg p-3">
-                        <TrendingUpIcon className="w-5 h-5 text-purple-600" />
+                        <TrendingUp className="w-5 h-5 text-purple-600" />
                       </div>
                     </div>
                     <div className="text-gray-600 text-sm font-medium mb-2">
@@ -605,8 +617,8 @@ const DashboadStaffPerformance = () => {
                                   r.completionRate >= 80
                                     ? "text-green-700"
                                     : r.completionRate >= 50
-                                    ? "text-yellow-700"
-                                    : "text-red-700"
+                                      ? "text-yellow-700"
+                                      : "text-red-700"
                                 }`}
                               >
                                 {formatPercent(r.completionRate)}%
