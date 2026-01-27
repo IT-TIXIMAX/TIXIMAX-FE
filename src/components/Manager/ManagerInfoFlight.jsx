@@ -136,7 +136,6 @@ const ManagerInfoFlight = () => {
           .toLowerCase();
         if (!hay.includes(query)) return false;
       }
-
       return true;
     });
 
@@ -263,41 +262,49 @@ const ManagerInfoFlight = () => {
   };
 
   return (
-    <div className="min-h-screen p-4 md:p-6">
+    <div className="min-h-screen p-4 md:p-6 text-sm md:text-base">
       <div className="mx-auto space-y-6">
-        {/* Header */}
-        <div className="border border-blue-400 bg-blue-600 text-white rounded-xl px-5 py-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-white/10 flex items-center justify-center">
-              <Plane className="w-5 h-5 text-white" />
+        {/* ✅ Header lớn - VÀNG với border đen */}
+        <div className="bg-gradient-to-r from-yellow-300 via-yellow-300 to-yellow-300 border-[1px] border-black rounded-xl shadow-lg p-4 md:p-5">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-1.5 h-8 md:h-9 bg-black rounded-full shrink-0 shadow-sm" />
+              <div className="w-11 h-11 rounded-lg bg-white border-2 border-black flex items-center justify-center shrink-0">
+                <Plane className="w-6 h-6 text-black" />
+              </div>
+              <div className="min-w-0">
+                <h1 className="text-xl md:text-2xl font-bold text-black leading-tight">
+                  Quản Lý Thông Tin Chuyến Bay
+                </h1>
+                <p className="text-sm text-gray-700 font-medium mt-1">
+                  Xem và quản lý danh sách chuyến bay
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-lg md:text-xl font-semibold">
-                Quản lý thông tin chuyến bay
-              </h1>
+
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={handleDownloadCSV}
+                disabled={loading || filtered.length === 0}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-green-600 hover:bg-green-700 text-white text-sm font-medium transition-colors border-2 border-green-700 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                type="button"
+              >
+                <Download className="w-4 h-4" />
+                Xuất CSV
+              </button>
+
+              <button
+                onClick={fetchData}
+                disabled={loading}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-white hover:bg-gray-100 text-black text-sm font-medium transition-colors border-2 border-black shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                type="button"
+              >
+                <RefreshCw
+                  className={`w-4 h-4 ${loading ? "animate-spin" : ""}`}
+                />
+                Tải lại
+              </button>
             </div>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={handleDownloadCSV}
-              disabled={loading || filtered.length === 0}
-              className="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed border border-emerald-200"
-            >
-              <Download className="w-4 h-4" />
-              Xuất CSV
-            </button>
-
-            <button
-              onClick={fetchData}
-              disabled={loading}
-              className="bg-white/10 hover:bg-white/20 text-white px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 shadow-sm border border-blue-300 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <RefreshCw
-                className={`w-4 h-4 ${loading ? "animate-spin" : ""}`}
-              />
-              Tải lại
-            </button>
           </div>
         </div>
 
@@ -309,7 +316,8 @@ const ManagerInfoFlight = () => {
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="Tìm kiếm mã chuyến bay, nhân viên, trạng thái..."
-              className="w-full h-10 pl-9 pr-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 placeholder:text-slate-400"
+              className="w-full h-10 pl-9 pr-3 rounded-lg border border-slate-200 text-sm md:text-base leading-6
+                         focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 placeholder:text-slate-400"
             />
           </div>
         </div>
@@ -325,7 +333,7 @@ const ManagerInfoFlight = () => {
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
           {/* Top bar */}
           <div className="px-4 py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-3 border-b border-slate-100">
-            <div className="text-sm text-slate-600">
+            <div className="text-sm md:text-base text-slate-600">
               Hiển thị{" "}
               <span className="font-semibold text-slate-900">
                 {filtered.length.toLocaleString("vi-VN")}
@@ -336,43 +344,32 @@ const ManagerInfoFlight = () => {
 
           {/* Table */}
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm md:text-base">
               <thead className="bg-slate-50 border-b border-slate-200">
                 <tr>
                   <Th onClick={() => toggleSort("flightCode")}>
-                    Mã chuyến bay{" "}
-                    <SortIcon active={sortKey === "flightCode"} dir={sortDir} />
+                    Mã chuyến bay <SortIcon active={sortKey === "flightCode"} />
                   </Th>
 
                   <Th>ID</Th>
 
                   <Th onClick={() => toggleSort("arrivalDate")}>
-                    Ngày đến{" "}
-                    <SortIcon
-                      active={sortKey === "arrivalDate"}
-                      dir={sortDir}
-                    />
+                    Ngày đến <SortIcon active={sortKey === "arrivalDate"} />
                   </Th>
 
                   <Th onClick={() => toggleSort("createdAt")}>
-                    Ngày tạo{" "}
-                    <SortIcon active={sortKey === "createdAt"} dir={sortDir} />
+                    Ngày tạo <SortIcon active={sortKey === "createdAt"} />
                   </Th>
 
                   <Th>Nhân viên</Th>
                   <Th>SL kho</Th>
 
                   <Th onClick={() => toggleSort("totalCost")}>
-                    Tổng chi phí{" "}
-                    <SortIcon active={sortKey === "totalCost"} dir={sortDir} />
+                    Tổng chi phí <SortIcon active={sortKey === "totalCost"} />
                   </Th>
 
                   <Th onClick={() => toggleSort("grossProfit")}>
-                    Lợi nhuận{" "}
-                    <SortIcon
-                      active={sortKey === "grossProfit"}
-                      dir={sortDir}
-                    />
+                    Lợi nhuận <SortIcon active={sortKey === "grossProfit"} />
                   </Th>
 
                   <Th>Thanh toán</Th>
@@ -401,7 +398,7 @@ const ManagerInfoFlight = () => {
                       className="px-4 py-10 text-center text-slate-500"
                     >
                       <Plane className="w-12 h-12 text-slate-300 mb-3 mx-auto" />
-                      <p className="text-sm font-medium">
+                      <p className="text-sm md:text-base font-medium">
                         Không có dữ liệu chuyến bay
                       </p>
                     </td>
@@ -412,7 +409,7 @@ const ManagerInfoFlight = () => {
                       key={it.flightShipmentId}
                       className="hover:bg-slate-50 transition-colors"
                     >
-                      <td className="px-4 py-3 font-medium text-slate-900 whitespace-nowrap">
+                      <td className="px-4 py-3 font-semibold text-slate-900 whitespace-nowrap">
                         {it.flightCode || "-"}
                       </td>
 
@@ -420,11 +417,11 @@ const ManagerInfoFlight = () => {
                         {it.flightShipmentId ?? "-"}
                       </td>
 
-                      <td className="px-4 py-3 text-slate-700 text-xs">
+                      <td className="px-4 py-3 text-slate-700 whitespace-nowrap">
                         {fmtDateTime(it.arrivalDate)}
                       </td>
 
-                      <td className="px-4 py-3 text-slate-700 text-xs">
+                      <td className="px-4 py-3 text-slate-700 whitespace-nowrap">
                         {fmtDateTime(it.createdAt)}
                       </td>
 
@@ -496,7 +493,7 @@ const ManagerInfoFlight = () => {
 const Th = ({ children, onClick, className = "" }) => (
   <th
     onClick={onClick}
-    className={`text-left px-4 py-3 text-xs font-semibold text-slate-700 uppercase ${
+    className={`text-left px-4 py-3 text-xs md:text-sm font-semibold text-slate-700 tracking-wide ${
       onClick ? "cursor-pointer select-none hover:text-slate-900" : ""
     } ${className}`}
   >
@@ -519,7 +516,7 @@ const ProfitBadge = ({ value }) => {
   const isNeg = v < 0;
   return (
     <span
-      className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${
+      className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium leading-5 ${
         isNeg
           ? "bg-red-50 text-red-700 border border-red-100"
           : "bg-green-50 text-green-700 border border-green-100"
@@ -531,16 +528,11 @@ const ProfitBadge = ({ value }) => {
   );
 };
 
-const PaidBadges = ({
-  airFreightPaid,
-  airFreightPaidDate,
-  customsPaid,
-  customsPaidDate,
-}) => {
+const PaidBadges = ({ airFreightPaid, customsPaid }) => {
   return (
     <div className="flex flex-col gap-1">
       <span
-        className={`inline-flex items-center gap-1 text-[11px] font-medium ${
+        className={`inline-flex items-center gap-1 text-[11px] font-medium leading-5 ${
           airFreightPaid ? "text-green-700" : "text-slate-600"
         }`}
       >
@@ -554,7 +546,7 @@ const PaidBadges = ({
       </span>
 
       <span
-        className={`inline-flex items-center gap-1 text-[11px] font-medium ${
+        className={`inline-flex items-center gap-1 text-[11px] font-medium leading-5 ${
           customsPaid ? "text-green-700" : "text-slate-600"
         }`}
       >
@@ -581,7 +573,7 @@ const FilesCell = ({ it }) => {
   ].filter((x) => x.value);
 
   if (files.length === 0)
-    return <span className="text-slate-400 text-xs">Không có</span>;
+    return <span className="text-slate-400 text-sm">Không có</span>;
 
   return (
     <div className="flex flex-wrap gap-1">
@@ -656,10 +648,11 @@ const DetailModal = ({ onClose, loading, error, data }) => {
       <div className="bg-white rounded-xl shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto border border-slate-200">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-3 border-b border-slate-200">
-          <h3 className="text-sm font-semibold text-slate-900">
+          <h3 className="text-base md:text-lg font-semibold text-slate-900">
             Chi tiết chuyến bay {data?.flightCode ? `- ${data.flightCode}` : ""}
           </h3>
           <button
+            type="button"
             onClick={onClose}
             className="text-slate-400 hover:text-slate-600 transition-colors p-1 rounded hover:bg-slate-100"
           >
@@ -668,7 +661,7 @@ const DetailModal = ({ onClose, loading, error, data }) => {
         </div>
 
         {/* Content */}
-        <div className="px-5 py-4 text-sm">
+        <div className="px-5 py-4 text-sm md:text-base">
           {loading ? (
             <div className="py-10 flex items-center justify-center text-slate-600 gap-2">
               <Loader2 className="w-5 h-5 animate-spin" />
@@ -727,37 +720,43 @@ const DetailModal = ({ onClose, loading, error, data }) => {
               {/* Payment Status */}
               <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">
-                  <div className="font-semibold text-slate-800 text-sm mb-2">
+                  <div className="font-semibold text-slate-800 text-base mb-2">
                     Thanh toán vận chuyển hàng không
                   </div>
-                  <div className="text-xs text-slate-700">
+                  <div className="text-sm text-slate-700">
                     Trạng thái:{" "}
                     <span
-                      className={`font-semibold ${data.airFreightPaid ? "text-green-700" : "text-slate-700"}`}
+                      className={`font-semibold ${
+                        data.airFreightPaid
+                          ? "text-green-700"
+                          : "text-slate-700"
+                      }`}
                     >
                       {data.airFreightPaid
                         ? "Đã thanh toán"
                         : "Chưa thanh toán"}
                     </span>
                   </div>
-                  <div className="text-xs text-slate-600 mt-1">
+                  <div className="text-sm text-slate-600 mt-1">
                     Ngày TT: {fmtDateTime(data.airFreightPaidDate)}
                   </div>
                 </div>
 
                 <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">
-                  <div className="font-semibold text-slate-800 text-sm mb-2">
+                  <div className="font-semibold text-slate-800 text-base mb-2">
                     Thanh toán hải quan
                   </div>
-                  <div className="text-xs text-slate-700">
+                  <div className="text-sm text-slate-700">
                     Trạng thái:{" "}
                     <span
-                      className={`font-semibold ${data.customsPaid ? "text-green-700" : "text-slate-700"}`}
+                      className={`font-semibold ${
+                        data.customsPaid ? "text-green-700" : "text-slate-700"
+                      }`}
                     >
                       {data.customsPaid ? "Đã thanh toán" : "Chưa thanh toán"}
                     </span>
                   </div>
-                  <div className="text-xs text-slate-600 mt-1">
+                  <div className="text-sm text-slate-600 mt-1">
                     Ngày TT: {fmtDateTime(data.customsPaidDate)}
                   </div>
                 </div>
@@ -765,11 +764,11 @@ const DetailModal = ({ onClose, loading, error, data }) => {
 
               {/* Files Download Section */}
               <div className="mt-4">
-                <div className="font-semibold text-slate-800 text-sm mb-2">
+                <div className="font-semibold text-slate-800 text-base mb-2">
                   Tệp đính kèm
                 </div>
                 {files.length === 0 ? (
-                  <div className="text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-lg p-3 text-center">
+                  <div className="text-sm text-slate-500 bg-slate-50 border border-slate-200 rounded-lg p-3 text-center">
                     Không có tệp đính kèm
                   </div>
                 ) : (
@@ -778,17 +777,20 @@ const DetailModal = ({ onClose, loading, error, data }) => {
                       const url = String(f.value);
                       const clickable = isUrlLike(url);
                       const filename =
-                        f.label.replace(/\s+/g, "_") + "_" + data.flightCode;
+                        f.label.replace(/\s+/g, "_") +
+                        "_" +
+                        (data.flightCode || "flight");
 
                       return clickable ? (
                         <button
                           key={f.label}
+                          type="button"
                           onClick={() => handleDownloadFile(url, filename)}
                           className="flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 transition-all group"
                         >
                           <div className="flex items-center gap-2">
                             <FileText className="w-4 h-4" />
-                            <span className="text-xs font-medium">
+                            <span className="text-sm font-medium">
                               {f.label}
                             </span>
                           </div>
@@ -801,9 +803,9 @@ const DetailModal = ({ onClose, loading, error, data }) => {
                         >
                           <div className="flex items-center gap-2">
                             <FileText className="w-4 h-4" />
-                            <span className="text-xs">{f.label}</span>
+                            <span className="text-sm">{f.label}</span>
                           </div>
-                          <span className="text-[10px] text-slate-500">
+                          <span className="text-xs text-slate-500">
                             Không khả dụng
                           </span>
                         </div>
@@ -819,8 +821,9 @@ const DetailModal = ({ onClose, loading, error, data }) => {
         {/* Footer */}
         <div className="px-5 py-3 border-t border-slate-200 flex justify-end gap-2">
           <button
+            type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-medium transition-colors"
+            className="px-4 py-2 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 text-sm font-medium transition-colors"
           >
             Đóng
           </button>
@@ -835,7 +838,7 @@ const Info = ({ label, value }) => (
     <div className="text-[11px] font-medium text-slate-500 uppercase mb-1">
       {label}
     </div>
-    <div className="font-semibold text-slate-900 break-words">
+    <div className="font-semibold text-slate-900 break-words text-sm md:text-base">
       {value ?? "-"}
     </div>
   </div>

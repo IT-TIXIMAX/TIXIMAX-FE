@@ -48,13 +48,13 @@ const registrationByStaffService = {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
       return response.data;
     } catch (error) {
       console.error(
         "Error registering customer by staff:",
-        error.response || error
+        error.response || error,
       );
       throw error;
     }

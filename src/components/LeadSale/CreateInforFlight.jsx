@@ -1,10 +1,10 @@
+// src/Components/Manager/Flight/CreateInforFlight.jsx
 import React, { useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import {
   Loader2,
   Plane,
   Save,
-  X,
   FileText,
   DollarSign,
   CalendarCheck,
@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import managerInforFlightService from "../../Services/Manager/managerInforFlightService";
 import UploadFile from "../../common/UploadFile";
+
 const toNumberOrZero = (v) => {
   const n = Number(String(v ?? "").replace(",", "."));
   return Number.isFinite(n) ? n : 0;
@@ -25,8 +26,9 @@ const CreateInforFlight = ({
   onCancel = () => {},
 }) => {
   const [loading, setLoading] = useState(false);
+  const [formKey, setFormKey] = useState(0);
 
-  const [form, setForm] = useState({
+  const makeInitialForm = () => ({
     flightCode: defaultFlightCode || "",
     awbFilePath: "",
     exportLicensePath: "",
@@ -44,6 +46,8 @@ const CreateInforFlight = ({
     customsPaid: false,
     customsPaidDate: "",
   });
+
+  const [form, setForm] = useState(makeInitialForm);
 
   const totalCost = useMemo(() => {
     return (
@@ -106,10 +110,12 @@ const CreateInforFlight = ({
       const res = await managerInforFlightService.create(payload);
       toast.success("Tạo thông tin flight thành công!");
       onSuccess(res);
+
+      setForm(makeInitialForm());
+      setFormKey((k) => k + 1);
     } catch (error) {
       const msg =
         error?.response?.data?.message ||
-        error?.response?.data?.error ||
         error?.message ||
         "Tạo flight thất bại";
       toast.error(msg);
@@ -121,35 +127,28 @@ const CreateInforFlight = ({
 
   return (
     <div className="w-full max-w-6xl mx-auto p-4">
-      <form onSubmit={handleSubmit}>
-        <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
-          {/* Header */}
-          <div className="px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                  <Plane className="w-6 h-6" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-semibold">
-                    Tạo Thông Tin Chuyến Bay
-                  </h2>
-                </div>
+      <form key={formKey} onSubmit={handleSubmit}>
+        {/* ✅ HEADER LỚN - Vàng với border đen */}
+        <div className="mb-6 md:mb-8">
+          <div className="bg-gradient-to-r from-yellow-300 via-yellow-300 to-yellow-300 border-[1px] border-black rounded-xl shadow-lg p-4 md:p-5">
+            <div className="flex items-center gap-3">
+              <div className="w-1.5 h-8 md:h-9 bg-black rounded-full shrink-0 shadow-sm" />
+              <div className="w-11 h-11 rounded-lg bg-white border-2 border-black flex items-center justify-center shrink-0">
+                <Plane className="w-6 h-6 text-black" />
               </div>
-              <button
-                type="button"
-                onClick={onCancel}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
-              >
-                <X className="w-4 h-4" />
-                <span className="text-sm font-medium">Đóng</span>
-              </button>
+              <div className="min-w-0">
+                <h1 className="text-lg md:text-xl font-bold text-black leading-tight">
+                  Tạo Thông Tin Chuyến Bay
+                </h1>
+              </div>
             </div>
           </div>
+        </div>
 
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
           <div className="p-6">
-            {/* Basic Information */}
-            <Section icon={Plane} title="Thông Tin Cơ Bản">
+            {/* ✅ SECTION ĐẶC BIỆT - "Nhập Thông Tin" màu BLUE */}
+            <BlueSection title="Nhập Thông Tin">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <InputField
                   label="Flight Code"
@@ -166,9 +165,9 @@ const CreateInforFlight = ({
                   onChange={(e) => setField("arrivalDate", e.target.value)}
                 />
               </div>
-            </Section>
+            </BlueSection>
 
-            {/* Documents Section */}
+            {/* ✅ SECTIONS THƯỜNG - Xám uppercase */}
             <Section
               icon={FileText}
               title="Tài Liệu & Chứng Từ"
@@ -223,7 +222,6 @@ const CreateInforFlight = ({
               </div>
             </Section>
 
-            {/* Weight & Costs */}
             <Section icon={DollarSign} title="Trọng Lượng & Chi Phí">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <InputField
@@ -280,7 +278,6 @@ const CreateInforFlight = ({
               </div>
             </Section>
 
-            {/* Payment Status */}
             <Section icon={CalendarCheck} title="Trạng Thái Thanh Toán">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <PaymentCard
@@ -307,9 +304,6 @@ const CreateInforFlight = ({
             {/* Form Actions */}
             <div className="mt-8 pt-6 border-t border-gray-200">
               <div className="flex items-center justify-between gap-4">
-                <div className="text-sm text-gray-600">
-                  <span className="font-medium">(*)</span> Trường bắt buộc
-                </div>
                 <div className="flex items-center gap-3">
                   <button
                     type="button"
@@ -345,21 +339,35 @@ const CreateInforFlight = ({
   );
 };
 
+const BlueSection = ({ title, children }) => {
+  return (
+    <div className="mb-8">
+      {/* Header với background blue gradient - Không có icon */}
+      <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-md overflow-hidden mb-4">
+        <div className="px-4 md:px-6 py-4">
+          <h2 className="text-lg md:text-xl font-bold text-white">{title}</h2>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div>{children}</div>
+    </div>
+  );
+};
+
+// ✅ SECTION THƯỜNG - Xám uppercase (giống DashboardKPI)
 const Section = ({ icon: Icon, title, description, children }) => {
   return (
     <div className="mb-8">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-          <Icon className="w-5 h-5 text-blue-600" />
-        </div>
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
-          {description ? (
-            <p className="text-sm text-gray-500">{description}</p>
-          ) : null}
-        </div>
-      </div>
-      <div className="pl-0 md:pl-13">{children}</div>
+      <h3 className="text-xl font-bold text-gray-800 uppercase mb-3">
+        {title}
+      </h3>
+
+      {description && (
+        <p className="text-sm text-gray-500 mb-4">{description}</p>
+      )}
+
+      <div>{children}</div>
     </div>
   );
 };
@@ -402,6 +410,7 @@ const PaymentCard = ({
           />
           <span className="font-semibold text-gray-900 text-sm">{title}</span>
         </div>
+
         <label className="relative inline-flex items-center cursor-pointer">
           <input
             type="checkbox"
@@ -412,6 +421,7 @@ const PaymentCard = ({
           <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
         </label>
       </div>
+
       <div>
         <label className="block text-xs font-medium text-gray-600 mb-1.5">
           Ngày Thanh Toán

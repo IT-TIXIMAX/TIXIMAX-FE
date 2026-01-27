@@ -388,8 +388,13 @@ const ManagerSidebar = () => {
         },
         {
           text: t("Thông tin chuyến bay"),
+          icon: <List />,
+          path: "/manager/flight-list",
+        },
+        {
+          text: t("Tạo thông tin bay"),
           icon: <FileText />,
-          path: "/manager/flightinfo",
+          path: "/manager/flight-info",
         },
         {
           text: t("Tuyến vận chuyển"),

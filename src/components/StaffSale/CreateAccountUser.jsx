@@ -223,15 +223,16 @@ const CreateAccountUser = () => {
         let message = "Tạo tài khoản thất bại!";
 
         if (err.response?.data) {
-          if (
+          // Ưu tiên lấy message trước
+          if (err.response.data.message) {
+            message = err.response.data.message;
+          } else if (typeof err.response.data === "string") {
+            message = err.response.data;
+          } else if (
             typeof err.response.data === "object" &&
             err.response.data.error
           ) {
             message = err.response.data.error;
-          } else if (typeof err.response.data === "string") {
-            message = err.response.data;
-          } else if (err.response.data.message) {
-            message = err.response.data.message;
           }
         } else if (err.message) {
           message = err.message;
