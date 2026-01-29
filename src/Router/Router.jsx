@@ -159,6 +159,7 @@ import ExportOtherOrder from "../components/Warehouse/ExportOtherOrder";
 import DashboardWarehouseForeign from "../components/Dashboard/Manager/DashboardWarehouseForeign";
 import CreateInforFlight from "../components/LeadSale/CreateInforFlight";
 import ManagerInfoFlight from "../components/Manager/ManagerInfoFlight";
+import ListExportCustomer from "../components/Warehouse/ListExportCustomer";
 const Router = createBrowserRouter([
   {
     path: "/",
@@ -382,6 +383,7 @@ const Router = createBrowserRouter([
       { path: "warehouses", element: <OrderWarehouse /> },
       { path: "confirm-shipping", element: <OrderShippingAddress /> },
       { path: "list-order-shipping", element: <ShippingAddressList /> },
+      { path: "list-shipping", element: <ListExportCustomer /> },
       { path: "shipping-history", element: <NotFound /> },
       { path: "telesale", element: <NotFound /> },
       { path: "knowledge", element: <NotFound /> }, // Chưa triển khai

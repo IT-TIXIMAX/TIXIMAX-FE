@@ -219,6 +219,11 @@ const StaffSaleSidebar = () => {
               label: "Danh sách địa chỉ giao",
             },
             {
+              to: "/staff-sale/list-shipping",
+              icon: List,
+              label: "Danh sách xác nhận",
+            },
+            {
               to: "/staff-sale/export-order",
               icon: FolderInput,
               label: "Xuất kho đơn vị khác",

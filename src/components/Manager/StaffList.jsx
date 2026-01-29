@@ -1,3 +1,4 @@
+// src/Pages/Manager/Staff/StaffList.jsx
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   ChevronLeft,
@@ -14,6 +15,33 @@ import {
 } from "lucide-react";
 import userService from "../../Services/Manager/userService";
 
+/** ✅ Config tập trung */
+const ROLE_OPTIONS = [
+  { key: "ADMIN", label: "Quản trị viên", color: "red" },
+  { key: "MANAGER", label: "Quản lý", color: "orange" },
+  { key: "LEAD_SALE", label: "Trưởng nhóm bán hàng", color: "green" },
+  { key: "STAFF_SALE", label: "Nhân viên bán hàng", color: "blue" },
+  { key: "STAFF_PURCHASER", label: "Nhân viên mua hộ", color: "gray" },
+  {
+    key: "STAFF_WAREHOUSE_FOREIGN",
+    label: "Nhân viên kho ngoại",
+    color: "purple",
+  },
+  {
+    key: "STAFF_WAREHOUSE_DOMESTIC",
+    label: "Nhân viên kho nội địa",
+    color: "indigo",
+  },
+];
+
+const STATUS_OPTIONS = [
+  { key: "ALL", label: "Tất cả trạng thái" },
+  { key: "HOAT_DONG", label: "Hoạt động" },
+  { key: "KHONG_HOAT_DONG", label: "Không hoạt động" },
+];
+
+const PAGE_SIZE_OPTIONS = [50, 100, 200];
+
 const StaffList = () => {
   const [staffList, setStaffList] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -24,42 +52,52 @@ const StaffList = () => {
   const [selectedRole, setSelectedRole] = useState("ALL");
   const [selectedStatus, setSelectedStatus] = useState("ALL");
 
+  // ✅ debounce search -> appliedSearch (để call API)
+  const [appliedSearch, setAppliedSearch] = useState("");
+
   // Pagination states
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize, setPageSize] = useState(50);
   const [totalElements, setTotalElements] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
 
-  const availableRoles = useMemo(
-    () => [
-      { key: "ADMIN", label: "Quản trị viên", color: "red" },
-      { key: "MANAGER", label: "Quản lý", color: "orange" },
-      { key: "STAFF_SALE", label: "Nhân viên bán hàng", color: "blue" },
-      {
-        key: "STAFF_WAREHOUSE_FOREIGN",
-        label: "Nhân viên kho ngoại",
-        color: "purple",
-      },
-      {
-        key: "STAFF_WAREHOUSE_DOMESTIC",
-        label: "Nhân viên kho nội địa",
-        color: "indigo",
-      },
-      { key: "LEAD_SALE", label: "Trưởng nhóm bán hàng", color: "green" },
-      { key: "STAFF_PURCHASER", label: "Nhân viên mua hộ", color: "gray" },
-    ],
-    [],
-  );
+  const roleMap = useMemo(() => {
+    const m = new Map();
+    ROLE_OPTIONS.forEach((r) => m.set(r.key, r));
+    return m;
+  }, []);
 
-  // ✅ giống PerformancesCustomer
-  const pageSizeOptions = [50, 100, 200];
+  // ✅ Search debounce
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setAppliedSearch(searchTerm.trim());
+      setCurrentPage(0);
+    }, 350);
+    return () => clearTimeout(t);
+  }, [searchTerm]);
+
+  // ✅ Reset page khi đổi role/pageSize
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [selectedRole, pageSize]);
 
   const fetchStaffAccounts = useCallback(
-    async (page = 0, size = pageSize) => {
+    async (page = currentPage, size = pageSize) => {
       setError(null);
       setLoading(true);
       try {
-        const response = await userService.getStaffAccounts(page, size);
+        // ✅ API mới:
+        // GET ALL:    /accounts/null/{page}/{size}?keyword=...
+        // FILTER ROLE:/accounts/null/{page}/{size}?keyword=...&role=CUSTOMER
+        const roleForApi = selectedRole === "ALL" ? null : selectedRole;
+
+        const response = await userService.getAccounts(
+          page,
+          size,
+          appliedSearch || "",
+          roleForApi,
+        );
+
         setStaffList(response?.content || []);
         setTotalElements(response?.totalElements || 0);
         setTotalPages(response?.totalPages || 0);
@@ -73,59 +111,44 @@ const StaffList = () => {
         setLoading(false);
       }
     },
-    [pageSize],
+    [currentPage, pageSize, selectedRole, appliedSearch],
   );
 
+  // ✅ Fetch theo paging + role + keyword
   useEffect(() => {
-    fetchStaffAccounts(0, pageSize);
-  }, [fetchStaffAccounts, pageSize]);
+    fetchStaffAccounts(currentPage, pageSize);
+  }, [fetchStaffAccounts, currentPage, pageSize]);
 
-  // Filter logic (lọc trên page hiện tại)
+  // ✅ Filter status tại FE (API chưa hỗ trợ status)
   const filteredStaff = useMemo(() => {
     let filtered = [...staffList];
-
-    if (searchTerm) {
-      const search = searchTerm.toLowerCase();
-      filtered = filtered.filter(
-        (staff) =>
-          staff.username?.toLowerCase().includes(search) ||
-          staff.name?.toLowerCase().includes(search) ||
-          staff.email?.toLowerCase().includes(search) ||
-          staff.phone?.includes(search) ||
-          staff.staffCode?.toLowerCase().includes(search),
-      );
-    }
-
-    if (selectedRole !== "ALL") {
-      filtered = filtered.filter((staff) => staff.role === selectedRole);
-    }
 
     if (selectedStatus !== "ALL") {
       filtered = filtered.filter((staff) => staff.status === selectedStatus);
     }
 
     return filtered;
-  }, [staffList, searchTerm, selectedRole, selectedStatus]);
+  }, [staffList, selectedStatus]);
 
   // Handlers
   const handlePageChange = useCallback(
     (newPage) => {
       if (loading) return;
       if (newPage >= 0 && newPage < totalPages) {
-        fetchStaffAccounts(newPage, pageSize);
+        setCurrentPage(newPage);
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
     },
-    [loading, totalPages, pageSize, fetchStaffAccounts],
+    [loading, totalPages],
   );
 
   const handlePageSizeChange = useCallback(
     (newSize) => {
       if (loading) return;
       setPageSize(newSize);
-      fetchStaffAccounts(0, newSize);
+      setCurrentPage(0);
     },
-    [loading, fetchStaffAccounts],
+    [loading],
   );
 
   // Utils
@@ -135,11 +158,11 @@ const StaffList = () => {
 
   const getRoleInfo = useCallback(
     (role) =>
-      availableRoles.find((r) => r.key === role) || {
+      roleMap.get(role) || {
         label: role || "-",
         color: "gray",
       },
-    [availableRoles],
+    [roleMap],
   );
 
   const getRoleColor = useCallback((color) => {
@@ -174,7 +197,7 @@ const StaffList = () => {
   return (
     <div className="min-h-screen">
       <div className="mx-auto p-4 md:p-6 lg:p-8">
-        {/* ✅ Header - Yellow Gradient */}
+        {/* ✅ Header */}
         <div className="mb-6 md:mb-8">
           <div className="bg-gradient-to-r from-yellow-300 via-yellow-300 to-yellow-300 border-[1px] border-black rounded-xl shadow-lg p-4 md:p-5">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -199,7 +222,6 @@ const StaffList = () => {
                 </div>
               </div>
 
-              {/* Right: Add button */}
               <button
                 type="button"
                 className="flex items-center gap-2 px-4 py-2 bg-white text-black border-2 border-black rounded-lg hover:bg-gray-100 transition-all shadow-sm font-semibold self-start lg:self-auto"
@@ -211,7 +233,7 @@ const StaffList = () => {
           </div>
         </div>
 
-        {/* ✅ Filters Section */}
+        {/* ✅ Filters */}
         <div className="mb-6 md:mb-8">
           <h3 className="text-xl font-bold text-gray-800 uppercase mb-3">
             Bộ lọc
@@ -241,36 +263,37 @@ const StaffList = () => {
                 )}
               </div>
 
-              {/* Role Filter */}
+              {/* Role */}
               <select
                 value={selectedRole}
                 onChange={(e) => setSelectedRole(e.target.value)}
                 className="px-3 py-2.5 border-2 border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 text-sm font-semibold bg-white"
               >
                 <option value="ALL">Tất cả vai trò</option>
-                {availableRoles.map((role) => (
+                {ROLE_OPTIONS.map((role) => (
                   <option key={role.key} value={role.key}>
                     {role.label}
                   </option>
                 ))}
               </select>
 
-              {/* Status Filter */}
+              {/* Status */}
               <select
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
                 className="px-3 py-2.5 border-2 border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 text-sm font-semibold bg-white"
               >
-                <option value="ALL">Tất cả trạng thái</option>
-                <option value="HOAT_DONG">Hoạt động</option>
-                <option value="KHONG_HOAT_DONG">Không hoạt động</option>
+                {STATUS_OPTIONS.map((s) => (
+                  <option key={s.key} value={s.key}>
+                    {s.label}
+                  </option>
+                ))}
               </select>
             </div>
 
-            {/* ✅ Synced "Hiển thị" giống PerformancesCustomer */}
+            {/* Page Size */}
             <div className="mt-4 pt-4 border-t-2 border-black">
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
-                {/* Left: info pills */}
                 <div className="flex flex-wrap items-center gap-2">
                   <div className="flex items-center gap-2 px-3 py-1.5 bg-white border-2 border-black rounded-lg shadow-sm">
                     <span className="text-xs md:text-sm font-semibold text-black whitespace-nowrap">
@@ -297,13 +320,12 @@ const StaffList = () => {
                   )}
                 </div>
 
-                {/* Right: PAGE SIZE buttons 50/100/200 */}
                 <div className="flex items-center gap-3">
                   <span className="text-sm font-semibold text-gray-700 whitespace-nowrap">
                     Hiển thị:
                   </span>
                   <div className="flex gap-2 flex-wrap">
-                    {pageSizeOptions.map((size) => (
+                    {PAGE_SIZE_OPTIONS.map((size) => (
                       <button
                         key={size}
                         type="button"
@@ -326,7 +348,7 @@ const StaffList = () => {
           </div>
         </div>
 
-        {/* ✅ Error State */}
+        {/* ✅ Error */}
         {error && (
           <div className="mb-6 bg-red-50 border border-red-200 rounded-xl p-4 shadow-sm">
             <div className="flex items-start gap-3">
@@ -547,7 +569,7 @@ const StaffList = () => {
           </div>
         </div>
 
-        {/* ✅ Empty State */}
+        {/* ✅ Empty */}
         {!loading && filteredStaff.length === 0 && !error && (
           <div className="mt-6 text-center py-12 md:py-16 bg-white rounded-xl border-1 border-black shadow-lg">
             <div className="p-4 bg-gray-100 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
@@ -564,7 +586,7 @@ const StaffList = () => {
           </div>
         )}
 
-        {/* ✅ Pagination (Synced Footer) */}
+        {/* ✅ Pagination */}
         {!loading &&
           totalPages > 1 &&
           (() => {
@@ -581,7 +603,6 @@ const StaffList = () => {
 
             return (
               <div className="mt-6 bg-white rounded-xl shadow-lg border-1 border-black overflow-hidden">
-                {/* Top strip info */}
                 <div className="px-4 md:px-6 py-4 bg-gray-50 border-b-2 border-black flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                   <div className="flex flex-wrap items-center gap-2">
                     <div className="flex items-center gap-2 px-3 py-1.5 bg-white border-2 border-black rounded-lg shadow-sm">
@@ -613,7 +634,6 @@ const StaffList = () => {
                   </div>
                 </div>
 
-                {/* Controls */}
                 <div className="px-4 md:px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
                     <button
@@ -621,7 +641,6 @@ const StaffList = () => {
                       onClick={() => handlePageChange(0)}
                       disabled={isFirst}
                       className={`${btnBase} ${isFirst ? btnDisabled : btnActive}`}
-                      title="Về trang đầu"
                     >
                       Đầu
                     </button>
@@ -633,7 +652,6 @@ const StaffList = () => {
                       className={`${btnBase} flex items-center gap-2 ${
                         isFirst ? btnDisabled : btnActive
                       }`}
-                      title="Trang trước"
                     >
                       <ChevronLeft className="w-4 h-4" />
                       Trước
@@ -648,7 +666,6 @@ const StaffList = () => {
                       className={`${btnBase} flex items-center gap-2 ${
                         isLast ? btnDisabled : btnActive
                       }`}
-                      title="Trang sau"
                     >
                       Sau
                       <ChevronRight className="w-4 h-4" />
@@ -659,7 +676,6 @@ const StaffList = () => {
                       onClick={() => handlePageChange(totalPages - 1)}
                       disabled={isLast}
                       className={`${btnBase} ${isLast ? btnDisabled : btnActive}`}
-                      title="Tới trang cuối"
                     >
                       Cuối
                     </button>

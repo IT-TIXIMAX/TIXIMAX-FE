@@ -10,8 +10,15 @@ const userService = {
   },
 
   // Get staff accounts with pagination
-  getStaffAccounts: async (page = 0, size = 100) => {
-    const { data } = await api.get(`/accounts/staff/${page}/${size}`);
+  getAccounts: async (page = 0, size = 10, keyword = "", role = null) => {
+    const params = new URLSearchParams();
+    if (keyword) params.set("keyword", keyword);
+    if (role) params.set("role", role); // ✅ chỉ add khi có role
+
+    const qs = params.toString();
+    const { data } = await api.get(
+      `/accounts/null/${page}/${size}${qs ? `?${qs}` : ""}`,
+    );
     return data;
   },
 

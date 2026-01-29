@@ -8,7 +8,6 @@ import {
   FileText,
   DollarSign,
   CalendarCheck,
-  FileCheck,
 } from "lucide-react";
 import managerInforFlightService from "../../Services/Manager/managerInforFlightService";
 import UploadFile from "../../common/UploadFile";
@@ -20,16 +19,12 @@ const toNumberOrZero = (v) => {
 
 const isYYYYMMDD = (s) => /^\d{4}-\d{2}-\d{2}$/.test(String(s || ""));
 
-const CreateInforFlight = ({
-  defaultFlightCode = "VN123",
-  onSuccess = () => {},
-  onCancel = () => {},
-}) => {
+const CreateInforFlight = ({ onSuccess = () => {}, onCancel = () => {} }) => {
   const [loading, setLoading] = useState(false);
   const [formKey, setFormKey] = useState(0);
 
   const makeInitialForm = () => ({
-    flightCode: defaultFlightCode || "",
+    flightCode: "",
     awbFilePath: "",
     exportLicensePath: "",
     singleInvoicePath: "",
@@ -41,9 +36,7 @@ const CreateInforFlight = ({
     airportShippingCost: 0,
     otherCosts: 0,
     arrivalDate: "",
-    airFreightPaid: false,
     airFreightPaidDate: "",
-    customsPaid: false,
     customsPaidDate: "",
   });
 
@@ -70,9 +63,10 @@ const CreateInforFlight = ({
       return "Vui lòng nhập Flight Code";
     if (!isYYYYMMDD(form.arrivalDate))
       return "Arrival Date phải dạng YYYY-MM-DD";
-    if (form.airFreightPaid && !isYYYYMMDD(form.airFreightPaidDate))
+    // Chỉ validate date nếu đã nhập
+    if (form.airFreightPaidDate && !isYYYYMMDD(form.airFreightPaidDate))
       return "Air Freight Paid Date phải dạng YYYY-MM-DD";
-    if (form.customsPaid && !isYYYYMMDD(form.customsPaidDate))
+    if (form.customsPaidDate && !isYYYYMMDD(form.customsPaidDate))
       return "Customs Paid Date phải dạng YYYY-MM-DD";
     return "";
   };
@@ -91,10 +85,11 @@ const CreateInforFlight = ({
       airportShippingCost: toNumberOrZero(form.airportShippingCost),
       otherCosts: toNumberOrZero(form.otherCosts),
       arrivalDate: form.arrivalDate,
-      airFreightPaid: !!form.airFreightPaid,
-      airFreightPaidDate: form.airFreightPaid ? form.airFreightPaidDate : null,
-      customsPaid: !!form.customsPaid,
-      customsPaidDate: form.customsPaid ? form.customsPaidDate : null,
+      // Tự động set paid = true nếu có date
+      airFreightPaid: !!form.airFreightPaidDate,
+      airFreightPaidDate: form.airFreightPaidDate || null,
+      customsPaid: !!form.customsPaidDate,
+      customsPaidDate: form.customsPaidDate || null,
     };
   };
 
@@ -128,7 +123,7 @@ const CreateInforFlight = ({
   return (
     <div className="w-full max-w-6xl mx-auto p-4">
       <form key={formKey} onSubmit={handleSubmit}>
-        {/* ✅ HEADER LỚN - Vàng với border đen */}
+        {/* HEADER LỚN - Vàng với border đen */}
         <div className="mb-6 md:mb-8">
           <div className="bg-gradient-to-r from-yellow-300 via-yellow-300 to-yellow-300 border-[1px] border-black rounded-xl shadow-lg p-4 md:p-5">
             <div className="flex items-center gap-3">
@@ -147,7 +142,7 @@ const CreateInforFlight = ({
 
         <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
           <div className="p-6">
-            {/* ✅ SECTION ĐẶC BIỆT - "Nhập Thông Tin" màu BLUE */}
+            {/* SECTION ĐẶC BIỆT - "Nhập Thông Tin" màu BLUE */}
             <BlueSection title="Nhập Thông Tin">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <InputField
@@ -155,7 +150,7 @@ const CreateInforFlight = ({
                   required
                   value={form.flightCode}
                   onChange={(e) => setField("flightCode", e.target.value)}
-                  placeholder="VD: VN123"
+                  placeholder="VD: VN-1"
                 />
                 <InputField
                   label="Ngày Đến (Arrival Date)"
@@ -167,7 +162,7 @@ const CreateInforFlight = ({
               </div>
             </BlueSection>
 
-            {/* ✅ SECTIONS THƯỜNG - Xám uppercase */}
+            {/* SECTIONS THƯỜNG - Xám uppercase */}
             <Section
               icon={FileText}
               title="Tài Liệu & Chứng Từ"
@@ -282,19 +277,11 @@ const CreateInforFlight = ({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <PaymentCard
                   title="Chi Phí Vận Chuyển Hàng Không"
-                  checked={form.airFreightPaid}
-                  onCheckedChange={(checked) =>
-                    setField("airFreightPaid", checked)
-                  }
                   date={form.airFreightPaidDate}
                   onDateChange={(date) => setField("airFreightPaidDate", date)}
                 />
                 <PaymentCard
                   title="Chi Phí Thủ Tục Hải Quan"
-                  checked={form.customsPaid}
-                  onCheckedChange={(checked) =>
-                    setField("customsPaid", checked)
-                  }
                   date={form.customsPaidDate}
                   onDateChange={(date) => setField("customsPaidDate", date)}
                 />
@@ -342,31 +329,25 @@ const CreateInforFlight = ({
 const BlueSection = ({ title, children }) => {
   return (
     <div className="mb-8">
-      {/* Header với background blue gradient - Không có icon */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-md overflow-hidden mb-4">
         <div className="px-4 md:px-6 py-4">
           <h2 className="text-lg md:text-xl font-bold text-white">{title}</h2>
         </div>
       </div>
-
-      {/* Content */}
       <div>{children}</div>
     </div>
   );
 };
 
-// ✅ SECTION THƯỜNG - Xám uppercase (giống DashboardKPI)
 const Section = ({ icon: Icon, title, description, children }) => {
   return (
     <div className="mb-8">
       <h3 className="text-xl font-bold text-gray-800 uppercase mb-3">
         {title}
       </h3>
-
       {description && (
         <p className="text-sm text-gray-500 mb-4">{description}</p>
       )}
-
       <div>{children}</div>
     </div>
   );
@@ -388,38 +369,18 @@ const InputField = ({ label, required, type = "text", ...props }) => {
   );
 };
 
-const PaymentCard = ({
-  title,
-  checked,
-  onCheckedChange,
-  date,
-  onDateChange,
-}) => {
+// ✅ PaymentCard đã đơn giản hóa - không có toggle switch
+const PaymentCard = ({ title, date, onDateChange }) => {
+  const hasDate = !!date;
+
   return (
     <div
       className={`p-4 rounded-lg border-2 transition-all ${
-        checked ? "bg-green-50 border-green-300" : "bg-gray-50 border-gray-200"
+        hasDate ? "bg-green-50 border-green-300" : "bg-gray-50 border-gray-200"
       }`}
     >
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <FileCheck
-            className={`w-5 h-5 ${
-              checked ? "text-green-600" : "text-gray-400"
-            }`}
-          />
-          <span className="font-semibold text-gray-900 text-sm">{title}</span>
-        </div>
-
-        <label className="relative inline-flex items-center cursor-pointer">
-          <input
-            type="checkbox"
-            checked={checked}
-            onChange={(e) => onCheckedChange(e.target.checked)}
-            className="sr-only peer"
-          />
-          <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
-        </label>
+      <div className="mb-3">
+        <span className="font-semibold text-gray-900 text-sm">{title}</span>
       </div>
 
       <div>
@@ -428,14 +389,9 @@ const PaymentCard = ({
         </label>
         <input
           type="date"
-          disabled={!checked}
           value={date}
           onChange={(e) => onDateChange(e.target.value)}
-          className={`w-full px-3 py-2 border rounded-lg text-sm outline-none transition-all ${
-            checked
-              ? "border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              : "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed"
-          }`}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none transition-all focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         />
       </div>
     </div>

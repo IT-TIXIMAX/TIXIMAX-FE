@@ -10,6 +10,17 @@ const managerInforFlightService = {
     api
       .get(`/flight-shipment/${encodeURIComponent(flightShipmentId)}`)
       .then((r) => r.data),
+  delete: (flightShipmentId) =>
+    api
+      .delete(`/flight-shipment/${encodeURIComponent(flightShipmentId)}`)
+      .then((r) => r.data),
+  update: (flightShipmentId, payload) =>
+    api
+      .patch(
+        `/flight-shipment/${encodeURIComponent(flightShipmentId)}`,
+        payload,
+      )
+      .then((r) => r.data),
 };
 
 export default managerInforFlightService;

@@ -1,3 +1,4 @@
+// src/Pages/Manager/Order/ManagerOrder.jsx
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   FileText,
@@ -6,7 +7,6 @@ import {
   CheckCircle,
   XCircle,
   Search,
-  Filter,
   RefreshCw,
   ShoppingCart,
   TruckIcon,
@@ -15,6 +15,26 @@ import managerOrderService from "../../Services/Manager/managerOrderService";
 import DetailOrderSale from "./DetailForSale/DetailOrderSale";
 
 const PAGE_SIZES = [50, 100, 200];
+
+/** ✅ Status handle ở ManagerOrder */
+const AVAILABLE_STATUSES = [
+  { key: "DA_XAC_NHAN", label: "Đã xác nhận", color: "green" },
+  { key: "CHO_THANH_TOAN", label: "Chờ thanh toán tiền hàng", color: "orange" },
+  {
+    key: "CHO_THANH_TOAN_DAU_GIA",
+    label: "Chờ thanh toán đấu giá",
+    color: "pink",
+  },
+  { key: "CHO_MUA", label: "Chờ mua", color: "blue" },
+  { key: "CHO_NHAP_KHO_NN", label: "Đang về kho NN", color: "cyan" },
+  { key: "CHO_DONG_GOI", label: "Đã về kho NN", color: "purple" },
+  { key: "DANG_XU_LY", label: "Đang về kho VN", color: "indigo" },
+  { key: "DA_DU_HANG", label: "Đã về kho VN", color: "lime" },
+  { key: "CHO_THANH_TOAN_SHIP", label: "Chờ thanh toán ship", color: "teal" },
+  { key: "CHO_GIAO", label: "Đang giao hàng", color: "amber" },
+  { key: "DA_GIAO", label: "Hoàn thành đơn hàng", color: "amber" },
+  { key: "DA_HUY", label: "Đã hủy", color: "red" },
+];
 
 /* ===================== Skeletons ===================== */
 const StatCardSkeleton = () => (
@@ -52,6 +72,7 @@ const ManagerOrder = () => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  // ✅ status do UI quản lý
   const [activeStatus, setActiveStatus] = useState("DA_XAC_NHAN");
   const [pageSize, setPageSize] = useState(50);
 
@@ -63,7 +84,7 @@ const ManagerOrder = () => {
     last: false,
   });
 
-  // ✅ Search: input đang gõ + term đã apply (lọc chỉ chạy khi bấm Search / Enter)
+  // ✅ Search: input đang gõ + term đã apply
   const [searchInput, setSearchInput] = useState("");
   const [appliedSearch, setAppliedSearch] = useState("");
 
@@ -72,10 +93,62 @@ const ManagerOrder = () => {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [detailError, setDetailError] = useState(null);
 
-  const availableStatuses = useMemo(
-    () => managerOrderService.getAvailableStatuses(),
-    []
+  const statusMap = useMemo(() => {
+    const m = new Map();
+    AVAILABLE_STATUSES.forEach((s) => m.set(s.key, s));
+    return m;
+  }, []);
+
+  const currentStatus = useMemo(
+    () => statusMap.get(activeStatus),
+    [statusMap, activeStatus],
   );
+
+  const getStatusColor = useCallback((color) => {
+    const colorMap = {
+      gray: "bg-gray-100 text-gray-800",
+      green: "bg-green-100 text-green-800",
+      orange: "bg-orange-100 text-orange-800",
+      blue: "bg-blue-100 text-blue-800",
+      indigo: "bg-indigo-100 text-indigo-800",
+      slate: "bg-slate-100 text-slate-800",
+      purple: "bg-purple-100 text-purple-800",
+      yellow: "bg-yellow-100 text-yellow-800",
+      cyan: "bg-cyan-100 text-cyan-800",
+      pink: "bg-pink-100 text-pink-800",
+      teal: "bg-teal-100 text-teal-800",
+      emerald: "bg-emerald-100 text-emerald-800",
+      red: "bg-red-100 text-red-800",
+      lime: "bg-lime-100 text-lime-800",
+      amber: "bg-amber-100 text-amber-800",
+    };
+    return colorMap[color] || "bg-gray-100 text-gray-800";
+  }, []);
+
+  const getOrderTypeText = useCallback((type) => {
+    const orderTypes = {
+      MUA_HO: "Mua hộ",
+      VAN_CHUYEN: "Vận chuyển",
+      DAU_GIA: "Đấu giá",
+      KY_GUI: "Ký gửi",
+      CHUYEN_TIEN: "Chuyển tiền",
+    };
+    return orderTypes[type] || type;
+  }, []);
+
+  const formatDateTime = useCallback((dateString) => {
+    if (!dateString) return "-";
+    const d = new Date(dateString);
+    if (Number.isNaN(d.getTime())) return "-";
+    return d.toLocaleString("vi-VN", { hour12: false });
+  }, []);
+
+  const formatPrice = useCallback((price) => {
+    if (price === null || price === undefined || price === "") return "-";
+    const number = Number(price);
+    if (Number.isNaN(number)) return "-";
+    return number.toLocaleString("vi-VN");
+  }, []);
 
   // Fetch orders data
   const fetchOrders = useCallback(
@@ -87,7 +160,7 @@ const ManagerOrder = () => {
         const response = await managerOrderService.getOrdersPaging(
           page - 1,
           size,
-          status
+          status,
         );
 
         setOrders(response.content || []);
@@ -95,29 +168,33 @@ const ManagerOrder = () => {
           currentPage: page,
           totalElements: response.totalElements || 0,
           totalPages: response.totalPages || 0,
-          first: response.first,
-          last: response.last,
+          first: !!response.first,
+          last: !!response.last,
         });
       } catch (err) {
         setOrders([]);
         setPagination((p) => ({
           ...p,
+          currentPage: page,
           totalElements: 0,
           totalPages: 0,
+          first: true,
+          last: true,
         }));
         setError(err?.message || "Không thể tải danh sách đơn hàng");
       } finally {
         setLoading(false);
       }
     },
-    [activeStatus, pageSize]
+    [activeStatus, pageSize],
   );
 
+  // ✅ tự fetch theo state (tránh double-fetch)
   useEffect(() => {
-    fetchOrders(1, activeStatus, pageSize);
-  }, [fetchOrders, activeStatus, pageSize]);
+    fetchOrders(pagination.currentPage, activeStatus, pageSize);
+  }, [fetchOrders, pagination.currentPage, activeStatus, pageSize]);
 
-  // ✅ Apply search (button/enter)
+  // ✅ Apply search
   const handleApplySearch = useCallback(() => {
     setAppliedSearch(searchInput.trim());
   }, [searchInput]);
@@ -126,26 +203,40 @@ const ManagerOrder = () => {
     (e) => {
       if (e.key === "Enter") handleApplySearch();
     },
-    [handleApplySearch]
+    [handleApplySearch],
   );
 
-  // ✅ Auto clear applied khi input trống (không cần nút xóa lọc)
+  // ✅ Auto clear applied khi input trống
   useEffect(() => {
     if (!searchInput.trim() && appliedSearch) setAppliedSearch("");
   }, [searchInput, appliedSearch]);
 
-  // Filter orders based on appliedSearch
+  // ✅ Filter orders based on appliedSearch (data mới + fallback data cũ)
   const filteredOrders = useMemo(() => {
     if (!appliedSearch) return orders;
 
     const search = appliedSearch.toLowerCase().trim();
-    return orders.filter(
-      (order) =>
-        order.orderCode?.toLowerCase().includes(search) ||
-        order.customer?.customerCode?.toLowerCase().includes(search) ||
-        order.customer?.name?.toLowerCase().includes(search) ||
-        order.orderId?.toString().includes(search)
-    );
+
+    return orders.filter((order) => {
+      const orderCode = order.orderCode || "";
+      const customerCode =
+        order.customerCode || order.customer?.customerCode || "";
+      const customerName = order.customerName || order.customer?.name || "";
+      const staffName = order.staffName || "";
+      const orderId = order.orderId?.toString?.() || "";
+      const orderType = order.orderType || "";
+      const status = order.status || "";
+
+      return (
+        orderCode.toLowerCase().includes(search) ||
+        customerCode.toLowerCase().includes(search) ||
+        customerName.toLowerCase().includes(search) ||
+        staffName.toLowerCase().includes(search) ||
+        orderId.includes(search) ||
+        orderType.toLowerCase().includes(search) ||
+        status.toLowerCase().includes(search)
+      );
+    });
   }, [orders, appliedSearch]);
 
   // Fetch order detail
@@ -166,7 +257,7 @@ const ManagerOrder = () => {
     (orderId) => {
       fetchOrderDetail(orderId);
     },
-    [fetchOrderDetail]
+    [fetchOrderDetail],
   );
 
   const handleCloseDetail = useCallback(() => {
@@ -179,83 +270,35 @@ const ManagerOrder = () => {
   const handleStatusChange = useCallback(
     (status) => {
       if (status === activeStatus) return;
+
       setActiveStatus(status);
 
-      // ✅ reset search khi đổi tab
+      // reset search khi đổi tab
       setSearchInput("");
       setAppliedSearch("");
 
-      fetchOrders(1, status, pageSize);
+      // reset page về 1 (useEffect sẽ fetch)
+      setPagination((p) => ({ ...p, currentPage: 1 }));
     },
-    [activeStatus, pageSize, fetchOrders]
+    [activeStatus],
   );
 
   // Page size change handler
-  const handlePageSizeChange = useCallback(
-    (newSize) => {
-      setPageSize(newSize);
-      fetchOrders(1, activeStatus, newSize);
-    },
-    [activeStatus, fetchOrders]
-  );
+  const handlePageSizeChange = useCallback((newSize) => {
+    setPageSize(newSize);
+    setPagination((p) => ({ ...p, currentPage: 1 }));
+  }, []);
 
   // Pagination handlers
   const handlePageChange = useCallback(
     (newPage) => {
-      if (newPage >= 1 && newPage <= pagination.totalPages && !loading) {
-        fetchOrders(newPage, activeStatus, pageSize);
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      }
+      if (loading) return;
+      if (newPage < 1 || newPage > pagination.totalPages) return;
+
+      setPagination((p) => ({ ...p, currentPage: newPage }));
+      window.scrollTo({ top: 0, behavior: "smooth" });
     },
-    [pagination.totalPages, activeStatus, pageSize, loading, fetchOrders]
-  );
-
-  // Utility functions
-  const formatDate = useCallback((dateString) => {
-    if (!dateString) return "-";
-    return new Date(dateString).toLocaleDateString("vi-VN");
-  }, []);
-
-  const formatPrice = useCallback((price) => {
-    if (price === null || price === undefined || price === "") return "-";
-    const number = Number(price);
-    if (Number.isNaN(number)) return "-";
-    return number.toLocaleString("vi-VN");
-  }, []);
-
-  const getStatusColor = useCallback((color) => {
-    const colorMap = {
-      gray: "bg-gray-100 text-gray-800",
-      green: "bg-green-100 text-green-800",
-      orange: "bg-orange-100 text-orange-800",
-      blue: "bg-blue-100 text-blue-800",
-      indigo: "bg-indigo-100 text-indigo-800",
-      slate: "bg-slate-100 text-slate-800",
-      purple: "bg-purple-100 text-purple-800",
-      yellow: "bg-yellow-100 text-yellow-800",
-      cyan: "bg-cyan-100 text-cyan-800",
-      pink: "bg-pink-100 text-pink-800",
-      teal: "bg-teal-100 text-teal-800",
-      emerald: "bg-emerald-100 text-emerald-800",
-      red: "bg-red-100 text-red-800",
-    };
-    return colorMap[color] || "bg-gray-100 text-gray-800";
-  }, []);
-
-  const getOrderTypeText = useCallback((type) => {
-    const orderTypes = {
-      MUA_HO: "Mua hộ",
-      VAN_CHUYEN: "Vận chuyển",
-      DAU_GIA: "Đấu giá",
-      KY_GUI: "Ký gửi",
-      CHUYEN_TIEN: "Chuyển tiền",
-    };
-    return orderTypes[type] || type;
-  }, []);
-
-  const currentStatus = useMemo(
-    () => availableStatuses.find((s) => s.key === activeStatus),
-    [availableStatuses, activeStatus]
+    [pagination.totalPages, loading],
   );
 
   const showingFrom = pagination.totalElements
@@ -263,10 +306,10 @@ const ManagerOrder = () => {
     : 0;
   const showingTo = Math.min(
     pagination.currentPage * pageSize,
-    pagination.totalElements
+    pagination.totalElements,
   );
 
-  // Calculate statistics
+  // Statistics (trên page hiện tại)
   const orderTypeStats = useMemo(() => {
     const stats = {
       MUA_HO: 0,
@@ -378,7 +421,7 @@ const ManagerOrder = () => {
                       Trạng Thái
                     </p>
                     <p className="text-xl font-bold text-orange-600 truncate">
-                      {currentStatus?.label}
+                      {currentStatus?.label || activeStatus}
                     </p>
                   </div>
                   <div className="p-3 bg-orange-100 rounded-lg">
@@ -394,7 +437,7 @@ const ManagerOrder = () => {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6">
           <div className="p-4">
             <div className="flex flex-wrap gap-2">
-              {availableStatuses.map((status) => {
+              {AVAILABLE_STATUSES.map((status) => {
                 const isActive = activeStatus === status.key;
                 return (
                   <button
@@ -416,7 +459,7 @@ const ManagerOrder = () => {
           </div>
         </div>
 
-        {/* Search Section (✅ có button Search, ❌ không có nút xóa lọc) */}
+        {/* Search Section */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
           <div className="flex flex-col gap-4">
             <div className="flex flex-col lg:flex-row gap-3 items-stretch">
@@ -428,7 +471,7 @@ const ManagerOrder = () => {
                   />
                   <input
                     type="text"
-                    placeholder="Tìm kiếm mã đơn, mã KH, tên KH..."
+                    placeholder="Tìm kiếm mã đơn, mã KH, tên KH, nhân viên..."
                     value={searchInput}
                     onChange={(e) => setSearchInput(e.target.value)}
                     onKeyDown={handleSearchKeyDown}
@@ -493,7 +536,7 @@ const ManagerOrder = () => {
                       fetchOrders(
                         pagination.currentPage,
                         activeStatus,
-                        pageSize
+                        pageSize,
                       )
                     }
                     disabled={loading}
@@ -530,13 +573,12 @@ const ManagerOrder = () => {
                   <>
                     Chưa có đơn hàng với trạng thái "
                     <span className="font-semibold">
-                      {currentStatus?.label}
+                      {currentStatus?.label || activeStatus}
                     </span>
-                    " "
+                    "
                   </>
                 )}
               </p>
-              {/* ❌ Không có nút "Xóa tìm kiếm" */}
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -544,10 +586,10 @@ const ManagerOrder = () => {
                 <thead>
                   <tr className="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
                     <th className="px-4 py-4 text-left text-sm font-semibold whitespace-nowrap">
-                      Mã Đơn Hàng
+                      Mã Đơn
                     </th>
                     <th className="px-4 py-4 text-left text-sm font-semibold whitespace-nowrap">
-                      Loại Đơn
+                      Loại
                     </th>
                     <th className="px-4 py-4 text-left text-sm font-semibold whitespace-nowrap">
                       Trạng Thái
@@ -556,7 +598,10 @@ const ManagerOrder = () => {
                       Mã KH
                     </th>
                     <th className="px-4 py-4 text-left text-sm font-semibold whitespace-nowrap">
-                      Tên Khách Hàng
+                      Tên Khách
+                    </th>
+                    <th className="px-4 py-4 text-left text-sm font-semibold whitespace-nowrap">
+                      Nhân Viên
                     </th>
                     <th className="px-4 py-4 text-left text-sm font-semibold whitespace-nowrap">
                       Tỷ Giá
@@ -575,9 +620,7 @@ const ManagerOrder = () => {
 
                 <tbody>
                   {filteredOrders.map((order, index) => {
-                    const orderStatus = availableStatuses.find(
-                      (s) => s.key === order.status
-                    );
+                    const orderStatus = statusMap.get(order.status);
 
                     return (
                       <tr
@@ -587,11 +630,9 @@ const ManagerOrder = () => {
                         }`}
                       >
                         <td className="px-4 py-4">
-                          <div className="flex flex-col">
-                            <span className="font-semibold text-blue-700">
-                              {order.orderCode}
-                            </span>
-                          </div>
+                          <span className="font-semibold text-blue-700">
+                            {order.orderCode || `#${order.orderId}`}
+                          </span>
                         </td>
 
                         <td className="px-4 py-4">
@@ -614,20 +655,31 @@ const ManagerOrder = () => {
 
                         <td className="px-4 py-4">
                           <span className="text-sm font-medium text-blue-600">
-                            {order.customer?.customerCode || "—"}
+                            {order.customerCode ||
+                              order.customer?.customerCode ||
+                              "—"}
                           </span>
                         </td>
 
                         <td className="px-4 py-4">
                           <span className="text-sm text-gray-900">
-                            {order.customer?.name || "—"}
+                            {order.customerName || order.customer?.name || "—"}
                           </span>
                         </td>
 
                         <td className="px-4 py-4">
                           <span className="text-sm text-gray-900">
-                            {order.exchangeRate
-                              ? `${order.exchangeRate.toLocaleString("vi-VN")}`
+                            {order.staffName || "—"}
+                          </span>
+                        </td>
+
+                        <td className="px-4 py-4">
+                          <span className="text-sm text-gray-900">
+                            {order.exchangeRate !== null &&
+                            order.exchangeRate !== undefined
+                              ? Number(order.exchangeRate).toLocaleString(
+                                  "vi-VN",
+                                )
                               : "—"}
                           </span>
                         </td>
@@ -640,7 +692,7 @@ const ManagerOrder = () => {
 
                         <td className="px-4 py-4">
                           <span className="text-sm text-gray-900">
-                            {formatDate(order.createdAt)}
+                            {formatDateTime(order.createdAt)}
                           </span>
                         </td>
 
@@ -730,7 +782,8 @@ const ManagerOrder = () => {
         <DetailOrderSale
           orderData={selectedOrder}
           onClose={handleCloseDetail}
-          availableStatuses={availableStatuses}
+          availableStatuses={AVAILABLE_STATUSES}
+          detailError={detailError}
         />
       )}
     </div>
