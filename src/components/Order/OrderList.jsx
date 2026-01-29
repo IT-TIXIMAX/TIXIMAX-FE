@@ -1,3 +1,4 @@
+// src/components/Order/OrderList.jsx
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   FileText,
@@ -8,14 +9,38 @@ import {
   TruckIcon,
   RefreshCw,
   ShoppingCart,
-  Edit2, // ✅ Import icon Edit
 } from "lucide-react";
+import api from "../../config/api"; // ✅ gọi API trực tiếp
 import managerOrderService from "../../Services/Manager/managerOrderService";
 import DetailOrderSale from "../Manager/DetailForSale/DetailOrderSale";
 import DetailOrderLink from "./DetailOrderLink";
 import AccountSearch from "../Order/AccountSearch";
 
 const PAGE_SIZES = [50, 100, 200];
+
+/** ✅ Status handle ở UI (không phụ thuộc service) */
+const AVAILABLE_STATUSES = [
+  { key: "CHO_XAC_NHAN", label: "Chờ xác nhận", color: "yellow" },
+  { key: "DA_XAC_NHAN", label: "Đã xác nhận", color: "green" },
+
+  { key: "CHO_THANH_TOAN", label: "Chờ thanh toán tiền hàng", color: "orange" },
+  {
+    key: "CHO_THANH_TOAN_DAU_GIA",
+    label: "Chờ thanh toán đấu giá",
+    color: "pink",
+  },
+  { key: "CHO_MUA", label: "Chờ mua", color: "blue" },
+  { key: "CHO_NHAP_KHO_NN", label: "Đang về kho NN", color: "cyan" },
+  { key: "CHO_DONG_GOI", label: "Đã về kho NN", color: "purple" },
+  { key: "DANG_XU_LY", label: "Đang về kho VN", color: "indigo" },
+  { key: "DA_DU_HANG", label: "Đã về kho VN", color: "lime" },
+
+  { key: "CHO_THANH_TOAN_SHIP", label: "Chờ thanh toán ship", color: "teal" },
+  { key: "CHO_GIAO", label: "Đang giao hàng", color: "amber" },
+  { key: "DA_GIAO", label: "Hoàn thành đơn hàng", color: "emerald" },
+
+  { key: "DA_HUY", label: "Đã hủy", color: "red" },
+];
 
 /* ===================== Skeletons ===================== */
 const StatCardSkeleton = () => (
@@ -58,7 +83,6 @@ const OrderList = () => {
 
   // UI states
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
 
   // Search input states
   const [searchOrderCode, setSearchOrderCode] = useState("");
@@ -75,80 +99,37 @@ const OrderList = () => {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [loadingDetail, setLoadingDetail] = useState(false);
 
-  // ✅ Edit modal states
+  // Edit modal states
   const [showEditModal, setShowEditModal] = useState(false);
   const [editOrderId, setEditOrderId] = useState(null);
 
-  // Constants
-  const availableStatuses = useMemo(
-    () => managerOrderService.getAvailableStatuses(),
-    []
-  );
+  const availableStatuses = useMemo(() => AVAILABLE_STATUSES, []);
 
-  const statusLabelOverrides = useMemo(
-    () => ({
-      CHO_XAC_NHAN: "Chờ xác nhận",
-      DA_XAC_NHAN: "Đã xác nhận",
-      DANG_XU_LY: "Đang xử lý",
-      DANG_MUA_HANG: "Đang mua hàng",
-      DA_MUA_HANG: "Đã mua hàng",
-      MUA_HANG_THAT_BAI: "Mua hàng thất bại",
-      CHO_DAU_GIA: "Chờ đấu giá",
-      DANG_DAU_GIA: "Đang đấu giá",
-      DAU_GIA_THANH_CONG: "Thắng đấu giá",
-      DAU_GIA_THAT_BAI: "Thua đấu giá",
-      CHO_VAN_CHUYEN: "Chờ vận chuyển",
-      DANG_VAN_CHUYEN: "Đang vận chuyển",
-      DA_VE_KHO_NUOC_NGOAI: "Đã về kho nước ngoài",
-      DANG_VAN_CHUYEN_QUOC_TE: "Đang vận chuyển quốc tế",
-      DA_VE_KHO_VN: "Đã về kho VN",
-      DA_VE_KHO: "Đã về kho",
-      CHO_GIAO_HANG: "Chờ giao hàng",
-      DANG_GIAO_HANG: "Đang giao hàng",
-      GIAO_HANG_THAT_BAI: "Giao hàng thất bại",
-      DA_GIAO_HANG: "Đã giao hàng",
-      CHO_THANH_TOAN: "Chờ thanh toán",
-      DA_THANH_TOAN: "Đã thanh toán",
-      THANH_TOAN_MOT_PHAN: "Thanh toán một phần",
-      HOAN_THANH: "Hoàn thành",
-      HUY: "Đã hủy",
-      TRA_HANG: "Trả hàng",
-      HOAN_TIEN: "Hoàn tiền",
-      CHO_KY_GUI: "Chờ ký gửi",
-      DANG_KY_GUI: "Đang ký gửi",
-      DA_BAN: "Đã bán",
-      CHUA_BAN: "Chưa bán",
-    }),
-    []
-  );
-
-  // Fetch orders from API
+  // Fetch orders from API (✅ service chỉ API, list gọi trực tiếp)
   const fetchOrders = useCallback(async () => {
     setLoading(true);
-    setError(null);
     try {
-      const searchParams = {};
-      if (appliedOrderCode.trim())
-        searchParams.orderCode = appliedOrderCode.trim();
-      if (appliedCustomerCode.trim())
-        searchParams.customerCode = appliedCustomerCode.trim();
-      if (appliedShipmentCode.trim())
-        searchParams.shipmentCode = appliedShipmentCode.trim();
+      const params = {};
+      if (appliedOrderCode?.trim()) params.orderCode = appliedOrderCode.trim();
+      if (appliedCustomerCode?.trim())
+        params.customerCode = appliedCustomerCode.trim();
+      if (appliedShipmentCode?.trim())
+        params.shipmentCode = appliedShipmentCode.trim();
 
-      const result = await managerOrderService.getOrdersPaginated(
-        currentPage,
-        pageSize,
-        searchParams
-      );
+      // ✅ giữ theo format cũ bạn đang dùng trước đó
+      const { data } = await api.get(`/orders/${currentPage}/${pageSize}`, {
+        params,
+      });
 
-      setOrders(result.content || []);
-      setTotalPages(result.totalPages || 1);
-      setTotalElements(result.totalElements || 0);
+      setOrders(data?.content || []);
+      setTotalPages(data?.totalPages || 1);
+      setTotalElements(data?.totalElements || 0);
     } catch (err) {
-      setError(err.message || "Không thể tải danh sách đơn hàng");
       setOrders([]);
       setTotalPages(1);
       setTotalElements(0);
+      // ❌ bạn bảo không cần error UI -> bỏ alert/toast
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -199,23 +180,17 @@ const OrderList = () => {
 
   // Handle Search
   const handleSearch = useCallback(() => {
-    setAppliedOrderCode(searchOrderCode);
+    setAppliedOrderCode(searchOrderCode || "");
     setAppliedCustomerCode(selectedCustomer?.customerCode || "");
-    setAppliedShipmentCode(searchShipmentCode);
+    setAppliedShipmentCode(searchShipmentCode || "");
     setCurrentPage(0);
   }, [searchOrderCode, selectedCustomer, searchShipmentCode]);
 
-  const hasActiveSearch = useMemo(() => {
-    return appliedOrderCode || appliedCustomerCode || appliedShipmentCode;
-  }, [appliedOrderCode, appliedCustomerCode, appliedShipmentCode]);
-
   const handleKeyPress = useCallback(
     (e) => {
-      if (e.key === "Enter") {
-        handleSearch();
-      }
+      if (e.key === "Enter") handleSearch();
     },
-    [handleSearch]
+    [handleSearch],
   );
 
   // Pagination handlers
@@ -226,7 +201,7 @@ const OrderList = () => {
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
     },
-    [totalPages, loading]
+    [totalPages, loading],
   );
 
   const handlePageSizeChange = useCallback((newSize) => {
@@ -241,7 +216,7 @@ const OrderList = () => {
       const orderDetail = await managerOrderService.getOrderDetail(orderId);
       setSelectedOrder(orderDetail);
     } catch (err) {
-      alert("Không thể tải chi tiết đơn hàng: " + err.message);
+      console.error(err);
       setShowDetailModal(false);
     } finally {
       setLoadingDetail(false);
@@ -254,7 +229,7 @@ const OrderList = () => {
       setSelectedOrder(orderPreview);
       fetchOrderDetail(orderId);
     },
-    [fetchOrderDetail]
+    [fetchOrderDetail],
   );
 
   const handleCloseDetail = useCallback(() => {
@@ -263,7 +238,7 @@ const OrderList = () => {
     setLoadingDetail(false);
   }, []);
 
-  // ✅ Edit order handlers
+  // Edit order handlers
   const handleEdit = useCallback((orderId) => {
     setEditOrderId(orderId);
     setShowEditModal(true);
@@ -283,7 +258,7 @@ const OrderList = () => {
   const formatPrice = useCallback((price) => {
     if (price === null || price === undefined || price === "") return "-";
     const number = Number(price);
-    if (isNaN(number)) return "-";
+    if (Number.isNaN(number)) return "-";
     return number.toLocaleString("vi-VN");
   }, []);
 
@@ -302,6 +277,8 @@ const OrderList = () => {
       teal: "bg-teal-100 text-teal-800",
       emerald: "bg-emerald-100 text-emerald-800",
       red: "bg-red-100 text-red-800",
+      lime: "bg-lime-100 text-lime-800",
+      amber: "bg-amber-100 text-amber-800",
     };
     return colorMap[color] || "bg-gray-100 text-gray-800";
   }, []);
@@ -312,9 +289,15 @@ const OrderList = () => {
       VAN_CHUYEN: "Vận chuyển",
       DAU_GIA: "Đấu giá",
       KY_GUI: "Ký gửi",
+      CHUYEN_TIEN: "Chuyển tiền",
     };
     return orderTypes[type] || type;
   }, []);
+
+  /** ✅ Support cả data mới và data cũ */
+  const getCustomerCode = (o) =>
+    o?.customerCode || o?.customer?.customerCode || "—";
+  const getCustomerName = (o) => o?.customerName || o?.customer?.name || "—";
 
   const showingFrom = totalElements ? currentPage * pageSize + 1 : 0;
   const showingTo = Math.min((currentPage + 1) * pageSize, totalElements);
@@ -326,9 +309,10 @@ const OrderList = () => {
       VAN_CHUYEN: 0,
       DAU_GIA: 0,
       KY_GUI: 0,
+      CHUYEN_TIEN: 0,
     };
     orders.forEach((order) => {
-      if (stats.hasOwnProperty(order.orderType)) {
+      if (Object.prototype.hasOwnProperty.call(stats, order?.orderType)) {
         stats[order.orderType]++;
       }
     });
@@ -547,44 +531,6 @@ const OrderList = () => {
           </div>
         </div>
 
-        {/* Error Alert */}
-        {error && (
-          <div className="mb-6 bg-red-50 border-2 border-red-200 rounded-xl p-4">
-            <div className="flex items-start">
-              <div className="flex-shrink-0">
-                <svg
-                  className="h-5 w-5 text-red-400"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </div>
-              <div className="ml-3 flex-1">
-                <h3 className="text-sm font-medium text-red-800">
-                  Có lỗi xảy ra
-                </h3>
-                <div className="mt-2 text-sm text-red-700">
-                  <p>{error}</p>
-                </div>
-                <div className="mt-4">
-                  <button
-                    onClick={fetchOrders}
-                    disabled={loading}
-                    className="bg-red-100 hover:bg-red-200 text-red-800 px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {loading ? "Đang tải..." : "Thử lại"}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Table Section */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           {loading ? (
@@ -639,18 +585,19 @@ const OrderList = () => {
                 <tbody>
                   {orders.map((order, index) => {
                     const orderStatus = availableStatuses.find(
-                      (s) => s.key === order.status
+                      (s) => s.key === order.status,
                     );
+
                     return (
                       <tr
-                        key={order.orderId}
+                        key={order.orderId || index}
                         className={`border-b border-gray-200 hover:bg-blue-50 transition-colors ${
                           index % 2 === 0 ? "bg-white" : "bg-gray-50"
                         }`}
                       >
                         <td className="px-4 py-4">
                           <span className="font-semibold text-blue-700 whitespace-nowrap">
-                            {order.orderCode}
+                            {order.orderCode || `#${order.orderId}`}
                           </span>
                         </td>
 
@@ -668,30 +615,28 @@ const OrderList = () => {
                                 : getStatusColor("gray")
                             }`}
                           >
-                            {statusLabelOverrides[order.status]
-                              ? statusLabelOverrides[order.status]
-                              : orderStatus
-                              ? orderStatus.label
-                              : order.status}
+                            {orderStatus?.label || order.status}
                           </span>
                         </td>
 
                         <td className="px-4 py-4">
                           <span className="text-sm font-medium text-blue-600">
-                            {order.customer?.customerCode || "—"}
+                            {getCustomerCode(order)}
                           </span>
                         </td>
 
                         <td className="px-4 py-4">
                           <span className="text-sm text-gray-900">
-                            {order.customer?.name || "—"}
+                            {getCustomerName(order)}
                           </span>
                         </td>
 
                         <td className="px-4 py-4">
                           <span className="text-sm text-gray-900">
-                            {order.exchangeRate
-                              ? `${order.exchangeRate.toLocaleString("vi-VN")}`
+                            {order.exchangeRate != null
+                              ? Number(order.exchangeRate).toLocaleString(
+                                  "vi-VN",
+                                )
                               : "—"}
                           </span>
                         </td>
@@ -708,12 +653,11 @@ const OrderList = () => {
                           </span>
                         </td>
 
-                        {/* ✅ Thao Tác: 2 buttons Xem và Sửa */}
                         <td className="px-4 py-4">
                           <div className="flex items-center justify-center gap-2">
                             <button
                               onClick={() => handleEdit(order.orderId)}
-                              className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition-all flex items-center gap-2 text-sm"
+                              className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition-all text-sm"
                               type="button"
                               title="Chỉnh sửa"
                             >
@@ -727,6 +671,7 @@ const OrderList = () => {
                               type="button"
                               title="Xem chi tiết"
                             >
+                              <Eye size={16} />
                               Xem
                             </button>
                           </div>
@@ -812,7 +757,7 @@ const OrderList = () => {
         />
       )}
 
-      {/* ✅ Edit Modal */}
+      {/* Edit Modal */}
       {showEditModal && (
         <DetailOrderLink
           orderId={editOrderId}
