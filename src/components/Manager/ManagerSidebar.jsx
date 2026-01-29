@@ -308,11 +308,6 @@ const ManagerSidebar = () => {
         },
 
         {
-          text: t("Danh sách nhân viên"),
-          icon: <List />,
-          path: "/manager/team",
-        },
-        {
           text: t("Hiệu suất kho"),
           icon: <Warehouse />,
           path: "/manager/warehouseperformance",
@@ -331,6 +326,11 @@ const ManagerSidebar = () => {
           text: t("Danh sách khách hàng"),
           icon: <Users />,
           path: "/manager/customers",
+        },
+        {
+          text: t("Danh sách nhân viên"),
+          icon: <List />,
+          path: "/manager/team",
         },
         {
           text: t("Cấp quyền"),

@@ -40,6 +40,7 @@ import {
   FaTimes,
 } from "react-icons/fa";
 import Logout from "../../Page/Logout";
+
 // Configuration-based menu structure
 const menuConfig = [
   {
@@ -269,7 +270,7 @@ const menuConfig = [
   },
 ];
 
-// Custom styles for enhanced title effects
+// Custom styles for enhanced effects
 const customStyles = `
   .text-shadow-sm {
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
@@ -282,6 +283,19 @@ const customStyles = `
     height: 1px;
     margin: 8px 0;
     opacity: 0.3;
+  }
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  button:focus {
+    outline: none !important;
+  }
+  button:focus-visible {
+    outline: none !important;
   }
 `;
 
@@ -301,6 +315,18 @@ const AdminSidebar = () => {
     setIsMobileMenuOpen(false);
   }, [location.pathname]);
 
+  // Close mobile menu on Escape key
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === "Escape" && isMobileMenuOpen) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [isMobileMenuOpen]);
+
   // Memoized active check function
   const isActive = useCallback((path) => activeItem === path, [activeItem]);
 
@@ -317,22 +343,12 @@ const AdminSidebar = () => {
     (path) => {
       navigate(path);
     },
-    [navigate]
+    [navigate],
   );
 
   // Toggle mobile menu
   const toggleMobileMenu = useCallback(() => {
     setIsMobileMenuOpen((prev) => !prev);
-  }, []);
-
-  // Memoized button className generator
-  const getButtonClassName = useMemo(() => {
-    return (isActiveItem) =>
-      `w-full group flex items-center px-4 py-3 rounded-xl transition-all duration-300 ease-out text-sm font-medium relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-50 ${
-        isActiveItem
-          ? "bg-gradient-to-r from-yellow-500 to-yellow-600 text-black shadow-xl"
-          : "text-gray-200 hover:text-yellow-300 hover:bg-yellow-500/20 hover:shadow-md"
-      }`;
   }, []);
 
   // Handle keyboard navigation
@@ -382,7 +398,7 @@ const AdminSidebar = () => {
                 }
                 aria-expanded={expandedSections[section.title]}
                 aria-controls={`section-${idx}`}
-                className="w-full flex items-center justify-between px-4 py-2.5 text-xs font-medium uppercase text-gray-200 hover:text-yellow-200 tracking-wider transition-all duration-300 ease-out hover:bg-gradient-to-r hover:from-yellow-500/20 hover:to-yellow-600/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-50 border border-transparent hover:border-yellow-500/30 shadow-lg hover:shadow-yellow-500/10 group relative overflow-hidden"
+                className="w-full flex items-center justify-between px-4 py-2.5 text-xs font-medium uppercase text-gray-200 hover:text-yellow-200 tracking-wider transition-all duration-300 ease-out hover:bg-gradient-to-r hover:from-yellow-500/20 hover:to-yellow-600/20 rounded-lg outline-none border border-transparent hover:border-yellow-500/30 shadow-lg hover:shadow-yellow-500/10 group relative overflow-hidden"
               >
                 {/* Background highlight effect */}
                 <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/5 to-yellow-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg"></div>
@@ -397,6 +413,10 @@ const AdminSidebar = () => {
                   <span className="transition-all duration-300 text-shadow-sm group-hover:text-yellow-100">
                     {section.title}
                   </span>
+                  {/* Active indicator badge */}
+                  {section.items.some((item) => isActive(item.path)) && (
+                    <span className="ml-2 w-1.5 h-1.5 bg-yellow-400 rounded-full animate-pulse"></span>
+                  )}
                 </div>
 
                 {/* Right chevron with enhanced styling */}
@@ -424,49 +444,69 @@ const AdminSidebar = () => {
 
             <div
               id={`section-${idx}`}
-              className={`overflow-hidden transition-all duration-500 ease-out ${
+              className={`overflow-hidden transition-all duration-500 ease-in-out ${
                 expandedSections[section.title]
-                  ? "max-h-96 opacity-100"
+                  ? "max-h-[1000px] opacity-100 mt-2"
                   : "max-h-0 opacity-0"
               }`}
               aria-hidden={!expandedSections[section.title]}
             >
               <div className="space-y-1 pl-2" role="menu">
-                {section.items.map((item, i) => (
-                  <button
-                    key={i}
-                    onClick={() => handleItemClick(item.path)}
-                    onKeyDown={(e) =>
-                      handleKeyDown(e, () => handleItemClick(item.path))
-                    }
-                    className={getButtonClassName(isActive(item.path))}
-                    role="menuitem"
-                    aria-current={isActive(item.path) ? "page" : undefined}
-                  >
-                    <div className="flex items-center flex-1">
-                      <span
-                        className={`w-4 h-4 mr-3 transition-all duration-300 flex-shrink-0 ${
-                          isActive(item.path)
-                            ? "text-black"
-                            : "text-yellow-400 group-hover:text-yellow-300"
-                        }`}
-                      >
-                        {item.icon}
-                      </span>
-                      <span className="transition-opacity duration-300 text-left">
-                        {item.text}
-                      </span>
-                    </div>
-                    {isActive(item.path) && (
-                      <>
-                        <div className="absolute right-2 top-1/2 -translate-y-1/2 transition-opacity duration-300">
-                          <FaChevronRight className="w-3 h-3 text-black/70" />
-                        </div>
-                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-yellow-400 rounded-r"></div>
-                      </>
-                    )}
-                  </button>
-                ))}
+                {section.items.map((item, i) => {
+                  const isActiveItem = isActive(item.path);
+
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => handleItemClick(item.path)}
+                      onKeyDown={(e) =>
+                        handleKeyDown(e, () => handleItemClick(item.path))
+                      }
+                      className={`
+                        w-full group flex items-center justify-between
+                        px-4 py-3 rounded-r-xl
+                        transition-all duration-300 ease-out
+                        text-sm font-medium relative
+                        outline-none
+                        ${
+                          isActiveItem
+                            ? "bg-gradient-to-r from-yellow-500 to-yellow-600 text-black shadow-xl"
+                            : "text-gray-200 hover:text-yellow-300 hover:bg-yellow-500/20 hover:shadow-md"
+                        }
+                      `}
+                      role="menuitem"
+                      aria-current={isActiveItem ? "page" : undefined}
+                      title={item.text}
+                    >
+                      {/* Left: Icon + Text */}
+                      <div className="flex items-center flex-1 min-w-0">
+                        <span
+                          className={`w-4 h-4 mr-3 flex-shrink-0 transition-all duration-300 ${
+                            isActiveItem
+                              ? "text-black"
+                              : "text-yellow-400 group-hover:text-yellow-300"
+                          }`}
+                        >
+                          {item.icon}
+                        </span>
+                        <span className="transition-opacity duration-300 text-left truncate">
+                          {item.text}
+                        </span>
+                      </div>
+
+                      {/* Right: Chevron when active */}
+                      {isActiveItem && (
+                        <>
+                          <div className="flex-shrink-0 ml-2">
+                            <FaChevronRight className="w-3 h-3 text-black/70" />
+                          </div>
+                          {/* Left accent line - không bo tròn */}
+                          <div className="absolute left-0 top-0 bottom-0 w-1 bg-yellow-400"></div>
+                        </>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -485,7 +525,7 @@ const AdminSidebar = () => {
               onClick={onLogout}
               onKeyDown={(e) => handleKeyDown(e, onLogout)}
               disabled={isLoggingOut}
-              className={`w-full group flex items-center justify-center px-4 py-2 rounded-xl bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-400 hover:to-yellow-500 text-black transition-all duration-300 ease-out shadow-lg hover:shadow-xl relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-50 ${
+              className={`w-full group flex items-center justify-center px-4 py-2 rounded-xl bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-400 hover:to-yellow-500 text-black transition-all duration-300 ease-out shadow-lg hover:shadow-xl relative overflow-hidden outline-none ${
                 isLoggingOut ? "opacity-70 cursor-not-allowed" : ""
               }`}
               aria-label="Đăng xuất khỏi hệ thống"
@@ -513,7 +553,7 @@ const AdminSidebar = () => {
       <button
         onClick={toggleMobileMenu}
         onKeyDown={(e) => handleKeyDown(e, toggleMobileMenu)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-black/80 text-yellow-400 border border-yellow-500/30 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-50"
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-black/80 text-yellow-400 border border-yellow-500/30 backdrop-blur-sm outline-none"
         aria-label={isMobileMenuOpen ? "Đóng menu" : "Mở menu"}
         aria-expanded={isMobileMenuOpen}
       >
@@ -529,7 +569,12 @@ const AdminSidebar = () => {
         <div
           className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm"
           onClick={() => setIsMobileMenuOpen(false)}
-          aria-hidden="true"
+          onKeyDown={(e) => {
+            if (e.key === "Escape") setIsMobileMenuOpen(false);
+          }}
+          role="button"
+          tabIndex={0}
+          aria-label="Đóng menu"
         />
       )}
 

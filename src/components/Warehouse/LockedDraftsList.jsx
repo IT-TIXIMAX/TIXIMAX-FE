@@ -356,7 +356,7 @@ const LockedDraftsList = () => {
 
       const { fileName, count } = buildAndSaveExcel({
         rows: rowsToExport,
-        filePrefix: "locked_drafts_lock_export",
+        filePrefix: "Xuat_Kho_VNPOST_Ngày",
         endDate: filterDate,
       });
 
