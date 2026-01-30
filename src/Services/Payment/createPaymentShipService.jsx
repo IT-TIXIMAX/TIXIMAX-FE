@@ -49,6 +49,28 @@
 
 // export default createPaymentShipService;
 
+// // src/Services/Payment/createPaymentShipService.js
+// import api from "../../config/api.js";
+
+// export const createPartialShipmentByShipCode = (
+//   shipCode,
+//   isUseBalance,
+//   bankId,
+//   priceShipDos,
+//   customerVoucherId = null,
+// ) => {
+//   const basePath = `/partial-shipment/by-ship-code/${shipCode}/${!!isUseBalance}/${bankId}/${priceShipDos}`;
+
+//   const fullPath = customerVoucherId
+//     ? `${basePath}/${customerVoucherId}`
+//     : basePath;
+
+//   console.log("🔍 API Call URL:", fullPath);
+
+//   return api.post(fullPath, null).then((r) => r.data);
+// };
+
+// src/Services/Payment/createPaymentShipService.js
 // src/Services/Payment/createPaymentShipService.js
 import api from "../../config/api.js";
 
@@ -59,13 +81,22 @@ export const createPartialShipmentByShipCode = (
   priceShipDos,
   customerVoucherId = null,
 ) => {
-  const basePath = `/partial-shipment/by-ship-code/${shipCode}/${!!isUseBalance}/${bankId}/${priceShipDos}`;
+  // ✅ Path LUÔN LUÔN có placeholder {customerVoucherId}
+  const basePath = `/partial-shipment/by-ship-code/${shipCode}/${!!isUseBalance}/${bankId}/${priceShipDos}/{customerVoucherId}`;
 
+  // ✅ Nếu có voucher ID → thêm query param
   const fullPath = customerVoucherId
-    ? `${basePath}/${customerVoucherId}`
+    ? `${basePath}?customerVoucherId=${customerVoucherId}`
     : basePath;
 
   console.log("🔍 API Call URL:", fullPath);
+  console.log("📦 Request params:", {
+    shipCode,
+    isUseBalance: !!isUseBalance,
+    bankId,
+    priceShipDos,
+    customerVoucherId: customerVoucherId ?? "không có",
+  });
 
   return api.post(fullPath, null).then((r) => r.data);
 };

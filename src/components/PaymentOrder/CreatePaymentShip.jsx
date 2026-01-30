@@ -256,7 +256,7 @@ const PaymentShipConfigModal = ({
     !bankId ||
     priceShipDos == null ||
     Number.isNaN(priceShipDos) ||
-    Number(priceShipDos) < 0 ||
+    Number(priceShipDos) <= 0 ||
     !!priceError;
 
   const handlePriceChange = (e) => {
@@ -510,7 +510,7 @@ const CreatePaymentShip = ({
       }
       const ship = Number(payload?.priceShipDos);
 
-      if (payload?.priceShipDos == null || Number.isNaN(ship) || ship < 0) {
+      if (payload?.priceShipDos == null || Number.isNaN(ship) || ship <= 0) {
         toast.error("Vui lòng nhập giá vận chuyển nội địa hợp lệ");
         return;
       }
