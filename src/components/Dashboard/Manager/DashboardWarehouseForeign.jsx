@@ -8,6 +8,7 @@ import {
   Boxes,
   Warehouse,
   Weight,
+  Plane,
   X,
 } from "lucide-react";
 
@@ -95,6 +96,11 @@ const StatCard = ({ icon: Icon, label, value, sub, tone = "gray" }) => {
       icon: "text-white",
       iconBg: "bg-blue-600",
     },
+    purple: {
+      bg: "from-purple-200 to-purple-300",
+      icon: "text-white",
+      iconBg: "bg-purple-600",
+    },
   };
   const t = tones[tone] || tones.gray;
 
@@ -134,6 +140,7 @@ const LocationTable = ({ title, rows = [], tone = "gray", columns }) => {
       red: "from-red-200 to-red-300",
       green: "from-green-200 to-green-300",
       blue: "from-blue-200 to-blue-300",
+      purple: "from-purple-200 to-purple-300",
     }[tone] || "from-gray-200 to-gray-300";
 
   return (
@@ -263,6 +270,7 @@ const DashboardWarehouseForeign = () => {
   const pending = data?.pending || {};
   const stock = data?.stock || {};
   const packed = data?.packed || {};
+  const awaitFlight = data?.awaitFlight || {};
 
   const pendingByLocation = useMemo(
     () => (data?.pendingByLocation || []).slice(),
@@ -274,6 +282,10 @@ const DashboardWarehouseForeign = () => {
   );
   const packedByLocation = useMemo(
     () => (data?.packedByLocation || []).slice(),
+    [data],
+  );
+  const awaitFlightByLocation = useMemo(
+    () => (data?.awaitFlightByLocation || []).slice(),
     [data],
   );
 
@@ -360,14 +372,15 @@ const DashboardWarehouseForeign = () => {
           </h3>
 
           {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 md:gap-6">
+              <StatCardSkeleton />
               <StatCardSkeleton />
               <StatCardSkeleton />
               <StatCardSkeleton />
               <StatCardSkeleton />
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 md:gap-6">
               <StatCard
                 icon={Package}
                 label="Chờ nhập kho - Kiện hàng"
@@ -402,6 +415,15 @@ const DashboardWarehouseForeign = () => {
                 sub={`Khối lượng thực: ${fmtKg(packed.netWeight)}`}
                 tone="gray"
               />
+              <StatCard
+                icon={Plane}
+                label="Chờ bay - Kho hàng"
+                value={fmtInt(awaitFlight.warehouses)}
+                sub={`Đơn hàng: ${fmtInt(awaitFlight.orders)} -- Đang đóng: ${fmtInt(
+                  awaitFlight.packing,
+                )} -- KL: ${fmtKg(awaitFlight.weight)}`}
+                tone="purple"
+              />
             </div>
           )}
         </div>
@@ -414,6 +436,7 @@ const DashboardWarehouseForeign = () => {
 
           {loading ? (
             <div className="space-y-6">
+              <TableCardSkeleton />
               <TableCardSkeleton />
               <TableCardSkeleton />
               <TableCardSkeleton />
@@ -485,6 +508,29 @@ const DashboardWarehouseForeign = () => {
                 columns={[
                   { key: "warehouses", label: "Kho hàng", align: "right" },
                   { key: "orders", label: "Đơn hàng", align: "right" },
+                  {
+                    key: "weight",
+                    label: "Khối lượng",
+                    align: "right",
+                    format: fmtKg,
+                  },
+                  {
+                    key: "netWeight",
+                    label: "KL thực",
+                    align: "right",
+                    format: fmtKg,
+                  },
+                ]}
+              />
+
+              <LocationTable
+                title="Chờ bay theo khu vực"
+                tone="purple"
+                rows={awaitFlightByLocation}
+                columns={[
+                  { key: "warehouses", label: "Kho hàng", align: "right" },
+                  { key: "orders", label: "Đơn hàng", align: "right" },
+                  { key: "packing", label: "Đang đóng", align: "right" },
                   {
                     key: "weight",
                     label: "Khối lượng",

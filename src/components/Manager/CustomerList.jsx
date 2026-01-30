@@ -185,7 +185,7 @@ const CustomerList = () => {
     try {
       const detail = await userService.getAccountById(customer?.id);
       setSelectedCustomer((prev) => ({ ...prev, ...detail }));
-    } catch (e) {
+    } catch {
       // vẫn xem được data list
     } finally {
       setDetailLoading(false);

@@ -98,15 +98,23 @@ const paymentService = {
       throw error;
     }
   },
-  refundBalance: async (id, { image = "", amount = 0 } = {}) => {
-    if (!id) throw new Error("Account ID is required");
-    const { data } = await api.put(`/accounts/refund-balance/${id}`, {
-      params: { image, amount },
-    });
+  refundBalance: async (customerId, { image = "", amount = 0 } = {}) => {
+    if (!customerId) throw new Error("customerId is required");
+
+    const { data } = await api.put(
+      `/accounts/refund-balance/${customerId}`,
+      null, // body không dùng
+      {
+        params: {
+          image,
+          amount: Number(amount) || 0,
+        },
+      },
+    );
+
     return data;
   },
 };
-
 export default paymentService;
 
 export const createPaymentService = paymentService.createPayment;

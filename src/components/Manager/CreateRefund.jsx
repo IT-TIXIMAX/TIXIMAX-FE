@@ -3,7 +3,8 @@ import toast from "react-hot-toast";
 import { X, Wallet, User, CheckCircle2, Loader2 } from "lucide-react";
 import paymentService from "../../Services/Payment/paymentService";
 import UploadImg from "../../common/UploadImg";
-// Helper: bóc tách lỗi backend
+
+/* ================= HELPERS ================= */
 const getErrorMessage = (error) => {
   if (error?.response) {
     const be =
@@ -31,83 +32,114 @@ const formatMoney = (v) => {
   return `${n.toLocaleString("vi-VN")} ₫`;
 };
 
-// chỉ cho phép số (không dấu âm), trả về string
-const toNonNegativeNumberText = (value) => {
+// chỉ cho phép số nguyên không âm (text)
+const toNonNegativeIntText = (value) => {
   const s = String(value ?? "");
   const onlyDigits = s.replace(/[^\d]/g, "");
   return onlyDigits === "" ? "" : onlyDigits;
 };
 
+const normalizeStr = (v) => String(v ?? "").trim();
+
+/* ================= COMPONENT ================= */
 const CreateRefund = ({ open, onClose, customer = null, onSuccess }) => {
   const [accountId, setAccountId] = useState("");
-  const [amountText, setAmountText] = useState("0"); // ✅ text
-  const [image, setImage] = useState(""); // ✅ imageUrl
+  const [amountText, setAmountText] = useState(""); // text
+  const [image, setImage] = useState(""); // imageUrl
   const [loading, setLoading] = useState(false);
 
-  // ✅ trạng thái upload ảnh từ UploadImg (để khóa submit)
+  // phản ánh đúng lúc UploadImg đang upload/remove
   const [imgBusy, setImgBusy] = useState(false);
 
-  // ✅ Auto fill khi mở modal / đổi customer
+  // auto fill khi mở modal / đổi customer
   useEffect(() => {
     if (!open) return;
 
     const id = customer?.id ?? "";
     setAccountId(id ? String(id) : "");
 
-    const bal = customer?.balance;
-    const defaultAmt = Number.isFinite(Number(bal))
-      ? String(Math.max(0, Number(bal)))
-      : "0";
-    setAmountText(defaultAmt);
+    // default amount = balance (nếu có)
+    const balNum = Number(customer?.balance);
+    const defaultAmt = Number.isFinite(balNum) ? Math.max(0, balNum) : 0;
 
-    // reset ảnh khi mở (tuỳ bạn: nếu muốn giữ ảnh lần trước thì bỏ dòng này)
+    // vì input đang là số nguyên -> làm tròn xuống (tuỳ hệ thống tiền tệ)
+    setAmountText(String(Math.floor(defaultAmt)));
+
+    // reset image khi mở
     setImage("");
+    setImgBusy(false);
+    setLoading(false);
   }, [open, customer]);
 
   const amountNumber = useMemo(() => {
-    const n = Number(String(amountText || "0"));
+    const n = Number(amountText || "0");
     if (!Number.isFinite(n)) return 0;
-    return Math.max(0, n);
+    return Math.max(0, Math.floor(n));
   }, [amountText]);
 
+  const accountLocked = !!customer?.id;
+
   const canSubmit = useMemo(() => {
-    const idOk = String(accountId || "").trim() !== "";
-    const imgOk = String(image || "").trim() !== "";
-    const amtOk = Number.isFinite(amountNumber) && amountNumber >= 0;
+    const idOk = normalizeStr(accountId) !== "";
+    const imgOk = normalizeStr(image) !== "";
+    // ✅ thường hoàn tiền phải > 0 (nếu bạn muốn >=0 thì đổi thành amountNumber >= 0)
+    const amtOk = Number.isFinite(amountNumber) && amountNumber > 0;
     return idOk && imgOk && amtOk && !loading && !imgBusy;
   }, [accountId, image, amountNumber, loading, imgBusy]);
+
+  const resetForm = useCallback(() => {
+    setAccountId("");
+    setAmountText("");
+    setImage("");
+    setImgBusy(false);
+    setLoading(false);
+  }, []);
 
   const handleClose = useCallback(() => {
     if (loading || imgBusy) return;
     onClose?.();
-  }, [loading, imgBusy, onClose]);
+    // optional: reset sau khi đóng
+    resetForm();
+  }, [loading, imgBusy, onClose, resetForm]);
 
   const handleSubmit = useCallback(async () => {
     if (!canSubmit) {
-      toast.error("Vui lòng nhập đủ Account ID, Amount và upload Image");
+      if (!normalizeStr(accountId)) toast.error("Vui lòng nhập Account ID");
+      else if (!normalizeStr(image))
+        toast.error("Vui lòng upload ảnh hoàn tiền");
+      else if (!(amountNumber > 0)) toast.error("Số tiền hoàn phải lớn hơn 0");
+      else toast.error("Vui lòng kiểm tra lại thông tin");
       return;
     }
 
     setLoading(true);
     try {
-      const res = await paymentService.refundBalance(String(accountId).trim(), {
-        image: String(image || "").trim(), // ✅ imageUrl từ UploadImg
-        amount: amountNumber, // ✅ luôn >= 0
+      // swagger: PUT /accounts/refund-balance/{customerId}?image=...&amount=...
+      const res = await paymentService.refundBalance(normalizeStr(accountId), {
+        image: normalizeStr(image),
+        amount: amountNumber,
       });
 
       toast.success("Hoàn số dư thành công!");
       onSuccess?.(res);
       onClose?.();
+      resetForm();
     } catch (e) {
       toast.error(getErrorMessage(e));
     } finally {
       setLoading(false);
     }
-  }, [canSubmit, accountId, image, amountNumber, onClose, onSuccess]);
+  }, [
+    canSubmit,
+    accountId,
+    image,
+    amountNumber,
+    onClose,
+    onSuccess,
+    resetForm,
+  ]);
 
   if (!open) return null;
-
-  const accountLocked = !!customer?.id;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
@@ -194,7 +226,7 @@ const CreateRefund = ({ open, onClose, customer = null, onSuccess }) => {
               />
             </div>
 
-            {/* Amount (TEXT + no negative) */}
+            {/* Amount */}
             <div>
               <label className="text-sm font-semibold text-gray-800 flex items-center gap-2 mb-2">
                 <Wallet size={16} className="text-blue-600" />
@@ -207,32 +239,31 @@ const CreateRefund = ({ open, onClose, customer = null, onSuccess }) => {
                 pattern="[0-9]*"
                 value={amountText}
                 onChange={(e) =>
-                  setAmountText(toNonNegativeNumberText(e.target.value))
+                  setAmountText(toNonNegativeIntText(e.target.value))
                 }
                 onKeyDown={(e) => {
-                  if (
-                    e.key === "-" ||
-                    e.key === "e" ||
-                    e.key === "E" ||
-                    e.key === "." ||
-                    e.key === "+"
-                  ) {
+                  if (["-", "e", "E", ".", "+"].includes(e.key))
                     e.preventDefault();
-                  }
                 }}
                 placeholder="0"
                 className="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 focus:border-blue-600 outline-none transition"
                 disabled={loading || imgBusy}
               />
+
               <p className="text-xs text-gray-500 mt-1">
                 Sẽ hoàn:{" "}
                 <span className="font-semibold">
                   {formatMoney(amountNumber)}
                 </span>
               </p>
+              {amountNumber === 0 && (
+                <p className="text-xs text-red-500 mt-1">
+                  Số tiền hoàn phải lớn hơn 0
+                </p>
+              )}
             </div>
 
-            {/* ✅ Upload Image */}
+            {/* Upload Image */}
             <div className="md:col-span-2">
               <UploadImg
                 label="Ảnh hoàn tiền"
@@ -241,20 +272,11 @@ const CreateRefund = ({ open, onClose, customer = null, onSuccess }) => {
                 maxSizeMB={3}
                 placeholder="Chưa có ảnh hoàn tiền"
                 className="w-full"
-                onImageUpload={(url) => {
-                  setImgBusy(true);
-                  setImage(url);
-                  // setImgBusy chỉ để “khóa” lúc callback chạy nhanh; nếu muốn phản ánh upload thực,
-                  // hãy nâng cấp UploadImg trả ra uploading/deleting qua props (mình có thể chỉnh luôn).
-                  setTimeout(() => setImgBusy(false), 0);
-                }}
-                onImageRemove={() => {
-                  setImgBusy(true);
-                  setImage("");
-                  setTimeout(() => setImgBusy(false), 0);
-                }}
+                onImageUpload={(url) => setImage(normalizeStr(url))}
+                onImageRemove={() => setImage("")}
+                // ✅ nếu UploadImg hỗ trợ: gọi setImgBusy(true/false) khi upload/remove
+                onBusyChange={setImgBusy}
               />
-              {/* gợi ý: nếu muốn imgBusy phản ánh đúng uploading/deleting, xem note dưới */}
             </div>
           </div>
         </div>
