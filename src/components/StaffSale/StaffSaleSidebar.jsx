@@ -110,11 +110,11 @@ const StaffSaleSidebar = () => {
               icon: Truck,
               label: "Thanh toán vận chuyển",
             },
-            {
-              to: "/staff-sale/payments-divide",
-              icon: Rows2,
-              label: "Thanh toán tách đơn ",
-            },
+            // {
+            //   to: "/staff-sale/payments-divide",
+            //   icon: Rows2,
+            //   label: "Thanh toán tách đơn ",
+            // },
             {
               to: "/staff-sale/payments-auction",
               icon: Wallet,

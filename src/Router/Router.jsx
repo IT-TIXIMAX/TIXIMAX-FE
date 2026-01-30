@@ -33,10 +33,10 @@ import StaffWarehouseForeignLayout from "../components/WarehouseForeign/StaffWar
 
 //StaffWarehouseDomestic components
 import StaffWarehouseDomesticLayout from "../components/WarehouseDomestic/StaffWarehouseDomesticLayout";
-import StaffWarehouseDomesticPage from "../components/WarehouseDomestic/StaffWarehouseDomesticPage";
+// import StaffWarehouseDomesticPage from "../components/WarehouseDomestic/StaffWarehouseDomesticPage";
 
 //Manager components
-import ManagerPage from "../components/Manager/ManagerPage";
+// import ManagerPage from "../components/Manager/ManagerPage";
 
 //StaffSale components
 // import StaffSalePage from "../components/StaffSale/StaffSalePage";
@@ -79,7 +79,7 @@ import StaffListPermission from "../components/Manager/StaffListPermission";
 import PackingFlyingList from "../components/WarehouseDomestic/PackingFlyingList";
 // import ExportList from "../components/WarehouseDomestic/ExportList";
 import CreateDepositForm from "../components/Order/CreateDepositForm";
-import MergedPaymentShip from "../components/PaymentOrder/MergedPaymentShip";
+// import MergedPaymentShip from "../components/PaymentOrder/MergedPaymentShip";
 import MergedPaymentOrder from "../components/PaymentOrder/MergedPaymentOrder";
 import PaymentOrderList from "../components/PaymentOrder/PaymentOrderList";
 import CreateAuctionForm from "../components/Order/CreateAuctionForm";
@@ -95,7 +95,7 @@ import ResetPassword from "../Page/ResetPassword";
 import InventoryWarehouse from "../Services/Warehouse/InventoryWarehouse";
 import RefundOrder from "../components/Order/RefundOrder";
 import ManagerBankAccountList from "../components/Manager/ManagerBankAccountList";
-import DividePaymentOrder from "../components/PaymentOrder/DividePaymentOrder";
+// import DividePaymentOrder from "../components/PaymentOrder/DividePaymentOrder";
 import UpdateShipmentCodeList from "../components/StaffPurchaser/UpdateShipmentCodeList";
 import PackingProblem from "../components/WarehouseForeign/PackingProblem";
 import DenyRoles from "./DenyRoles";
@@ -160,6 +160,7 @@ import DashboardWarehouseForeign from "../components/Dashboard/Manager/Dashboard
 import CreateInforFlight from "../components/LeadSale/CreateInforFlight";
 import ManagerInfoFlight from "../components/Manager/ManagerInfoFlight";
 import ListExportCustomer from "../components/Warehouse/ListExportCustomer";
+import PaymentShipList from "../components/PaymentOrder/PaymentShipList";
 const Router = createBrowserRouter([
   {
     path: "/",
@@ -335,9 +336,9 @@ const Router = createBrowserRouter([
       { path: "orders/tracking", element: <ManagerOrder /> },
       { path: "order-payment", element: <ListOrderManager /> },
       { path: "auction-payment", element: <AuctionPayment /> },
-      { path: "divide-payment", element: <DividePaymentOrder /> },
+      // { path: "divide-payment", element: <DividePaymentOrder /> },
       { path: "createpaymentsupport", element: <MergedPaymentOrder /> },
-      { path: "createpaymentshipping", element: <MergedPaymentShip /> },
+      // { path: "createpaymentshipping", element: <MergedPaymentShip /> },
       { path: "warehouse-staff", element: <NotFound /> },
       { path: "sales-staff", element: <NotFound /> },
       { path: "schedule", element: <NotFound /> },
@@ -368,9 +369,9 @@ const Router = createBrowserRouter([
       { path: "order-payment-list", element: <ListOrderManager /> },
       // { path: "ship-payment", element: <PaymentShipList /> },
       { path: "payments-orders", element: <MergedPaymentOrder /> },
-      { path: "payments-ship", element: <MergedPaymentShip /> },
+      { path: "payments-ship", element: <PaymentShipList /> },
       { path: "payments-auction", element: <AuctionPayment /> },
-      { path: "payments-divide", element: <DividePaymentOrder /> },
+      // { path: "payments-divide", element: <DividePaymentOrder /> },
       { path: "status-orders", element: <ManagerOrder /> },
       { path: "create-customer", element: <CreateAccountUser /> },
       { path: "list-customers", element: <CustomerStaffList /> },

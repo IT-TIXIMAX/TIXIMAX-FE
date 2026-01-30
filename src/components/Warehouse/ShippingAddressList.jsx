@@ -641,6 +641,7 @@
 
 // export default ShippingAddressList;
 
+// src/components/Warehouse/ShippingAddressList.jsx
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import {
   Search,
@@ -659,6 +660,39 @@ import RemoveShipmentDelivery from "./RemoveShipmentDelivery";
 import AccountSearch from "../Order/AccountSearch";
 
 const PAGE_SIZES = [50, 100, 200];
+
+/* ===================== Helpers ===================== */
+const toNumber = (v) => {
+  // xử lý cả "1,2" và "1.2"
+  const s = String(v ?? "").trim();
+  if (!s) return 0;
+  const n = Number(s.replace(",", "."));
+  return Number.isFinite(n) ? n : 0;
+};
+
+const getErrorMessage = (error, fallback = "Đã xảy ra lỗi") => {
+  const data = error?.response?.data;
+
+  // ✅ BE: { error, message, status }
+  if (data && typeof data === "object") {
+    if (typeof data.message === "string" && data.message.trim())
+      return data.message;
+    if (typeof data.error === "string" && data.error.trim()) return data.error;
+    if (typeof data.detail === "string" && data.detail.trim())
+      return data.detail;
+
+    if (Array.isArray(data.errors) && data.errors.length)
+      return data.errors.join(", ");
+    if (data.errors && typeof data.errors === "object") {
+      return Object.entries(data.errors)
+        .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(", ") : v}`)
+        .join(", ");
+    }
+  }
+
+  if (error?.request) return "Không thể kết nối tới server.";
+  return error?.message || fallback;
+};
 
 /* ===================== Skeletons ===================== */
 const StatCardSkeleton = () => (
@@ -710,10 +744,43 @@ const ShippingAddressList = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isRemoveDialogOpen, setIsRemoveDialogOpen] = useState(false);
 
+  const fetchAddresses = useCallback(async () => {
+    try {
+      setLoading(true);
+
+      const params = {};
+      if (filterCustomerCode) params.customerCode = filterCustomerCode;
+      if (filterShipmentCode) params.shipmentCode = filterShipmentCode;
+
+      const response = await draftWarehouseService.getShippingAddressList(
+        page,
+        pageSize,
+        params,
+      );
+
+      if (response?.content) {
+        setAddresses(response.content);
+        setTotalCount(response.totalElements || 0);
+      } else {
+        setAddresses(response || []);
+        setTotalCount(Array.isArray(response) ? response.length : 0);
+      }
+    } catch (error) {
+      console.error("Error fetching shipping addresses:", error);
+      toast.error(
+        getErrorMessage(error, "Không thể tải danh sách địa chỉ giao hàng"),
+        { duration: 5000 },
+      );
+      setAddresses([]);
+      setTotalCount(0);
+    } finally {
+      setLoading(false);
+    }
+  }, [page, pageSize, filterCustomerCode, filterShipmentCode]);
+
   useEffect(() => {
     fetchAddresses();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, pageSize, filterCustomerCode, filterShipmentCode]);
+  }, [fetchAddresses]);
 
   // ✅ Auto clear filter khi input trống (không cần nút "Xóa lọc")
   useEffect(() => {
@@ -732,43 +799,9 @@ const ShippingAddressList = () => {
     filterShipmentCode,
   ]);
 
-  const fetchAddresses = async () => {
-    try {
-      setLoading(true);
-
-      const params = {};
-      if (filterCustomerCode) params.customerCode = filterCustomerCode;
-      if (filterShipmentCode) params.shipmentCode = filterShipmentCode;
-
-      const response = await draftWarehouseService.getShippingAddressList(
-        page,
-        pageSize,
-        params
-      );
-
-      if (response?.content) {
-        setAddresses(response.content);
-        setTotalCount(response.totalElements || 0);
-      } else {
-        setAddresses(response || []);
-        setTotalCount(response?.length || 0);
-      }
-    } catch (error) {
-      console.error("Error fetching shipping addresses:", error);
-      const errorMessage =
-        error?.response?.data?.error ||
-        "Không thể tải danh sách địa chỉ giao hàng";
-      toast.error(errorMessage);
-      setAddresses([]);
-      setTotalCount(0);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const totalPages = useMemo(
     () => Math.max(1, Math.ceil(totalCount / pageSize)),
-    [totalCount, pageSize]
+    [totalCount, pageSize],
   );
 
   const handlePageSizeChange = (newSize) => {
@@ -793,16 +826,6 @@ const ShippingAddressList = () => {
     setPage(0);
   }, []);
 
-  const handleOpenAddDialog = (address) => {
-    setSelectedAddress(address);
-    setIsAddDialogOpen(true);
-  };
-
-  const handleOpenRemoveDialog = (address) => {
-    setSelectedAddress(address);
-    setIsRemoveDialogOpen(true);
-  };
-
   const handleDialogSuccess = () => {
     fetchAddresses();
   };
@@ -813,12 +836,13 @@ const ShippingAddressList = () => {
   const totalShipments = useMemo(() => {
     return addresses.reduce(
       (sum, addr) => sum + (addr.shippingList?.length || 0),
-      0
+      0,
     );
   }, [addresses]);
 
+  // ✅ FIX: ép kiểu number để tránh totalWeight là string -> .toFixed lỗi
   const totalWeight = useMemo(() => {
-    return addresses.reduce((sum, addr) => sum + (addr.weight || 0), 0);
+    return addresses.reduce((sum, addr) => sum + toNumber(addr?.weight), 0);
   }, [addresses]);
 
   return (
@@ -897,7 +921,9 @@ const ShippingAddressList = () => {
                       Tổng Trọng Lượng
                     </p>
                     <p className="text-3xl font-bold text-purple-600">
-                      {totalWeight.toFixed(1)} kg
+                      {Number.isFinite(totalWeight)
+                        ? `${totalWeight.toFixed(1)} kg`
+                        : "0.0 kg"}
                     </p>
                   </div>
                   <div className="p-3 bg-purple-100 rounded-lg">
@@ -938,9 +964,8 @@ const ShippingAddressList = () => {
                   onSelectAccount={(account) => {
                     const code = (account.customerCode || "").trim();
                     setSearchCustomerCode(
-                      `${code} - ${account.name || ""}`.trim()
+                      `${code} - ${account.name || ""}`.trim(),
                     );
-
                     // set filter ngay để đỡ phải bấm Search (nếu muốn)
                     setFilterCustomerCode(code);
                     setPage(0);
@@ -1111,9 +1136,15 @@ const ShippingAddressList = () => {
                       </td>
 
                       <td className="px-4 py-4">
-                        <span className="font-semibold text-purple-700">
-                          {address.weight ? `${address.weight} kg` : "—"}
-                        </span>
+                        {toNumber(address?.weight) > 0 ? (
+                          <span className="font-semibold text-purple-700">
+                            {toNumber(address?.weight)} kg
+                          </span>
+                        ) : (
+                          <span className="text-sm text-gray-400 italic">
+                            —
+                          </span>
+                        )}
                       </td>
 
                       <td className="px-4 py-4">
@@ -1284,3 +1315,4 @@ const ShippingAddressList = () => {
 };
 
 export default ShippingAddressList;
+``;
