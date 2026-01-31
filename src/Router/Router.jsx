@@ -161,6 +161,8 @@ import CreateInforFlight from "../components/LeadSale/CreateInforFlight";
 import ManagerInfoFlight from "../components/Manager/ManagerInfoFlight";
 import ListExportCustomer from "../components/Warehouse/ListExportCustomer";
 import PaymentShipList from "../components/PaymentOrder/PaymentShipList";
+import ManagerExpense from "../components/Manager/ManagerExpense";
+import CreateExpense from "../components/LeadSale/CreateExpense";
 const Router = createBrowserRouter([
   {
     path: "/",
@@ -299,6 +301,7 @@ const Router = createBrowserRouter([
       { path: "promotion", element: <ManagerPromotion /> },
       { path: "notifications", element: <NotFound /> },
       { path: "exchange-routes", element: <ManagerRouteExchange /> },
+      { path: "cost/management", element: <ManagerExpense /> },
     ],
   },
   {
@@ -345,6 +348,7 @@ const Router = createBrowserRouter([
       { path: "destination", element: <NotFound /> },
       { path: "campaigns", element: <SearchWebsite /> },
       { path: "camp", element: <AccountSearch /> },
+      { path: "expense", element: <CreateExpense /> },
     ],
   },
   {

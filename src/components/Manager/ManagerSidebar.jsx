@@ -300,13 +300,6 @@ const ManagerSidebar = () => {
           icon: <LayoutDashboard />,
           path: "/manager/dashboard",
         },
-
-        {
-          text: t("Danh sách đơn hàng"),
-          icon: <ShoppingCart />,
-          path: "/manager/order",
-        },
-
         {
           text: t("Hiệu suất kho"),
           icon: <Warehouse />,
@@ -322,6 +315,12 @@ const ManagerSidebar = () => {
           icon: <ChartSpline />,
           path: "/manager/kpicustomer",
         },
+        {
+          text: t("Danh sách đơn hàng"),
+          icon: <ShoppingCart />,
+          path: "/manager/order",
+        },
+
         {
           text: t("Danh sách khách hàng"),
           icon: <Users />,
@@ -379,10 +378,13 @@ const ManagerSidebar = () => {
           isOpen: openCost,
           onToggle: () => setOpenCost(!openCost),
           submenuItems: [
-            { text: t("Tài khoản ngân hàng"), path: "/manager/cost/paylater" },
             {
-              text: t("Thanh toán khách hàng"),
+              text: t("Quản lý thanh toán"),
               path: "/manager/cost/paybefore",
+            },
+            {
+              text: t("Quản lý thu chi"),
+              path: "/manager/cost/management",
             },
           ],
         },
@@ -401,6 +403,11 @@ const ManagerSidebar = () => {
           text: t("Tuyến vận chuyển"),
           icon: <Truck />,
           path: "/manager/routes",
+        },
+        {
+          text: t("Tài khoản ngân hàng"),
+          icon: <CreditCard />,
+          path: "/manager/cost/paylater",
         },
         {
           text: t("Quản lí tỷ giá"),

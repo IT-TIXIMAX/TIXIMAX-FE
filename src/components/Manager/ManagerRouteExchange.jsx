@@ -162,9 +162,8 @@ const ManagerRouteExchange = () => {
         toast.success("Tạo tỷ giá thành công");
 
         if (searchRouteId === createRouteId) {
-          const list = await routesService.getRouteExchangeByRouteId(
-            createRouteId
-          );
+          const list =
+            await routesService.getRouteExchangeByRouteId(createRouteId);
           setListData(list);
         }
 
@@ -187,15 +186,14 @@ const ManagerRouteExchange = () => {
           await routesService.deleteRouteExchange(id);
           toast.success("Xóa thành công");
 
-          const list = await routesService.getRouteExchangeByRouteId(
-            searchRouteId
-          );
+          const list =
+            await routesService.getRouteExchangeByRouteId(searchRouteId);
           setListData(list);
         } catch {
           toast.error("Xóa thất bại");
         }
       },
-      id
+      id,
     );
   };
 

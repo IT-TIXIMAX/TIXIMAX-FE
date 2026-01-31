@@ -215,12 +215,12 @@ const StaffSaleSidebar = () => {
             },
             {
               to: "/staff-sale/list-order-shipping",
-              icon: ListChecks,
+              icon: List,
               label: "Danh sách địa chỉ giao",
             },
             {
               to: "/staff-sale/list-shipping",
-              icon: List,
+              icon: ListChecks,
               label: "Danh sách xác nhận",
             },
             {

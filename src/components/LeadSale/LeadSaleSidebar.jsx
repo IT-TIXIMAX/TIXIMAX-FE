@@ -176,6 +176,11 @@ const LeadSaleSideBar = () => {
           icon: TrendingUp,
           label: "Cập nhật thông tin bay",
         },
+        {
+          to: "/lead-sale/expense",
+          icon: Banknote,
+          label: "Tạo thu chi",
+        },
       ],
     },
     {

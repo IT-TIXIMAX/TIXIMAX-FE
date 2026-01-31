@@ -10,7 +10,7 @@ import {
   RefreshCw,
   ShoppingCart,
 } from "lucide-react";
-import api from "../../config/api"; // ✅ gọi API trực tiếp
+import api from "../../config/api";
 import managerOrderService from "../../Services/Manager/managerOrderService";
 import DetailOrderSale from "../Manager/DetailForSale/DetailOrderSale";
 import DetailOrderLink from "./DetailOrderLink";

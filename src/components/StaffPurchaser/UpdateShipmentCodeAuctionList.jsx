@@ -55,7 +55,6 @@ const hasShipWebZero = (p) => {
   return links.some((l) => Number(l.shipWeb) === 0);
 };
 
-
 const RowSkeleton = () => (
   <div className="rounded-lg border border-slate-200 bg-white">
     <div className="animate-pulse p-4">
@@ -93,7 +92,7 @@ const UpdateShipmentCodeAuctionList = () => {
       new Intl.DateTimeFormat("vi-VN", {
         dateStyle: "short",
       }),
-    []
+    [],
   );
   const formatDate = (iso) => (iso ? dateFmt.format(new Date(iso)) : "-");
 
@@ -103,30 +102,30 @@ const UpdateShipmentCodeAuctionList = () => {
   };
 
   const fetchData = useCallback(
-  async (p = page, s = size) => {
-    setLoading(true);
-    setErr(null);
-    try {
-      // luôn fix status
-      const res = await orderlinkService.getPurchasesShipmentCode(
-        p,
-        s,
-        "DAU_GIA_THANH_CONG"
-      );
-      setData(res);
-    } catch (e) {
-      const msg =
-        e?.response?.data?.message ||
-        e?.response?.data?.error ||
-        e?.message ||
-        "Failed to load data.";
-      setErr(msg);
-    } finally {
-      setLoading(false);
-    }
-  },
-  [page, size]
-);
+    async (p = page, s = size) => {
+      setLoading(true);
+      setErr(null);
+      try {
+        // luôn fix status
+        const res = await orderlinkService.getPurchasesShipmentCode(
+          p,
+          s,
+          "DAU_GIA_THANH_CONG",
+        );
+        setData(res);
+      } catch (e) {
+        const msg =
+          e?.response?.data?.message ||
+          e?.response?.data?.error ||
+          e?.message ||
+          "Failed to load data.";
+        setErr(msg);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [page, size],
+  );
 
   useEffect(() => {
     setPage(0);
@@ -142,7 +141,7 @@ const UpdateShipmentCodeAuctionList = () => {
     const links = Array.isArray(p.pendingLinks) ? p.pendingLinks : [];
     if (links.length === 0) return false;
     return links.every(
-      (l) => l.shipmentCode && l.shipmentCode.toString().trim() !== ""
+      (l) => l.shipmentCode && l.shipmentCode.toString().trim() !== "",
     );
   };
 
@@ -283,8 +282,6 @@ const UpdateShipmentCodeAuctionList = () => {
             </div>
 
             <div className="flex items-center gap-3">
-             
-
               <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5">
                 <Package className="h-4 w-4 text-slate-500" />
                 <select
@@ -381,8 +378,8 @@ const UpdateShipmentCodeAuctionList = () => {
                             ? "bg-yellow-300 border-yellow-400"
                             : "bg-emerald-300 border-emerald-400"
                           : isAuction
-                          ? "bg-yellow-300 border-yellow-400"
-                          : "bg-rose-300 border-rose-400"
+                            ? "bg-yellow-300 border-yellow-400"
+                            : "bg-rose-300 border-rose-400"
                       }`}
                     >
                       <div className="flex items-center justify-between gap-4">
@@ -423,26 +420,26 @@ const UpdateShipmentCodeAuctionList = () => {
 
                           {isCompleted ? (
                             <div className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-100 px-3 py-1.5 text-sm font-medium text-emerald-700 border border-emerald-300">
-                                <CheckCircle2 className="h-4 w-4" />
-                                Completed
+                              <CheckCircle2 className="h-4 w-4" />
+                              Completed
                             </div>
-                            ) : hasShipWebZero(p) ? (
+                          ) : hasShipWebZero(p) ? (
                             <button
-                                onClick={() => openAuctionModal(p)}
-                                className="inline-flex items-center gap-1.5 rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 transition-colors"
+                              onClick={() => openAuctionModal(p)}
+                              className="inline-flex items-center gap-1.5 rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 transition-colors"
                             >
-                                <Truck className="h-4 w-4" />
-                                Update shipping
+                              <Truck className="h-4 w-4" />
+                              Update shipping
                             </button>
-                            ) : (
+                          ) : (
                             <button
-                                onClick={() => openShipmentModal(p)}
-                                className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+                              onClick={() => openShipmentModal(p)}
+                              className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
                             >
-                                <Package className="h-4 w-4" />
-                                Update shipment
+                              <Package className="h-4 w-4" />
+                              Update shipment
                             </button>
-                            )}
+                          )}
                         </div>
                       </div>
                     </div>
