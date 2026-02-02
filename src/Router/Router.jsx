@@ -164,6 +164,7 @@ import PaymentShipList from "../components/PaymentOrder/PaymentShipList";
 import ManagerExpense from "../components/Manager/ManagerExpense";
 import CreateExpense from "../components/LeadSale/CreateExpense";
 import ManagerSettingsHubCompact from "../components/Manager/ManagerSettingsHubCompact";
+import DetailDashboardDomestic from "../components/WarehouseDomestic/DetailDashboardDomestic";
 const Router = createBrowserRouter([
   {
     path: "/",
@@ -462,6 +463,7 @@ const Router = createBrowserRouter([
       { index: true, element: <DashboardWarehouseDomestic /> },
       { path: "profile", element: <StaffProfile /> },
       { path: "dashboard", element: <DashboardWarehouseDomestic /> },
+      { path: "dashboard1", element: <DetailDashboardDomestic /> },
       { path: "inventory", element: <WarehouseDomestic /> },
       { path: "imports", element: <PackingFlyingList /> },
       { path: "pending-payments", element: <PendingWarehouse /> },
