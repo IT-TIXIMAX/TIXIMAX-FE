@@ -283,6 +283,7 @@ import {
   ChartNoAxesCombined,
   Warehouse,
   LogOut,
+  Settings,
 } from "lucide-react";
 import Logout from "../../Page/Logout";
 
@@ -399,40 +400,45 @@ const ManagerSidebar = () => {
           path: "/manager/flight-list",
         },
 
+        // {
+        //   text: t("Tuyến vận chuyển"),
+        //   icon: <Truck />,
+        //   path: "/manager/routes",
+        // },
+        // {
+        //   text: t("Tài khoản ngân hàng"),
+        //   icon: <CreditCard />,
+        //   path: "/manager/cost/paylater",
+        // },
+        // {
+        //   text: t("Quản lí tỷ giá"),
+        //   icon: <FileText />,
+        //   path: "/manager/exchange-routes",
+        // },
+        // {
+        //   text: t("Điểm đến"),
+        //   icon: <MapPin />,
+        //   path: "/manager/transfer",
+        // },
+        // {
+        //   text: t("Loại sản phẩm"),
+        //   icon: <Box />,
+        //   path: "/manager/producttype",
+        // },
+        // {
+        //   text: t("Chương trình khuyến mãi"),
+        //   icon: <Gift />,
+        //   path: "/manager/promotion",
+        // },
+        // {
+        //   text: t("website"),
+        //   icon: <Globe />,
+        //   path: "/manager/website",
+        // },
         {
-          text: t("Tuyến vận chuyển"),
-          icon: <Truck />,
-          path: "/manager/routes",
-        },
-        {
-          text: t("Tài khoản ngân hàng"),
-          icon: <CreditCard />,
-          path: "/manager/cost/paylater",
-        },
-        {
-          text: t("Quản lí tỷ giá"),
-          icon: <FileText />,
-          path: "/manager/exchange-routes",
-        },
-        {
-          text: t("Điểm đến"),
-          icon: <MapPin />,
-          path: "/manager/transfer",
-        },
-        {
-          text: t("Loại sản phẩm"),
-          icon: <Box />,
-          path: "/manager/producttype",
-        },
-        {
-          text: t("Chương trình khuyến mãi"),
-          icon: <Gift />,
-          path: "/manager/promotion",
-        },
-        {
-          text: t("website"),
-          icon: <Globe />,
-          path: "/manager/website",
+          text: t("Cấu hình hệ thống"),
+          icon: <Settings />,
+          path: "/manager/settings",
         },
       ],
     },

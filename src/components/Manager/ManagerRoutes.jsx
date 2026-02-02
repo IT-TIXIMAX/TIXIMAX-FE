@@ -1,18 +1,13 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import {
-  FiPlus,
-  FiEdit2,
-  FiTrash2,
-  FiX,
-  FiFileText,
-  FiRefreshCw,
-} from "react-icons/fi";
+import { FiPlus, FiEdit2, FiTrash2, FiX, FiRefreshCw } from "react-icons/fi";
+import { Truck, Check, ArrowLeft } from "lucide-react";
 import managerRoutesService from "../../Services/Manager/managerRoutesService";
 import ConfirmDialog from "../../common/ConfirmDialog";
-import { Truck, Check } from "lucide-react";
 
 const ManagerRoutes = () => {
+  const navigate = useNavigate();
   const [routes, setRoutes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showDialog, setShowDialog] = useState(false);
@@ -22,7 +17,6 @@ const ManagerRoutes = () => {
   const [updateRatesLoading, setUpdateRatesLoading] = useState(false);
   const [editingId, setEditingId] = useState(null);
 
-  // ✅ Thêm differenceRate & updateAuto cho đúng API
   const [formData, setFormData] = useState({
     name: "",
     shipTime: "",
@@ -49,7 +43,6 @@ const ManagerRoutes = () => {
     }
   };
 
-  // Cập nhật tỷ giá cho tất cả routes
   const handleUpdateExchangeRates = async () => {
     setUpdateRatesLoading(true);
     const loadingToast = toast.loading("Đang cập nhật tỷ giá...");
@@ -79,14 +72,13 @@ const ManagerRoutes = () => {
     e.preventDefault();
 
     const loadingToast = toast.loading(
-      editingId ? "Đang cập nhật..." : "Đang tạo mới..."
+      editingId ? "Đang cập nhật..." : "Đang tạo mới...",
     );
 
     try {
-      // ✅ Chuẩn payload đúng API mới
       const submitData = {
         name: formData.name,
-        shipTime: formData.shipTime, // API đang nhận string -> giữ nguyên
+        shipTime: formData.shipTime,
         unitBuyingPrice: Number(formData.unitBuyingPrice) || 0,
         unitDepositPrice: Number(formData.unitDepositPrice) || 0,
         exchangeRate: Number(formData.exchangeRate) || 0,
@@ -96,11 +88,10 @@ const ManagerRoutes = () => {
       };
 
       if (editingId) {
-        // Optimistic update
         setRoutes((prev) =>
           prev.map((item) =>
-            item.routeId === editingId ? { ...item, ...submitData } : item
-          )
+            item.routeId === editingId ? { ...item, ...submitData } : item,
+          ),
         );
         await managerRoutesService.updateRoute(editingId, submitData);
         toast.success("Cập nhật thành công!", { id: loadingToast });
@@ -209,7 +200,6 @@ const ManagerRoutes = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // ✅ riêng checkbox updateAuto
   const handleCheckboxChange = (e) => {
     const { name, checked } = e.target;
     setFormData((prev) => ({ ...prev, [name]: checked }));
@@ -218,178 +208,211 @@ const ManagerRoutes = () => {
   const formatCurrency = (amount) =>
     new Intl.NumberFormat("vi-VN").format(amount);
 
-  // ===== Loading Skeleton Rows (7 cột, khớp thead) =====
   const SkeletonRows = () =>
     [...Array(8)].map((_, idx) => (
       <tr key={idx} className="animate-pulse">
         <td className="px-4 py-3">
-          <div className="h-4 w-20 bg-slate-100 rounded" />
+          <div className="h-4 w-20 bg-slate-200 rounded" />
         </td>
         <td className="px-4 py-3">
-          <div className="h-4 w-24 bg-slate-100 rounded" />
+          <div className="h-4 w-24 bg-slate-200 rounded" />
         </td>
         <td className="px-4 py-3">
-          <div className="h-4 w-24 bg-slate-100 rounded ml-auto" />
+          <div className="h-4 w-24 bg-slate-200 rounded ml-auto" />
         </td>
         <td className="px-4 py-3">
-          <div className="h-4 w-24 bg-slate-100 rounded ml-auto" />
+          <div className="h-4 w-24 bg-slate-200 rounded ml-auto" />
         </td>
         <td className="px-4 py-3">
-          <div className="h-4 w-24 bg-slate-100 rounded ml-auto" />
+          <div className="h-4 w-24 bg-slate-200 rounded ml-auto" />
         </td>
         <td className="px-4 py-3">
-          <div className="h-4 w-40 bg-slate-100 rounded" />
+          <div className="h-4 w-40 bg-slate-200 rounded" />
         </td>
         <td className="px-4 py-3">
-          <div className="h-8 w-24 bg-slate-100 rounded mx-auto" />
+          <div className="h-8 w-24 bg-slate-200 rounded mx-auto" />
         </td>
       </tr>
     ));
 
   return (
-    <div className="min-h-screen p-4 md:p-6">
+    <div className="min-h-screen p-4 md:p-6 lg:p-8">
       <div className="mx-auto space-y-6">
-        {/* Header giống style màn Bank Accounts */}
-        <div className="border border-blue-400 bg-blue-600 text-white rounded-xl px-5 py-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-white/10 flex items-center justify-center">
-              <Truck className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h1 className="text-lg md:text-xl font-semibold">
-                Quản lý tuyến vận chuyển
-              </h1>
-            </div>
-          </div>
+        {/* ✅ Header với nút Back - VERSION 1 */}
+        <div className="mb-6 md:mb-8">
+          <div className="bg-gradient-to-r from-blue-500 to-blue-600 border border-blue-700 rounded-xl shadow-lg p-4 md:p-6">
+            <div className="flex flex-col gap-4">
+              {/* ✅ Back Button Row */}
+              <div className="flex items-center">
+                <button
+                  onClick={() => navigate("/manager/settings")}
+                  className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white font-medium transition-all duration-200 shadow-sm hover:shadow-md border border-white/20"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  <span className="text-sm">Quay lại Cấu hình</span>
+                </button>
+              </div>
 
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={handleUpdateExchangeRates}
-              disabled={updateRatesLoading || loading}
-              className="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed border border-emerald-200"
-            >
-              {updateRatesLoading ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
-                  <span>Đang cập nhật...</span>
-                </>
-              ) : (
-                <>
-                  <FiRefreshCw className="w-4 h-4" />
-                  <span>Cập nhật tỷ giá</span>
-                </>
-              )}
-            </button>
+              {/* ✅ Title Row */}
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                {/* Left side - Title */}
+                <div className="flex items-center gap-3 md:gap-4">
+                  <div className="w-1.5 h-10 md:h-12 bg-white/90 rounded-full shrink-0 shadow-sm" />
+                  <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-white flex items-center justify-center shrink-0 shadow-md">
+                    <Truck className="w-7 h-7 md:w-8 md:h-8 text-blue-600" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-white leading-tight">
+                      Quản Lý Tuyến Vận Chuyển
+                    </h1>
+                  </div>
+                </div>
 
-            <button
-              onClick={openCreateDialog}
-              className="bg-white/10 hover:bg-white/20 text-white px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-1 shadow-sm border border-blue-300"
-            >
-              <FiPlus className="w-4 h-4" />
-              Thêm tuyến
-            </button>
+                {/* Right side - Actions */}
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={handleUpdateExchangeRates}
+                    disabled={updateRatesLoading || loading}
+                    className="inline-flex items-center gap-2 px-4 md:px-5 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white font-medium transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {updateRatesLoading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                        <span className="text-sm">Đang cập nhật...</span>
+                      </>
+                    ) : (
+                      <>
+                        <FiRefreshCw className="w-4 h-4" />
+                        <span className="text-sm">Cập nhật tỷ giá</span>
+                      </>
+                    )}
+                  </button>
+
+                  <button
+                    onClick={openCreateDialog}
+                    className="inline-flex items-center gap-2 px-4 md:px-5 py-2.5 rounded-lg bg-white/10 hover:bg-white/20 text-white font-medium transition-all duration-200 shadow-md hover:shadow-lg border border-white/20"
+                  >
+                    <FiPlus className="w-4 h-4" />
+                    <span className="text-sm">Thêm tuyến</span>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Table card đồng bộ style */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden relative">
+        {/* Table Card */}
+        <div className="bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden">
+          {/* Stats bar */}
+          <div className="px-4 md:px-6 py-4 bg-slate-50 border-b border-slate-200">
+            {loading ? (
+              <div className="h-4 w-56 bg-slate-200 rounded animate-pulse" />
+            ) : (
+              <div className="text-sm md:text-base font-medium text-slate-700">
+                Hiển thị{" "}
+                <span className="text-lg font-bold text-blue-600">
+                  {routes.length}
+                </span>{" "}
+                tuyến vận chuyển
+              </div>
+            )}
+          </div>
+
+          {/* Table */}
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-slate-50 border-b border-slate-200">
+              <thead className="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700 uppercase">
-                    Mã tỷ giá
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700 uppercase">
-                    Thời gian
-                  </th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-slate-700 uppercase">
-                    ĐG mua hộ
-                  </th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-slate-700 uppercase">
-                    ĐG ký gửi
-                  </th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-slate-700 uppercase">
-                    Tỷ giá
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700 uppercase">
-                    Tên tuyến
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold text-slate-700 uppercase">
-                    Thao tác
-                  </th>
+                  <Th>Mã tỷ giá</Th>
+                  <Th>Thời gian</Th>
+                  <Th className="text-right">ĐG mua hộ</Th>
+                  <Th className="text-right">ĐG ký gửi</Th>
+                  <Th className="text-right">Tỷ giá</Th>
+                  <Th>Tên tuyến</Th>
+                  <Th className="text-center">Thao tác</Th>
                 </tr>
               </thead>
 
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-200">
                 {loading ? (
                   <SkeletonRows />
                 ) : routes.length === 0 ? (
                   <tr>
-                    <td
-                      colSpan={7}
-                      className="px-4 py-10 text-center text-slate-500"
-                    >
-                      <FiFileText className="w-12 h-12 text-slate-300 mb-3 mx-auto" />
-                      <p className="text-sm font-medium mb-1">
-                        Chưa có dữ liệu tuyến vận chuyển
-                      </p>
-
-                      <button
-                        onClick={openCreateDialog}
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 inline-flex items-center gap-1 shadow-sm"
-                      >
-                        <FiPlus className="w-4 h-4" />
-                        Thêm tuyến mới
-                      </button>
+                    <td colSpan={7} className="py-16">
+                      <div className="flex flex-col items-center gap-3">
+                        <Truck className="w-16 h-16 text-slate-300" />
+                        <p className="text-slate-500 font-medium text-lg">
+                          Chưa có dữ liệu tuyến vận chuyển
+                        </p>
+                        <button
+                          onClick={openCreateDialog}
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium transition-colors shadow-md hover:shadow-lg mt-2"
+                        >
+                          <FiPlus className="w-4 h-4" />
+                          Thêm tuyến mới
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ) : (
                   routes.map((item) => (
                     <tr
                       key={item.routeId}
-                      className="hover:bg-slate-50 transition-colors"
+                      className="hover:bg-blue-50/50 transition-colors"
                     >
-                      <td className="px-4 py-3 font-medium text-slate-900 whitespace-nowrap">
+                      <td className="px-4 py-3 font-semibold text-blue-700">
                         {item.name}
                       </td>
+
                       <td className="px-4 py-3">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-blue-50 text-blue-700 border border-blue-100">
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200">
                           {item.shipTime}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-right text-slate-900 font-mono">
+
+                      <td className="px-4 py-3 text-right font-semibold text-slate-800 font-mono">
                         {item.unitBuyingPrice
                           ? formatCurrency(item.unitBuyingPrice)
                           : "-"}
                       </td>
-                      <td className="px-4 py-3 text-right text-slate-900 font-mono">
+
+                      <td className="px-4 py-3 text-right font-semibold text-slate-800 font-mono">
                         {item.unitDepositPrice
                           ? formatCurrency(item.unitDepositPrice)
                           : "-"}
                       </td>
-                      <td className="px-4 py-3 text-right text-slate-900 font-mono">
+
+                      <td className="px-4 py-3 text-right font-semibold text-slate-800 font-mono">
                         {item.exchangeRate
                           ? formatCurrency(item.exchangeRate)
                           : "-"}
                       </td>
-                      <td className="px-4 py-3">
-                        <div className="max-w-xs truncate" title={item.note}>
-                          {item.note || "Không có"}
+
+                      <td className="px-4 py-3 text-slate-700 font-medium">
+                        <div
+                          className="max-w-xs truncate"
+                          title={item.note || "Không có"}
+                        >
+                          {item.note || (
+                            <span className="text-slate-400 text-xs">
+                              Không có
+                            </span>
+                          )}
                         </div>
                       </td>
+
                       <td className="px-4 py-3">
-                        <div className="flex items-center justify-center gap-1.5">
+                        <div className="flex items-center justify-center gap-2">
                           <button
                             onClick={() => handleEdit(item)}
-                            className="bg-amber-50 hover:bg-amber-100 text-amber-700 p-1.5 rounded-lg border border-amber-200 transition-all"
+                            className="bg-amber-50 hover:bg-amber-100 text-amber-700 p-2 rounded-lg border border-amber-200 transition-all shadow-sm hover:shadow-md"
                             title="Chỉnh sửa"
                           >
                             <FiEdit2 className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => handleDelete(item.routeId)}
-                            className="bg-red-50 hover:bg-red-100 text-red-700 p-1.5 rounded-lg border border-red-200 transition-all"
+                            className="bg-red-50 hover:bg-red-100 text-red-700 p-2 rounded-lg border border-red-200 transition-all shadow-sm hover:shadow-md"
                             title="Xóa"
                           >
                             <FiTrash2 className="w-4 h-4" />
@@ -404,10 +427,10 @@ const ManagerRoutes = () => {
           </div>
 
           {deleteLoading && (
-            <div className="absolute inset-x-0 bottom-0 bg-white/80 flex items-center justify-center py-4 rounded-b-xl border-t border-red-100">
-              <div className="flex items-center gap-2">
+            <div className="absolute inset-x-0 bottom-0 bg-white/90 flex items-center justify-center py-4 rounded-b-xl border-t border-red-200">
+              <div className="flex items-center gap-3">
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-red-600" />
-                <span className="text-red-600 text-xs font-medium">
+                <span className="text-red-600 text-sm font-medium">
                   Đang xóa...
                 </span>
               </div>
@@ -416,43 +439,44 @@ const ManagerRoutes = () => {
         </div>
       </div>
 
-      {/* Dialog nhỏ gọn */}
+      {/* Modal */}
       {showDialog && (
-        <div className="fixed inset-0 bg-black/30 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-xl max-h-[90vh] overflow-y-auto border border-slate-200">
-            <div className="flex items-center justify-between px-5 py-3 border-b border-slate-200">
-              <h3 className="text-sm font-semibold text-slate-900">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-slate-200">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50">
+              <h3 className="text-base md:text-lg font-bold text-slate-900">
                 {editingId
                   ? "Cập nhật tuyến vận chuyển"
                   : "Thêm tuyến vận chuyển mới"}
               </h3>
               <button
                 onClick={closeDialog}
-                className="text-slate-400 hover:text-slate-600 transition-colors p-1 rounded hover:bg-slate-100"
+                className="text-slate-400 hover:text-slate-600 hover:bg-slate-200 transition-colors p-2 rounded-lg"
+                title="Đóng"
               >
-                <FiX className="w-4 h-4" />
+                <FiX className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="px-5 py-4 text-sm">
+            <form onSubmit={handleSubmit} className="px-6 py-5">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
-                  <label className="block text-xs font-medium text-slate-700 mb-1">
-                    Mã tỷ giá<span className="text-red-500">*</span>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    Mã tỷ giá <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     name="name"
                     value={formData.name}
                     onChange={handleInputChange}
-                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500"
+                    className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder="VD: JPY - VNĐ"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
                     Thời gian vận chuyển <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -460,14 +484,14 @@ const ManagerRoutes = () => {
                     name="shipTime"
                     value={formData.shipTime}
                     onChange={handleInputChange}
-                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500"
+                    className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder="VD: 7-10 ngày"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
                     Đơn giá mua hộ (VNĐ)
                   </label>
                   <input
@@ -475,7 +499,7 @@ const ManagerRoutes = () => {
                     name="unitBuyingPrice"
                     value={formData.unitBuyingPrice}
                     onChange={handleInputChange}
-                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500"
+                    className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder="0"
                     min="0"
                     step="0.01"
@@ -483,7 +507,7 @@ const ManagerRoutes = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
                     Đơn giá ký gửi (VNĐ)
                   </label>
                   <input
@@ -491,7 +515,7 @@ const ManagerRoutes = () => {
                     name="unitDepositPrice"
                     value={formData.unitDepositPrice}
                     onChange={handleInputChange}
-                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500"
+                    className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder="0"
                     min="0"
                     step="0.01"
@@ -499,7 +523,7 @@ const ManagerRoutes = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
                     Tỷ giá
                   </label>
                   <input
@@ -507,16 +531,15 @@ const ManagerRoutes = () => {
                     name="exchangeRate"
                     value={formData.exchangeRate}
                     onChange={handleInputChange}
-                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500"
+                    className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder="0"
                     min="0"
                     step="0.01"
                   />
                 </div>
 
-                {/* ✅ Tỷ giá chênh */}
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
                     Tỷ giá chênh (VNĐ)
                   </label>
                   <input
@@ -524,7 +547,7 @@ const ManagerRoutes = () => {
                     name="differenceRate"
                     value={formData.differenceRate}
                     onChange={handleInputChange}
-                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500"
+                    className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder="0"
                     min="0"
                     step="0.01"
@@ -532,49 +555,52 @@ const ManagerRoutes = () => {
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-xs font-medium text-slate-700 mb-1">
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
                     Tên tuyến
                   </label>
                   <textarea
                     name="note"
                     value={formData.note}
                     onChange={handleInputChange}
-                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500"
+                    className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Nhập tên tuyến vận chuyển..."
                     rows={3}
                   />
                 </div>
 
-                {/* ✅ Checkbox updateAuto */}
                 <div className="md:col-span-2">
-                  <label className="flex items-center gap-2 text-xs font-medium text-slate-700">
+                  <label className="flex items-center gap-3 p-3 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer">
                     <input
                       type="checkbox"
                       name="updateAuto"
                       checked={formData.updateAuto}
                       onChange={handleCheckboxChange}
-                      className="h-4 w-4 text-blue-600 border-slate-300 rounded"
+                      className="h-4 w-4 text-blue-600 border-slate-300 rounded focus:ring-2 focus:ring-blue-500"
                     />
-                    Tự động cập nhật tỷ giá cho mã này
+                    <div>
+                      <span className="text-sm font-medium text-slate-700">
+                        Tự động cập nhật tỷ giá cho mã này
+                      </span>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        Nếu bật, hệ thống sẽ tự cập nhật tỷ giá dựa trên nguồn
+                        tỷ giá chung (API backend).
+                      </p>
+                    </div>
                   </label>
-                  <p className="text-[11px] text-slate-500 mt-1">
-                    Nếu bật, hệ thống sẽ tự cập nhật tỷ giá dựa trên nguồn tỷ
-                    giá chung (API backend).
-                  </p>
                 </div>
               </div>
 
-              <div className="flex gap-2 mt-5 pt-4 border-t border-slate-200">
+              <div className="flex gap-3 mt-6 pt-5 border-t border-slate-200">
                 <button
                   type="button"
                   onClick={closeDialog}
-                  className="flex-1 bg-white hover:bg-slate-50 text-slate-700 px-4 py-2 rounded-lg text-xs font-medium transition-colors border border-slate-200"
+                  className="flex-1 bg-white hover:bg-slate-50 text-slate-700 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors border border-slate-300 shadow-sm"
                 >
                   Hủy
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-xs font-medium transition-colors inline-flex items-center justify-center gap-1"
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg text-sm font-medium transition-colors inline-flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
                 >
                   <Check className="w-4 h-4" />
                   {editingId ? "Cập nhật" : "Lưu"}
@@ -585,6 +611,7 @@ const ManagerRoutes = () => {
         </div>
       )}
 
+      {/* Confirm Delete Dialog */}
       <ConfirmDialog
         isOpen={showDeleteDialog}
         onClose={() => {
@@ -602,5 +629,14 @@ const ManagerRoutes = () => {
     </div>
   );
 };
+
+// Table Header Component
+const Th = ({ children, className = "" }) => (
+  <th
+    className={`px-4 py-3 text-left font-bold text-sm uppercase tracking-wider ${className}`}
+  >
+    {children}
+  </th>
+);
 
 export default ManagerRoutes;

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
-import { X, Wallet, User, CheckCircle2, Loader2 } from "lucide-react";
+import { X, Wallet, CheckCircle2, Loader2 } from "lucide-react";
 import paymentService from "../../Services/Payment/paymentService";
 import UploadImg from "../../common/UploadImg";
 
@@ -32,40 +32,38 @@ const formatMoney = (v) => {
   return `${n.toLocaleString("vi-VN")} ₫`;
 };
 
-// chỉ cho phép số nguyên không âm (text)
-const toNonNegativeIntText = (value) => {
-  const s = String(value ?? "");
-  const onlyDigits = s.replace(/[^\d]/g, "");
-  return onlyDigits === "" ? "" : onlyDigits;
+// format cho input (không có ₫)
+const formatVndInput = (value) => {
+  if (!value) return "";
+  const n = Number(value);
+  if (!Number.isFinite(n)) return "";
+  return n.toLocaleString("vi-VN");
 };
+
+// parse ngược từ input → số sạch
+const parseVndInput = (value) => value.replace(/[^\d]/g, "");
 
 const normalizeStr = (v) => String(v ?? "").trim();
 
 /* ================= COMPONENT ================= */
 const CreateRefund = ({ open, onClose, customer = null, onSuccess }) => {
   const [accountId, setAccountId] = useState("");
-  const [amountText, setAmountText] = useState(""); // text
-  const [image, setImage] = useState(""); // imageUrl
+  const [amountText, setAmountText] = useState(""); // số sạch dạng string
+  const [image, setImage] = useState("");
   const [loading, setLoading] = useState(false);
-
-  // phản ánh đúng lúc UploadImg đang upload/remove
   const [imgBusy, setImgBusy] = useState(false);
 
-  // auto fill khi mở modal / đổi customer
+  /* ===== init khi mở modal ===== */
   useEffect(() => {
     if (!open) return;
 
     const id = customer?.id ?? "";
     setAccountId(id ? String(id) : "");
 
-    // default amount = balance (nếu có)
     const balNum = Number(customer?.balance);
     const defaultAmt = Number.isFinite(balNum) ? Math.max(0, balNum) : 0;
-
-    // vì input đang là số nguyên -> làm tròn xuống (tuỳ hệ thống tiền tệ)
     setAmountText(String(Math.floor(defaultAmt)));
 
-    // reset image khi mở
     setImage("");
     setImgBusy(false);
     setLoading(false);
@@ -80,11 +78,13 @@ const CreateRefund = ({ open, onClose, customer = null, onSuccess }) => {
   const accountLocked = !!customer?.id;
 
   const canSubmit = useMemo(() => {
-    const idOk = normalizeStr(accountId) !== "";
-    const imgOk = normalizeStr(image) !== "";
-    // ✅ thường hoàn tiền phải > 0 (nếu bạn muốn >=0 thì đổi thành amountNumber >= 0)
-    const amtOk = Number.isFinite(amountNumber) && amountNumber > 0;
-    return idOk && imgOk && amtOk && !loading && !imgBusy;
+    return (
+      normalizeStr(accountId) &&
+      normalizeStr(image) &&
+      amountNumber > 0 &&
+      !loading &&
+      !imgBusy
+    );
   }, [accountId, image, amountNumber, loading, imgBusy]);
 
   const resetForm = useCallback(() => {
@@ -98,7 +98,6 @@ const CreateRefund = ({ open, onClose, customer = null, onSuccess }) => {
   const handleClose = useCallback(() => {
     if (loading || imgBusy) return;
     onClose?.();
-    // optional: reset sau khi đóng
     resetForm();
   }, [loading, imgBusy, onClose, resetForm]);
 
@@ -114,7 +113,6 @@ const CreateRefund = ({ open, onClose, customer = null, onSuccess }) => {
 
     setLoading(true);
     try {
-      // swagger: PUT /accounts/refund-balance/{customerId}?image=...&amount=...
       const res = await paymentService.refundBalance(normalizeStr(accountId), {
         image: normalizeStr(image),
         amount: amountNumber,
@@ -162,10 +160,8 @@ const CreateRefund = ({ open, onClose, customer = null, onSuccess }) => {
 
           <button
             onClick={handleClose}
-            type="button"
-            className="text-white/80 hover:text-white transition-colors disabled:opacity-60"
-            title="Đóng"
             disabled={loading || imgBusy}
+            className="text-white/80 hover:text-white"
           >
             <X size={22} />
           </button>
@@ -173,108 +169,66 @@ const CreateRefund = ({ open, onClose, customer = null, onSuccess }) => {
 
         {/* Body */}
         <div className="p-6 space-y-5">
-          {/* Customer quick card */}
           {customer && (
             <div className="border border-blue-100 bg-blue-50/60 rounded-xl p-4">
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center flex-shrink-0">
-                  <span className="text-white font-semibold">
-                    {(customer?.name || "?").charAt(0).toUpperCase()}
-                  </span>
-                </div>
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="font-semibold text-gray-900 truncate">
-                      {customer?.name || "—"}
-                    </p>
-                    {customer?.customerCode && (
-                      <span className="text-xs font-semibold px-2 py-1 rounded-full bg-white border border-blue-200 text-blue-700">
-                        {customer.customerCode}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-xl text-gray-600 mt-1">
-                    Balance:{" "}
-                    <span className="font-semibold text-gray-900">
-                      {formatMoney(customer?.balance)}
-                    </span>
-                  </p>
-                </div>
-              </div>
+              <p className="font-semibold">{customer.name}</p>
+              <p className="text-gray-600">
+                Balance:{" "}
+                <span className="font-semibold">
+                  {formatMoney(customer.balance)}
+                </span>
+              </p>
             </div>
           )}
 
-          {/* Inputs */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Account ID */}
             <div>
-              <label className="text-sm font-semibold text-gray-800 flex items-center gap-2 mb-2">
-                <User size={16} className="text-blue-600" />
-                Account ID <span className="text-red-500">*</span>
+              <label className="text-sm font-semibold mb-2 flex items-center gap-2">
+                Account ID *
               </label>
-
               <input
                 value={accountId}
                 onChange={(e) => setAccountId(e.target.value)}
-                placeholder="VD: 182"
-                className={`w-full px-4 py-2.5 rounded-xl border-2 outline-none transition ${
-                  accountLocked
-                    ? "border-gray-200 bg-gray-100 text-gray-700"
-                    : "border-gray-200 focus:border-blue-600"
-                }`}
-                disabled={loading || imgBusy || accountLocked}
+                disabled={accountLocked || loading || imgBusy}
+                className="w-full px-4 py-2.5 rounded-xl border-2"
               />
             </div>
 
             {/* Amount */}
             <div>
-              <label className="text-sm font-semibold text-gray-800 flex items-center gap-2 mb-2">
-                <Wallet size={16} className="text-blue-600" />
-                Amount <span className="text-red-500">*</span>
+              <label className="text-sm font-semibold mb-2 flex items-center gap-2">
+                Amount *
               </label>
-
               <input
                 type="text"
                 inputMode="numeric"
-                pattern="[0-9]*"
-                value={amountText}
-                onChange={(e) =>
-                  setAmountText(toNonNegativeIntText(e.target.value))
-                }
+                placeholder="0"
+                value={formatVndInput(amountText)}
+                onChange={(e) => setAmountText(parseVndInput(e.target.value))}
                 onKeyDown={(e) => {
-                  if (["-", "e", "E", ".", "+"].includes(e.key))
+                  if (["-", "e", "E", ".", "+", ","].includes(e.key))
                     e.preventDefault();
                 }}
-                placeholder="0"
-                className="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 focus:border-blue-600 outline-none transition"
                 disabled={loading || imgBusy}
+                className="w-full px-4 py-2.5 rounded-xl border-2"
               />
-
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-red-500 mt-1">
                 Sẽ hoàn:{" "}
                 <span className="font-semibold">
                   {formatMoney(amountNumber)}
                 </span>
               </p>
-              {amountNumber === 0 && (
-                <p className="text-xs text-red-500 mt-1">
-                  Số tiền hoàn phải lớn hơn 0
-                </p>
-              )}
             </div>
 
-            {/* Upload Image */}
+            {/* Upload */}
             <div className="md:col-span-2">
               <UploadImg
                 label="Ảnh hoàn tiền"
                 required
                 imageUrl={image}
-                maxSizeMB={3}
-                placeholder="Chưa có ảnh hoàn tiền"
-                className="w-full"
                 onImageUpload={(url) => setImage(normalizeStr(url))}
                 onImageRemove={() => setImage("")}
-                // ✅ nếu UploadImg hỗ trợ: gọi setImgBusy(true/false) khi upload/remove
                 onBusyChange={setImgBusy}
               />
             </div>
@@ -282,21 +236,19 @@ const CreateRefund = ({ open, onClose, customer = null, onSuccess }) => {
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex items-center justify-between gap-3">
+        <div className="px-6 py-4 bg-gray-50 border-t flex justify-end gap-3">
           <button
             onClick={handleClose}
-            type="button"
-            className="px-4 py-2.5 rounded-xl border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 font-semibold transition disabled:opacity-60"
             disabled={loading || imgBusy}
+            className="px-4 py-2 rounded-xl border"
           >
             Đóng
           </button>
 
           <button
             onClick={handleSubmit}
-            type="button"
             disabled={!canSubmit}
-            className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-5 py-2 rounded-xl bg-blue-600 text-white flex items-center gap-2 disabled:opacity-50"
           >
             {loading ? (
               <>

@@ -631,7 +631,7 @@ const ManagerOrder = () => {
                       >
                         <td className="px-4 py-4">
                           <span className="font-semibold text-blue-700">
-                            {order.orderCode || `#${order.orderId}`}
+                            {order.orderCode || `#${order.orderCode}`}
                           </span>
                         </td>
 

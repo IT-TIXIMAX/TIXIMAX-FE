@@ -163,6 +163,7 @@ import ListExportCustomer from "../components/Warehouse/ListExportCustomer";
 import PaymentShipList from "../components/PaymentOrder/PaymentShipList";
 import ManagerExpense from "../components/Manager/ManagerExpense";
 import CreateExpense from "../components/LeadSale/CreateExpense";
+import ManagerSettingsHubCompact from "../components/Manager/ManagerSettingsHubCompact";
 const Router = createBrowserRouter([
   {
     path: "/",
@@ -302,6 +303,7 @@ const Router = createBrowserRouter([
       { path: "notifications", element: <NotFound /> },
       { path: "exchange-routes", element: <ManagerRouteExchange /> },
       { path: "cost/management", element: <ManagerExpense /> },
+      { path: "settings", element: <ManagerSettingsHubCompact /> },
     ],
   },
   {
