@@ -526,83 +526,83 @@ const DashboardKPI = () => {
   );
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen ">
       <div className="mx-auto p-4 md:p-6 lg:p-8">
-        {/* ✅ Header - Yellow Gradient */}
+        {/* ✅ Header - Blue Gradient với Glassmorphism */}
         <div className="mb-6 md:mb-8">
-          <div className="bg-gradient-to-r from-yellow-300 via-yellow-300 to-yellow-300 border-[1px] border-black rounded-xl shadow-lg p-4 md:p-5">
-            <div className="flex flex-col gap-4">
-              {/* Top row */}
-              <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-1.5 h-8 md:h-9 bg-black rounded-full shrink-0 shadow-sm" />
-                  <div className="min-w-0">
-                    <h1 className="text-lg md:text-xl font-bold text-black leading-tight truncate">
-                      Thống Kê Hiệu Suất Nhân Viên
-                    </h1>
-                    <div className="flex items-center gap-2 mt-1 flex-wrap">
-                      <div className="flex items-center gap-2 px-3 py-1.5 bg-white border-2 border-black rounded-lg shadow-sm">
-                        <Calendar className="w-4 h-4 text-black" />
-                        <span className="text-xs md:text-sm font-semibold text-black whitespace-nowrap">
-                          {getFilterLabel()}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 px-3 py-1.5 bg-white border-2 border-black rounded-lg shadow-sm">
-                        <span className="text-xs md:text-sm font-semibold text-black whitespace-nowrap">
-                          Tất cả tuyến
-                        </span>
-                      </div>
-                    </div>
+          <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 rounded-2xl shadow-lg border border-blue-500 p-6 md:p-8">
+            {/* Title Section */}
+            <div className="flex items-center gap-4 mb-6">
+              <div className="p-3 rounded-xl bg-white/20 backdrop-blur-sm">
+                <BarChart3 className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold text-white">
+                  Thống Kê Hiệu Suất Nhân Viên
+                </h1>
+                <div className="flex items-center gap-2 mt-2 flex-wrap">
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg">
+                    <Calendar className="w-4 h-4 text-white" />
+                    <span className="text-sm font-semibold text-white">
+                      {getFilterLabel()}
+                    </span>
                   </div>
-                </div>
-
-                {/* Right: Filter buttons inline */}
-                <div className="flex flex-wrap items-center gap-2">
-                  {FILTER_TYPES.map((type) => {
-                    const active = filters.filterType === type.value;
-                    return (
-                      <button
-                        key={type.value}
-                        onClick={() =>
-                          setFilters((prev) => ({
-                            ...prev,
-                            routeId: "",
-                            filterType: type.value,
-                            ...(type.value !== "CUSTOM"
-                              ? { startDate: "", endDate: "" }
-                              : {}),
-                          }))
-                        }
-                        disabled={loading}
-                        className={`px-3.5 py-2 rounded-lg text-xs md:text-sm font-semibold transition-all border-2 border-yellow-600 shadow-sm ${
-                          active
-                            ? "bg-yellow-400 text-black"
-                            : "bg-white text-black hover:bg-gray-100"
-                        } ${loading ? "opacity-60 cursor-not-allowed" : ""}`}
-                      >
-                        {type.label}
-                      </button>
-                    );
-                  })}
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg">
+                    <span className="text-sm font-semibold text-white">
+                      Tất cả tuyến
+                    </span>
+                  </div>
                 </div>
               </div>
+            </div>
 
-              {/* Custom date row */}
+            {/* Filter Buttons Section */}
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+              <div className="flex flex-wrap items-center gap-2 md:gap-3">
+                {FILTER_TYPES.map((type) => {
+                  const active = filters.filterType === type.value;
+                  return (
+                    <button
+                      key={type.value}
+                      onClick={() =>
+                        setFilters((prev) => ({
+                          ...prev,
+                          routeId: "",
+                          filterType: type.value,
+                          ...(type.value !== "CUSTOM"
+                            ? { startDate: "", endDate: "" }
+                            : {}),
+                        }))
+                      }
+                      disabled={loading}
+                      className={`px-3 py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 ${
+                        active
+                          ? "bg-white text-blue-700 shadow-lg scale-105"
+                          : "bg-white/20 text-white hover:bg-white/30 hover:shadow-md backdrop-blur-sm"
+                      } ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
+                    >
+                      {type.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Custom Date Selector */}
               {filters.filterType === "CUSTOM" && (
-                <div className="pt-4 border-t-2 border-black">
-                  <div className="mb-2 text-xs font-bold text-black uppercase tracking-wide">
-                    Khoảng thời gian tùy chỉnh
+                <div className="mt-4 pt-4 border-t border-white/20">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Calendar className="w-5 h-5 text-white" />
+                    <span className="text-sm font-semibold text-white">
+                      Chọn khoảng thời gian tùy chỉnh
+                    </span>
                   </div>
-                  <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-                    <div className="flex flex-wrap items-center gap-3">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-black" />
-                      </div>
 
+                  <div className="flex flex-col md:flex-row items-start md:items-end gap-3 md:gap-4">
+                    <div className="flex flex-wrap items-center gap-3 flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-black">
-                          Từ
-                        </span>
+                        <label className="text-sm font-medium text-white">
+                          Từ ngày
+                        </label>
                         <input
                           type="date"
                           value={filters.startDate}
@@ -613,14 +613,14 @@ const DashboardKPI = () => {
                               startDate: e.target.value,
                             }))
                           }
-                          className="border-2 border-black rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 bg-white"
+                          className="border border-white/30 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-white focus:border-white bg-white text-gray-900"
                         />
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-black">
-                          Đến
-                        </span>
+                        <label className="text-sm font-medium text-white">
+                          Đến ngày
+                        </label>
                         <input
                           type="date"
                           value={filters.endDate}
@@ -631,14 +631,14 @@ const DashboardKPI = () => {
                               endDate: e.target.value,
                             }))
                           }
-                          className="border-2 border-black rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 bg-white"
+                          className="border border-white/30 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-white focus:border-white bg-white text-gray-900"
                         />
                       </div>
                     </div>
 
                     <button
                       onClick={() => setFilters(DEFAULT_FILTERS)}
-                      className="bg-white text-black border-2 border-black px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 transition-colors shadow-sm"
+                      className="bg-white/20 backdrop-blur-sm text-white border border-white/30 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-white/30 transition-colors"
                     >
                       Đặt lại
                     </button>

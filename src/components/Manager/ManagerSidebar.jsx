@@ -291,6 +291,7 @@ const ManagerSidebar = () => {
   const { t } = useTranslation();
   const location = useLocation();
   const [openCost, setOpenCost] = useState(false);
+  const [openWarehouse, setOpenWarehouse] = useState(false);
 
   const menuSections = [
     {
@@ -301,10 +302,31 @@ const ManagerSidebar = () => {
           icon: <LayoutDashboard />,
           path: "/manager/dashboard",
         },
+        // {
+        //   text: t("Hiệu suất kho"),
+        //   icon: <Warehouse />,
+        //   path: "/manager/warehouseperformance",
+        // },
         {
-          text: t("Hiệu suất kho"),
+          text: "Hiệu suất kho",
           icon: <Warehouse />,
-          path: "/manager/warehouseperformance",
+          hasSubmenu: true,
+          isOpen: openWarehouse,
+          onToggle: () => setOpenWarehouse(!openWarehouse),
+          submenuItems: [
+            {
+              text: t("Hiệu suất kho"),
+              path: "/manager/warehouseperformance",
+            },
+            {
+              text: t("Quản lý kho nội địa"),
+              path: "/manager/warehouse-domestic",
+            },
+            {
+              text: t("Quản lý kho quốc tế"),
+              path: "/manager/warehouse-international",
+            },
+          ],
         },
         {
           text: t("Hiệu suất nhân viên"),
@@ -316,6 +338,7 @@ const ManagerSidebar = () => {
           icon: <ChartSpline />,
           path: "/manager/kpicustomer",
         },
+
         {
           text: t("Danh sách đơn hàng"),
           icon: <ShoppingCart />,

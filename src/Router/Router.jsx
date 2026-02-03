@@ -165,6 +165,7 @@ import ManagerExpense from "../components/Manager/ManagerExpense";
 import CreateExpense from "../components/LeadSale/CreateExpense";
 import ManagerSettingsHubCompact from "../components/Manager/ManagerSettingsHubCompact";
 import DetailDashboardDomestic from "../components/WarehouseDomestic/DetailDashboardDomestic";
+import WarehouseDomesticAdmin from "../components/Admin/WarehouseDomesticAdmin";
 const Router = createBrowserRouter([
   {
     path: "/",
@@ -243,7 +244,7 @@ const Router = createBrowserRouter([
       { path: "drivers", element: <NotFound /> },
       { path: "vehicles", element: <NotFound /> },
       { path: "inventory", element: <InventoryList /> }, // Chưa triển khai
-      { path: "warehouse-transactions", element: <NotFound /> },
+      { path: "warehouse-transactions", element: <WarehouseDomesticAdmin /> },
       { path: "warehouse-locations", element: <NotFound /> },
       { path: "inventory-reports", element: <NotFound /> },
       { path: "orders/create", element: <NotFound /> },
@@ -283,6 +284,8 @@ const Router = createBrowserRouter([
       { path: "createstaff", element: <CreateAccountStaff /> },
       { path: "kpicustomer", element: <PerformancesCustomer /> },
       { path: "warehouseperformance", element: <DashboardWarehouseForeign /> },
+      { path: "warehouse-domestic", element: <DetailDashboardDomestic /> },
+      { path: "warehouse-international", element: <NotFound /> },
       { path: "flight-info", element: <CreateInforFlight /> },
       { path: "flight-list", element: <ManagerInfoFlight /> },
       { path: "quote", element: <PaymentOrderList /> },
@@ -463,7 +466,7 @@ const Router = createBrowserRouter([
       { index: true, element: <DashboardWarehouseDomestic /> },
       { path: "profile", element: <StaffProfile /> },
       { path: "dashboard", element: <DashboardWarehouseDomestic /> },
-      { path: "dashboard1", element: <DetailDashboardDomestic /> },
+      { path: "detail-dashboard", element: <DetailDashboardDomestic /> },
       { path: "inventory", element: <WarehouseDomestic /> },
       { path: "imports", element: <PackingFlyingList /> },
       { path: "pending-payments", element: <PendingWarehouse /> },

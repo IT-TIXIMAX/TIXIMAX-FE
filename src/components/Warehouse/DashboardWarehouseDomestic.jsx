@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Package,
   Truck,
@@ -10,8 +11,8 @@ import {
   Calendar,
   Filter,
   X,
-  Loader2,
-  RefreshCw,
+  TrendingUp,
+  ArrowRight,
 } from "lucide-react";
 import dashboardWarehouseService from "../../Services/Dashboard/dashboardwarehouseService";
 import FilterRoute from "../../components/Filter/FilterRoute";
@@ -193,11 +194,10 @@ const FilterDialog = ({ show, filters, onClose, onApply }) => {
                 </div>
               )}
 
-              {/* Thay thế input number bằng FilterRoute */}
               <FilterRoute
                 value={tempFilters.routeId}
                 onChange={(value) => handleChange("routeId", value)}
-                label="Tuyến đường "
+                label="Tuyến đường"
                 placeholder="Tất cả tuyến đường"
                 showIcon={true}
                 showLabel={true}
@@ -333,6 +333,7 @@ const StatCard = ({ config, data }) => {
 };
 
 const DashboardWarehouseDomestic = () => {
+  const navigate = useNavigate();
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
   const [showFilterDialog, setShowFilterDialog] = useState(false);
   const [dashboardData, setDashboardData] = useState(null);
@@ -413,11 +414,11 @@ const DashboardWarehouseDomestic = () => {
     : null;
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gray-50">
       <div className="mx-auto p-4 md:p-6 lg:p-8">
         {/* Header */}
         <div className="mb-6 md:mb-8">
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="w-1.5 h-8 md:h-10 bg-gradient-to-b from-blue-600 to-blue-700 rounded-full"></div>
               <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
@@ -425,15 +426,13 @@ const DashboardWarehouseDomestic = () => {
               </h1>
             </div>
 
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setShowFilterDialog(true)}
-                className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-md hover:shadow-lg font-semibold"
-              >
-                <Filter className="w-4 h-4" />
-                <span className="hidden sm:inline text-sm">Bộ lọc</span>
-              </button>
-            </div>
+            <button
+              onClick={() => setShowFilterDialog(true)}
+              className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-md hover:shadow-lg font-semibold"
+            >
+              <Filter className="w-4 h-4" />
+              <span className="hidden sm:inline text-sm">Bộ lọc</span>
+            </button>
           </div>
 
           <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg w-fit">
@@ -542,7 +541,7 @@ const DashboardWarehouseDomestic = () => {
             )}
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 md:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 md:gap-6 mb-8">
               {STATS_CONFIG.map((config) => (
                 <StatCard
                   key={config.key}
@@ -550,6 +549,35 @@ const DashboardWarehouseDomestic = () => {
                   data={dashboardData[config.key]}
                 />
               ))}
+            </div>
+
+            {/* View Detail Button */}
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl shadow-md border border-blue-200 p-6 md:p-8">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-blue-600 rounded-xl">
+                    <TrendingUp className="w-8 h-8 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-1">
+                      Xem báo cáo chi tiết
+                    </h3>
+                    <p className="text-sm text-gray-600 font-medium">
+                      Phân tích tồn kho & xuất kho theo từng tháng với biểu đồ
+                      trực quan
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() =>
+                    navigate("/staff-warehouse-domestic/detail-dashboard")
+                  }
+                  className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-lg hover:shadow-xl font-semibold whitespace-nowrap group"
+                >
+                  <span>Xem chi tiết</span>
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </button>
+              </div>
             </div>
           </>
         ) : !error ? (

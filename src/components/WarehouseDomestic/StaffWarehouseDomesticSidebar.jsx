@@ -123,12 +123,6 @@ const StaffWarehouseDomesticSidebar = () => {
       path: "/staff-warehouse-domestic/report",
       title: "Xem báo cáo thống kê xuất nhập kho",
     },
-    {
-      text: "Thống kê",
-      icon: <BarChart className="w-6 h-6" />,
-      path: "/staff-warehouse-domestic/dashboard1",
-      title: "Xem số liệu tổng quan ",
-    },
   ];
 
   const isActive = (path) => location.pathname.startsWith(path);
