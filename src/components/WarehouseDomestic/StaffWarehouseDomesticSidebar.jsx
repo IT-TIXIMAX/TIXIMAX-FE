@@ -45,12 +45,7 @@ const StaffWarehouseDomesticSidebar = () => {
       path: "/staff-warehouse-domestic/dashboard",
       title: "Xem số liệu tổng quan ",
     },
-    {
-      text: "Thống kê",
-      icon: <BarChart className="w-6 h-6" />,
-      path: "/staff-warehouse-domestic/dashboard1",
-      title: "Xem số liệu tổng quan ",
-    },
+
     {
       text: "Tồn kho",
       icon: <Package className="w-6 h-6" />,
@@ -127,6 +122,12 @@ const StaffWarehouseDomesticSidebar = () => {
       icon: <Download className="w-6 h-6" />,
       path: "/staff-warehouse-domestic/report",
       title: "Xem báo cáo thống kê xuất nhập kho",
+    },
+    {
+      text: "Thống kê",
+      icon: <BarChart className="w-6 h-6" />,
+      path: "/staff-warehouse-domestic/dashboard1",
+      title: "Xem số liệu tổng quan ",
     },
   ];
 

@@ -12,6 +12,13 @@ class DashboardWarehouseService {
       params: { month },
     });
   }
+
+  // Dashboard hàng đã xuất
+  getExportedDashboard({ month }) {
+    return api.get("/dashboard/exported", {
+      params: { month },
+    });
+  }
 }
 
 export default new DashboardWarehouseService();

@@ -256,7 +256,7 @@ const PaymentShipConfigModal = ({
     !bankId ||
     priceShipDos == null ||
     Number.isNaN(priceShipDos) ||
-    Number(priceShipDos) <= 0 ||
+    // Number(priceShipDos) <= 0 ||
     !!priceError;
 
   const handlePriceChange = (e) => {
@@ -267,10 +267,10 @@ const PaymentShipConfigModal = ({
     setPriceInput(formatted);
 
     const n = parseMoneyInput(formatted);
-    if (n == null) {
-      setPriceError("Vui lòng nhập giá vận chuyển");
-      return;
-    }
+    // if (n == null) {
+    //   setPriceError("Vui lòng nhập giá vận chuyển");
+    //   return;
+    // }
     if (Number.isNaN(n)) {
       setPriceError("Vui lòng nhập số hợp lệ");
       return;
@@ -509,11 +509,14 @@ const CreatePaymentShip = ({
         return;
       }
       const ship = Number(payload?.priceShipDos);
-
-      if (payload?.priceShipDos == null || Number.isNaN(ship) || ship <= 0) {
-        toast.error("Vui lòng nhập giá vận chuyển nội địa hợp lệ");
+      if (Number.isNaN(ship) || ship < 0) {
+        toast.error("Giá vận chuyển không hợp lệ");
         return;
       }
+      // if (payload?.priceShipDos == null || Number.isNaN(ship) || ship <= 0) {
+      //   toast.error("Vui lòng nhập giá vận chuyển nội địa hợp lệ");
+      //   return;
+      // }
 
       setShowConfigModal(false);
 
