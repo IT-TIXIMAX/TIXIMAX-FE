@@ -347,7 +347,7 @@ const Router = createBrowserRouter([
       { path: "auction-payment", element: <AuctionPayment /> },
       // { path: "divide-payment", element: <DividePaymentOrder /> },
       { path: "createpaymentsupport", element: <MergedPaymentOrder /> },
-      // { path: "createpaymentshipping", element: <MergedPaymentShip /> },
+      { path: "createpaymentshipping", element: <PaymentShipList /> },
       { path: "warehouse-staff", element: <NotFound /> },
       { path: "sales-staff", element: <NotFound /> },
       { path: "schedule", element: <NotFound /> },

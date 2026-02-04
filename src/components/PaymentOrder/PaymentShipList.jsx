@@ -12,13 +12,13 @@ import {
   Package,
   Layers,
   DollarSign,
+  CheckCircle2,
+  Clock,
 } from "lucide-react";
 import { getPaymentShipByShipCode } from "../../Services/Payment/paymentShipService";
 import CreatePaymentShip from "./CreatePaymentShip";
 import { getApiErrorMessage } from "../../Utils/getApiErrorMessage";
-
-// ✅ IMPORT AccountSearch (CHỈNH PATH CHO ĐÚNG)
-import AccountSearch from "../Order/AccountSearch"; // ví dụ: src/components/AccountSearch.jsx
+import AccountSearch from "../Order/AccountSearch";
 
 const PAGE_SIZES = [10, 50, 100];
 
@@ -74,7 +74,8 @@ const ListSkeleton = () => (
 const PaymentShipList = () => {
   const [sp, setSp] = useSearchParams();
 
-  const [shipCode, setShipCode] = useState(sp.get("shipCode") || "");
+  const [keyword, setKeyword] = useState(sp.get("keyword") || "");
+  const [payment, setPayment] = useState(sp.get("payment") === "true");
   const [page, setPage] = useState(Number(sp.get("page") || 0));
   const [size, setSize] = useState(Number(sp.get("size") || 10));
 
@@ -83,17 +84,19 @@ const PaymentShipList = () => {
   const [totalPages, setTotalPages] = useState(null);
   const [hasSearched, setHasSearched] = useState(false);
 
-  // ✅ accountId lấy từ URL params (để truyền vào CreatePaymentShip)
   const accountId = sp.get("accountId") || null;
 
-  // ✅ sync URL: shipCode, page, size, accountId
+  // ✅ sync URL: keyword, payment, page, size, accountId
   const syncUrl = useCallback(
     (next = {}) => {
       const params = new URLSearchParams(sp);
 
-      if ("shipCode" in next) {
-        const sc = String(next.shipCode || "").trim();
-        sc ? params.set("shipCode", sc) : params.delete("shipCode");
+      if ("keyword" in next) {
+        const kw = String(next.keyword || "").trim();
+        kw ? params.set("keyword", kw) : params.delete("keyword");
+      }
+      if ("payment" in next) {
+        params.set("payment", String(next.payment));
       }
       if ("page" in next) params.set("page", String(next.page));
       if ("size" in next) params.set("size", String(next.size));
@@ -109,16 +112,16 @@ const PaymentShipList = () => {
   );
 
   const fetchData = async (opts = {}) => {
-    const sc = String("shipCode" in opts ? opts.shipCode : shipCode).trim();
+    const kw = String("keyword" in opts ? opts.keyword : keyword).trim();
+    const pm = "payment" in opts ? opts.payment : payment;
     const p = "page" in opts ? opts.page : page;
     const s = "size" in opts ? opts.size : size;
 
     try {
       setLoading(true);
 
-      // ✅ shipCode rỗng => GET ALL
-      // ✅ shipCode có => SEARCH
-      const data = await getPaymentShipByShipCode(sc, p, s);
+      // ✅ Gọi API với keyword, payment, page, size
+      const data = await getPaymentShipByShipCode(kw, pm, p, s);
 
       let content;
       if (Array.isArray(data)) {
@@ -137,17 +140,17 @@ const PaymentShipList = () => {
 
       setHasSearched(true);
 
-      // ✅ sync URL luôn
+      // ✅ sync URL
       syncUrl({
-        shipCode: sc,
+        keyword: kw,
+        payment: pm,
         page: p,
         size: s,
-        // giữ accountId hiện có trên URL (nếu chưa set lại)
         accountId: sp.get("accountId") || null,
       });
 
-      if (sc && (content || []).length === 0) {
-        toast(`Không tìm thấy dữ liệu cho "${sc}"`, {
+      if (kw && (content || []).length === 0) {
+        toast(`Không tìm thấy dữ liệu cho "${kw}"`, {
           duration: 4000,
           style: { background: "#f63b3b", color: "#fff" },
         });
@@ -163,18 +166,21 @@ const PaymentShipList = () => {
     }
   };
 
-  // ✅ Auto load: nếu shipCode rỗng vẫn gọi get all
+  // ✅ Auto load từ URL params
   useEffect(() => {
-    const initialShipCode = sp.get("shipCode") || "";
+    const initialKeyword = sp.get("keyword") || "";
+    const initialPayment = sp.get("payment") === "true";
     const initialPage = Number(sp.get("page") || 0);
     const initialSize = Number(sp.get("size") || 10);
 
-    setShipCode(initialShipCode);
+    setKeyword(initialKeyword);
+    setPayment(initialPayment);
     setPage(initialPage);
     setSize(initialSize);
 
     fetchData({
-      shipCode: initialShipCode,
+      keyword: initialKeyword,
+      payment: initialPayment,
       page: initialPage,
       size: initialSize,
     });
@@ -224,6 +230,44 @@ const PaymentShipList = () => {
                 </h1>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* ===================== Payment Status Tabs ===================== */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                setPayment(false);
+                setPage(0);
+                fetchData({ payment: false, page: 0 });
+              }}
+              className={`flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all ${
+                !payment
+                  ? "bg-blue-600 text-white shadow-md"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+              type="button"
+            >
+              <Clock size={18} />
+              Chưa Thanh Toán
+            </button>
+            <button
+              onClick={() => {
+                setPayment(true);
+                setPage(0);
+                fetchData({ payment: true, page: 0 });
+              }}
+              className={`flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all ${
+                payment
+                  ? "bg-blue-600 text-white shadow-md"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+              type="button"
+            >
+              <CheckCircle2 size={18} />
+              Đã Thanh Toán
+            </button>
           </div>
         </div>
 
@@ -291,38 +335,30 @@ const PaymentShipList = () => {
         {/* ===================== Search Section ===================== */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-6">
           <div className="flex items-center gap-3">
-            {/* ✅ AccountSearch thay cho input */}
+            {/* AccountSearch */}
             <div className="relative flex-1">
               <AccountSearch
-                value={shipCode}
+                value={keyword}
                 placeholder="Tìm kiếm hoặc nhập mã khách hàng..."
                 disabled={loading}
                 onChange={(e) => {
-                  setShipCode(e.target.value);
+                  setKeyword(e.target.value);
                 }}
                 onSelectAccount={(acc) => {
                   const code = String(acc?.customerCode || "").trim();
+                  setKeyword(code);
 
-                  // ✅ set shipCode theo customerCode
-                  setShipCode(code);
-
-                  // ✅ sync accountId lên URL để CreatePaymentShip dùng
                   const accId = acc?.accountId ?? acc?.id ?? null;
                   syncUrl({ accountId: accId });
 
-                  // ✅ search luôn
                   setPage(0);
-                  fetchData({ shipCode: code, page: 0 });
+                  fetchData({ keyword: code, page: 0 });
                 }}
                 onClear={() => {
-                  setShipCode("");
+                  setKeyword("");
                   setPage(0);
-
-                  // ✅ xóa accountId khỏi URL
-                  syncUrl({ shipCode: "", page: 0, accountId: null });
-
-                  // ✅ fetch all
-                  fetchData({ shipCode: "", page: 0 });
+                  syncUrl({ keyword: "", page: 0, accountId: null });
+                  fetchData({ keyword: "", page: 0 });
                 }}
               />
             </div>
@@ -379,7 +415,7 @@ const PaymentShipList = () => {
           {/* Header */}
           <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
             <h2 className="text-xl font-semibold text-white flex items-center">
-              Danh Sách Thanh Toán
+              Danh Sách {payment ? "Đã Thanh Toán" : "Chưa Thanh Toán"}
               <span className="ml-2 text-xl font-normal text-blue-100">
                 ({rows.length} kết quả)
               </span>
@@ -393,7 +429,11 @@ const PaymentShipList = () => {
             <div className="text-center py-16">
               <div className="flex justify-center mb-4">
                 <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center">
-                  <Package className="w-10 h-10 text-gray-400" />
+                  {payment ? (
+                    <CheckCircle2 className="w-10 h-10 text-gray-400" />
+                  ) : (
+                    <Clock className="w-10 h-10 text-gray-400" />
+                  )}
                 </div>
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
@@ -401,7 +441,7 @@ const PaymentShipList = () => {
               </h3>
               <p className="text-gray-500">
                 {hasSearched
-                  ? "Không có shipment phù hợp."
+                  ? `Không có shipment ${payment ? "đã thanh toán" : "chưa thanh toán"}.`
                   : "Bấm tìm để tải dữ liệu."}
               </p>
             </div>
@@ -436,6 +476,12 @@ const PaymentShipList = () => {
                               <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
                                 {list.length} kiện
                               </span>
+                              {payment && (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                                  <CheckCircle2 size={12} />
+                                  Đã thanh toán
+                                </span>
+                              )}
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
@@ -470,14 +516,17 @@ const PaymentShipList = () => {
                               </div>
                             </div>
 
-                            <CreatePaymentShip
-                              shipCode={code}
-                              totalAmount={item?.totalPriceShip || 0}
-                              onSuccess={handlePaymentSuccess}
-                              onError={handlePaymentError}
-                              disabled={loading || !code || code === "-"}
-                              accountId={accountId}
-                            />
+                            {/* Chỉ hiện button CreatePaymentShip khi chưa thanh toán */}
+                            {!payment && (
+                              <CreatePaymentShip
+                                shipCode={code}
+                                totalAmount={item?.totalPriceShip || 0}
+                                onSuccess={handlePaymentSuccess}
+                                onError={handlePaymentError}
+                                disabled={loading || !code || code === "-"}
+                                accountId={accountId}
+                              />
+                            )}
                           </div>
                         </div>
                       </div>

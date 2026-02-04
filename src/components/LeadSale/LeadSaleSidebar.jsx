@@ -112,11 +112,11 @@ const LeadSaleSideBar = () => {
               icon: Truck,
               label: "Thanh toán vận chuyển",
             },
-            {
-              to: "/lead-sale/divide-payment",
-              icon: Rows2,
-              label: "Thanh toán tách đơn ",
-            },
+            // {
+            //   to: "/lead-sale/divide-payment",
+            //   icon: Rows2,
+            //   label: "Thanh toán tách đơn ",
+            // },
             {
               to: "/lead-sale/auction-payment",
               icon: Wallet,

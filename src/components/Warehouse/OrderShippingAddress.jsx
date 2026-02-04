@@ -100,7 +100,7 @@ const OrderShippingAddress = () => {
       const response = await draftWarehouseService.getAvailableToAdd(
         page,
         pageSize,
-        params
+        params,
       );
 
       if (response?.content) {
@@ -125,7 +125,7 @@ const OrderShippingAddress = () => {
 
   const totalPages = useMemo(
     () => Math.max(1, Math.ceil(totalCount / pageSize)),
-    [totalCount, pageSize]
+    [totalCount, pageSize],
   );
 
   const handlePageSizeChange = (newSize) => {
@@ -216,7 +216,7 @@ const OrderShippingAddress = () => {
       }
 
       toast.success(
-        `Xác nhận thành công ${selectedDeliveries.length} địa chỉ giao hàng!`
+        `Xác nhận thành công ${selectedDeliveries.length} địa chỉ giao hàng!`,
       );
       setSelectedDeliveries([]);
       fetchDeliveries();
@@ -236,7 +236,7 @@ const OrderShippingAddress = () => {
   const totalShipments = useMemo(() => {
     return deliveries.reduce(
       (sum, d) => sum + (d.shipmentCode?.length || 0),
-      0
+      0,
     );
   }, [deliveries]);
 
@@ -364,7 +364,7 @@ const OrderShippingAddress = () => {
                   onSelectAccount={(account) => {
                     const code = (account.customerCode || "").trim();
                     setAccountSearchValue(
-                      `${code} - ${account.name || ""}`.trim()
+                      `${code} - ${account.name || ""}`.trim(),
                     );
                     // set filter luôn cho nhanh (đỡ phải bấm Search nếu bạn muốn)
                     setFilterCustomerCode(code);
