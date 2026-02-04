@@ -3,7 +3,7 @@ import api from "../../config/api.js";
 const orderService = {
   createOrder: async (customerCode, routeId, addressId, orderData) => {
     const url = `/orders/${encodeURIComponent(customerCode)}/${Number(
-      routeId
+      routeId,
     )}/${Number(addressId)}`;
     const res = await api.post(url, orderData);
     return res.data;
@@ -34,11 +34,25 @@ const orderService = {
     return response.data;
   },
 
-  getRefundOrders: async (offset = 0, limit = 10) => {
-    const response = await api.get(`/orders/refund/${offset}/${limit}`);
+  getRefundOrders: async (orderCode = "", offset = 0, limit = 10) => {
+    let url;
+    const params = {};
+
+    if (orderCode && orderCode.trim()) {
+      // ✅ Case có orderCode: search specific order
+      url = `/orders/refund/${orderCode}/${offset}/${limit}`;
+      params.orderCode = orderCode;
+    } else {
+      // ✅ Case không có orderCode: get all
+      // Thử 2 pattern, tùy backend API design
+      url = `/orders/refund/all/${offset}/${limit}`;
+      // Hoặc nếu backend dùng empty string:
+      // url = `/orders/refund/${offset}/${limit}`;
+    }
+
+    const response = await api.get(url, { params });
     return response.data;
   },
-
   confirmRefundOrder: async (orderId, refundToCustomer, imageUrl) => {
     const response = await api.put(`/orders/refund-confirm/${orderId}`, null, {
       params: {

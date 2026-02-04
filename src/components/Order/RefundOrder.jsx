@@ -7,68 +7,63 @@ import {
   ChevronLeft,
   ChevronRight,
   AlertCircle,
+  Search,
+  Receipt,
 } from "lucide-react";
 import orderService from "../../Services/LeadSale/orderService";
-import ConfirmRefundOrder from "./ConfirmRefundOrder"; // <-- modal confirm
+import ConfirmRefundOrder from "./ConfirmRefundOrder";
 
 const RefundOrder = () => {
   const [refundOrders, setRefundOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  /**
-   * ✅ Theo logic bạn muốn:
-   * - offset = pageIndex (0,1,2,...)
-   * - limit = pageSize
-   * - currentPage = page number UI (1,2,3,...)
-   */
+  const [searchOrderCode, setSearchOrderCode] = useState("");
+  const [activeFilter, setActiveFilter] = useState("");
+
   const [pagination, setPagination] = useState({
-    offset: 0, // pageIndex (0-based)
-    limit: 100, // pageSize
+    offset: 0,
+    limit: 100,
     total: 0,
-    currentPage: 1, // UI page (1-based)
+    currentPage: 1,
   });
 
-  // modal state: confirm refund
   const [openRefundModal, setOpenRefundModal] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
 
-  // modal state: detail cancelled links
-  const [openDetailModal, setOpenDetailModal] = useState(false);
-  const [detailOrder, setDetailOrder] = useState(null);
-
-  // fetch list (offset = pageIndex)
-  const fetchRefundOrders = async (offset = 0, limit = 100) => {
+  const fetchRefundOrders = async (orderCode = "", offset = 0, limit = 100) => {
     try {
       setLoading(true);
       setError(null);
 
-      // ✅ offset ở đây là pageIndex theo yêu cầu của bạn
-      const response = await orderService.getRefundOrders(offset, limit);
+      const response = await orderService.getRefundOrders(
+        orderCode,
+        offset,
+        limit,
+      );
 
       setRefundOrders(response?.content || []);
       setPagination((prev) => ({
         ...prev,
         offset,
         limit,
-        // ✅ dùng ?? để totalElements=0 không bị fallback sai
         total: response?.totalElements ?? response?.content?.length ?? 0,
       }));
     } catch (err) {
       setError("Không thể tải danh sách hoàn tiền. Vui lòng thử lại.");
       console.error("Error fetching refund orders:", err);
+      setRefundOrders([]);
+      setPagination((prev) => ({ ...prev, total: 0 }));
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    // ✅ trang đầu: offset=0, limit=10
-    fetchRefundOrders(0, pagination.limit);
+    fetchRefundOrders("", 0, pagination.limit);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // helpers
   const formatCurrency = (amount) =>
     new Intl.NumberFormat("vi-VN", {
       style: "currency",
@@ -76,13 +71,10 @@ const RefundOrder = () => {
     }).format(amount ?? 0);
 
   const formatDate = (dateString) => {
-    if (!dateString) return "";
+    if (!dateString) return "-";
     const date = new Date(dateString);
-    return date.toLocaleDateString("vi-VN", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    });
+    if (Number.isNaN(date.getTime())) return String(dateString);
+    return date.toLocaleString("vi-VN", { hour12: false });
   };
 
   const getOrderTypeName = (type) => {
@@ -99,51 +91,47 @@ const RefundOrder = () => {
     const map = {
       DA_HUY: {
         name: "Đã hủy",
-        bg: "bg-red-50",
+        bg: "bg-red-100",
         text: "text-red-700",
-        border: "border-red-200",
+        border: "border-red-300",
       },
       CHO_HOAN_TIEN: {
         name: "Chờ hoàn tiền",
-        bg: "bg-amber-50",
+        bg: "bg-amber-100",
         text: "text-amber-700",
-        border: "border-amber-200",
+        border: "border-amber-300",
       },
       DA_HOAN_TIEN: {
         name: "Đã hoàn tiền",
-        bg: "bg-green-50",
+        bg: "bg-green-100",
         text: "text-green-700",
-        border: "border-green-200",
+        border: "border-green-300",
       },
       DANG_XU_LY: {
         name: "Đang xử lý",
-        bg: "bg-blue-50",
+        bg: "bg-blue-100",
         text: "text-blue-700",
-        border: "border-blue-200",
+        border: "border-blue-300",
       },
     };
     return (
       map[status] || {
         name: status,
-        bg: "bg-gray-50",
-        text: "text-gray-700",
-        border: "border-gray-200",
+        bg: "bg-slate-100",
+        text: "text-slate-700",
+        border: "border-slate-300",
       }
     );
   };
 
-  // ✅ totalPages luôn >= 1 để clamp dễ, nhưng UI chỉ hiện pagination khi total>0
   const totalPages = Math.max(
     1,
-    Math.ceil((pagination.total || 0) / (pagination.limit || 100))
+    Math.ceil((pagination.total || 0) / (pagination.limit || 100)),
   );
 
-  // ✅ PAGE logic theo yêu cầu:
-  // - currentPage: 1..N
-  // - offset: pageIndex = currentPage - 1
   const handlePageChange = (page) => {
     const safePage = Math.min(Math.max(page, 1), totalPages);
-    const pageIndex = safePage - 1; // 👈 offset kiểu bạn muốn
+    const pageIndex = safePage - 1;
 
     setPagination((prev) => ({
       ...prev,
@@ -151,473 +139,402 @@ const RefundOrder = () => {
       offset: pageIndex,
     }));
 
-    fetchRefundOrders(pageIndex, pagination.limit || 100);
+    fetchRefundOrders(activeFilter, pageIndex, pagination.limit || 100);
+  };
+
+  const handleSearch = () => {
+    const code = searchOrderCode.trim();
+    setActiveFilter(code);
+    setPagination((prev) => ({ ...prev, offset: 0, currentPage: 1 }));
+    fetchRefundOrders(code, 0, pagination.limit);
+  };
+
+  const handleClearSearch = () => {
+    setSearchOrderCode("");
+    setActiveFilter("");
+    setPagination((prev) => ({ ...prev, offset: 0, currentPage: 1 }));
+    fetchRefundOrders("", 0, pagination.limit);
   };
 
   const handleRefresh = () =>
-    fetchRefundOrders(pagination.offset, pagination.limit);
+    fetchRefundOrders(activeFilter, pagination.offset, pagination.limit);
 
-  // modal control: confirm refund
   const openRefundDialog = (order) => {
     setSelectedOrder(order);
     setOpenRefundModal(true);
   };
+
   const closeRefundDialog = () => {
     setSelectedOrder(null);
     setOpenRefundModal(false);
   };
 
-  // modal control: detail cancelled links
-  const openDetailDialog = (item) => {
-    setDetailOrder(item);
-    setOpenDetailModal(true);
-  };
-  const closeDetailDialog = () => {
-    setDetailOrder(null);
-    setOpenDetailModal(false);
-  };
-
-  // ===== Loading Skeleton Row (10 cột) =====
+  // ===== Loading Skeleton Row =====
   const SkeletonRow = () => (
-    <tr className="animate-pulse">
-      <td className="px-6 py-4">
-        <div className="h-5 w-24 bg-gray-200 rounded-md" />
+    <tr className="hover:bg-transparent">
+      <td className="px-4 py-3">
+        <div className="h-5 w-24 bg-slate-200 rounded animate-pulse" />
       </td>
-      <td className="px-6 py-4">
-        <div className="h-4 w-20 bg-gray-200 rounded" />
+      <td className="px-4 py-3">
+        <div className="h-4 w-20 bg-slate-200 rounded animate-pulse" />
       </td>
-      <td className="px-6 py-4">
-        <div className="h-6 w-24 bg-gray-200 rounded-full" />
+      <td className="px-4 py-3">
+        <div className="h-6 w-28 bg-slate-200 rounded-full animate-pulse" />
       </td>
-      <td className="px-6 py-4">
-        <div className="h-4 w-24 bg-gray-200 rounded" />
+      <td className="px-4 py-3">
+        <div className="h-4 w-32 bg-slate-200 rounded animate-pulse" />
       </td>
-      <td className="px-6 py-4 text-right">
-        <div className="h-4 w-16 bg-gray-200 rounded ml-auto" />
+      <td className="px-4 py-3">
+        <div className="h-4 w-24 bg-slate-200 rounded animate-pulse" />
       </td>
-      <td className="px-6 py-4 text-right">
-        <div className="h-4 w-24 bg-gray-200 rounded ml-auto" />
+      <td className="px-4 py-3 text-right">
+        <div className="h-4 w-28 bg-slate-200 rounded animate-pulse ml-auto" />
       </td>
-      <td className="px-6 py-4 text-right">
-        <div className="h-4 w-24 bg-gray-200 rounded ml-auto" />
+      <td className="px-4 py-3 text-right">
+        <div className="h-4 w-24 bg-slate-200 rounded animate-pulse ml-auto" />
       </td>
-      <td className="px-6 py-4 text-right">
-        <div className="h-4 w-20 bg-gray-200 rounded ml-auto" />
-      </td>
-      <td className="px-6 py-4">
-        <div className="h-4 w-32 bg-gray-200 rounded" />
-      </td>
-      <td className="px-6 py-4 text-center">
-        <div className="h-8 w-20 bg-gray-200 rounded mx-auto" />
+      <td className="px-4 py-3 text-center">
+        <div className="h-9 w-20 bg-slate-200 rounded-lg animate-pulse mx-auto" />
       </td>
     </tr>
   );
 
-  // ===== Modal chi tiết cancelledLinks =====
-  const RefundOrderDetailModal = ({ open, data, onClose }) => {
-    if (!open || !data) return null;
-    const { order, cancelledLinks = [] } = data;
-    const customer = order?.customer;
-
-    return (
-      <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40">
-        <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl max-h-[80vh] flex flex-col">
-          <div className="px-5 py-4 border-b flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-800">
-                Chi tiết liên kết hủy – {order?.orderCode}
-              </h3>
-              {customer && (
-                <p className="text-sm text-gray-500 mt-1">
-                  Khách hàng:{" "}
-                  <span className="font-medium">{customer.name}</span>{" "}
-                  {customer.phone && `(${customer.phone})`}
-                </p>
-              )}
-            </div>
-            <button
-              onClick={onClose}
-              className="p-2 rounded-full hover:bg-gray-100 text-gray-500"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-
-          <div className="px-5 py-4 space-y-3 overflow-y-auto">
-            {cancelledLinks.length === 0 && (
-              <p className="text-sm text-gray-500">
-                Không có link hủy nào cho đơn này.
-              </p>
-            )}
-
-            {cancelledLinks.map((link) => (
-              <div
-                key={link.linkId}
-                className="border border-gray-200 rounded-md p-3 bg-gray-50"
-              >
-                <p className="font-medium text-gray-800">
-                  {link.productName || "Sản phẩm không tên"}
-                </p>
-                {link.productLink && (
-                  <a
-                    href={link.productLink}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-xs text-blue-600 underline break-all"
-                  >
-                    {link.productLink}
-                  </a>
-                )}
-
-                <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-gray-600">
-                  <div>
-                    SL:{" "}
-                    <span className="font-semibold">{link.quantity ?? 0}</span>
-                  </div>
-                  <div>
-                    Web:{" "}
-                    <span className="font-semibold">
-                      {formatCurrency(link.priceWeb)}
-                    </span>
-                  </div>
-                  <div>
-                    Ship web:{" "}
-                    <span className="font-semibold">
-                      {formatCurrency(link.shipWeb)}
-                    </span>
-                  </div>
-                  <div>
-                    Tổng web:{" "}
-                    <span className="font-semibold">
-                      {formatCurrency(link.totalWeb)}
-                    </span>
-                  </div>
-                  <div>
-                    Phí mua hộ:{" "}
-                    <span className="font-semibold">
-                      {formatCurrency(link.purchaseFee)}
-                    </span>
-                  </div>
-                  <div>
-                    Phụ thu:{" "}
-                    <span className="font-semibold">
-                      {formatCurrency(link.extraCharge)}
-                    </span>
-                  </div>
-                  <div className="col-span-2">
-                    Giá cuối (VND):{" "}
-                    <span className="font-semibold">
-                      {formatCurrency(link.finalPriceVnd)}
-                    </span>
-                  </div>
-                  {link.trackingCode && (
-                    <div className="col-span-2">
-                      Mã tracking:{" "}
-                      <span className="font-semibold">{link.trackingCode}</span>
-                    </div>
-                  )}
+  return (
+    <div className="min-h-screen p-4 md:p-6 lg:p-8">
+      <div className="mx-auto space-y-6">
+        {/* ===== Header ===== */}
+        <div className="mb-6 md:mb-8">
+          <div className="bg-gradient-to-r from-yellow-300 via-yellow-300 to-yellow-300 border-[1px] border-black rounded-xl shadow-lg p-4 md:p-5">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-1.5 h-8 md:h-9 bg-black rounded-full shrink-0 shadow-sm" />
+                <div className="w-11 h-11 rounded-lg bg-white border-2 border-black flex items-center justify-center shrink-0">
+                  <Receipt className="w-6 h-6 text-black" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h1 className="text-lg md:text-xl font-bold text-black leading-tight">
+                    Danh Sách Đơn Hoàn Tiền
+                  </h1>
                 </div>
               </div>
-            ))}
+              <button
+                onClick={handleRefresh}
+                disabled={loading}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-green-600 hover:bg-green-700 text-white font-medium transition-colors shadow-md hover:shadow-lg disabled:bg-slate-300 disabled:cursor-not-allowed"
+              >
+                <RefreshCw
+                  className={`w-4 h-4 ${loading ? "animate-spin" : ""}`}
+                />
+                <span className="hidden sm:inline">Làm mới</span>
+              </button>
+            </div>
           </div>
+        </div>
 
-          <div className="px-5 py-3 border-t flex justify-end">
+        {/* ===== Search Card ===== */}
+        <div className="bg-white rounded-xl shadow-lg border border-slate-200 p-4 md:p-6">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Tìm kiếm theo mã đơn hàng..."
+                value={searchOrderCode}
+                onChange={(e) => setSearchOrderCode(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                className="w-full h-11 pl-10 pr-10 rounded-lg border border-slate-300 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder:text-slate-400"
+              />
+              {searchOrderCode && (
+                <button
+                  onClick={() => setSearchOrderCode("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                  type="button"
+                >
+                  <X size={18} />
+                </button>
+              )}
+            </div>
             <button
-              onClick={onClose}
-              className="px-4 py-2 rounded-md bg-gray-500 text-white text-sm hover:bg-gray-600"
+              onClick={handleSearch}
+              disabled={loading}
+              className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
             >
-              Đóng
+              <Search size={18} />
+              Tìm kiếm
             </button>
+            {activeFilter && (
+              <button
+                onClick={handleClearSearch}
+                className="px-4 py-2.5 bg-slate-500 text-white rounded-lg hover:bg-slate-600 font-medium transition-all whitespace-nowrap shadow-md hover:shadow-lg"
+              >
+                Xóa lọc
+              </button>
+            )}
           </div>
+          {activeFilter && (
+            <div className="mt-3 text-sm text-slate-600">
+              Đang lọc:{" "}
+              <span className="font-semibold text-blue-600">
+                {activeFilter}
+              </span>
+            </div>
+          )}
         </div>
-      </div>
-    );
-  };
 
-  return (
-    <div className="min-h-screen p-4 md:p-6">
-      {/* Header */}
-      <div className="bg-white rounded-lg shadow-sm p-4 md:p-6 mb-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <h2 className="text-2xl font-bold text-gray-800">
-            Danh sách đơn hoàn tiền
-          </h2>
-          <button
-            onClick={handleRefresh}
-            disabled={loading}
-            className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-            <span>Làm mới</span>
-          </button>
-        </div>
-      </div>
+        {/* ===== Error ===== */}
+        {error && (
+          <div className="rounded-xl bg-red-50 border-2 border-red-300 px-4 py-4 flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+            <p className="text-red-700 font-medium">{error}</p>
+          </div>
+        )}
 
-      {/* Error */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-red-600 mt-0.5" />
-          <p className="text-red-700">{error}</p>
-        </div>
-      )}
-
-      {/* Table */}
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                {[
-                  "Mã đơn",
-                  "Loại đơn",
-                  "Trạng thái",
-                  "Ngày tạo",
-                  "Tỷ giá",
-                  "Giá trước phí",
-                  "Tổng tiền",
-                  "Tiền dư",
-                  "Links hủy",
-                  "Hành động",
-                ].map((col) => (
-                  <th
-                    key={col}
-                    className={`px-6 py-3 text-xs font-medium uppercase tracking-wider ${
-                      col === "Hành động"
-                        ? "text-center text-gray-600"
-                        : "text-left text-gray-600"
-                    }`}
-                  >
-                    {col}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-
-            <tbody className="divide-y divide-gray-200">
-              {loading &&
-                Array.from({ length: Math.min(pagination.limit, 10) }).map(
-                  (_, i) => <SkeletonRow key={`skeleton-${i}`} />
+        {/* ===== Table Card ===== */}
+        <div className="bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden">
+          {/* Top bar */}
+          <div className="px-4 md:px-6 py-4 bg-slate-50 border-b border-slate-200">
+            {loading ? (
+              <div className="h-4 w-56 bg-slate-200 rounded animate-pulse" />
+            ) : (
+              <div className="text-sm font-medium text-slate-700">
+                Hiển thị{" "}
+                <span className="font-bold text-blue-600">
+                  {refundOrders.length}
+                </span>{" "}
+                bản ghi
+                {pagination.total > 0 && (
+                  <span className="text-slate-500">
+                    {" "}
+                    (Tổng: {pagination.total})
+                  </span>
                 )}
+              </div>
+            )}
+          </div>
 
-              {!loading &&
-                refundOrders.length > 0 &&
-                refundOrders.map((item) => {
-                  const order = item.order;
-                  const links = item.cancelledLinks || [];
-                  const s = getStatusInfo(order.status);
-                  const leftover = order.leftoverMoney ?? 0;
-                  const leftoverClass =
-                    leftover < 0
-                      ? "text-red-600"
-                      : leftover > 0
-                      ? "text-green-600"
-                      : "text-gray-600";
+          {/* Table */}
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
+                <tr>
+                  <th className="px-4 py-3 text-left font-bold text-sm uppercase tracking-wider">
+                    Mã đơn
+                  </th>
+                  <th className="px-4 py-3 text-left font-bold text-sm uppercase tracking-wider">
+                    Loại đơn
+                  </th>
+                  <th className="px-4 py-3 text-left font-bold text-sm uppercase tracking-wider">
+                    Trạng thái
+                  </th>
+                  <th className="px-4 py-3 text-left font-bold text-sm uppercase tracking-wider">
+                    Khách hàng
+                  </th>
+                  <th className="px-4 py-3 text-left font-bold text-sm uppercase tracking-wider">
+                    Nhân viên
+                  </th>
+                  <th className="px-4 py-3 text-right font-bold text-sm uppercase tracking-wider">
+                    Tổng tiền
+                  </th>
+                  <th className="px-4 py-3 text-right font-bold text-sm uppercase tracking-wider">
+                    Tiền dư
+                  </th>
+                  <th className="px-4 py-3 text-center font-bold text-sm uppercase tracking-wider">
+                    Thao tác
+                  </th>
+                </tr>
+              </thead>
 
-                  return (
-                    <tr
-                      key={order.orderId}
-                      className="hover:bg-gray-50 transition-colors"
-                    >
-                      <td className="px-6 py-4">
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-md text-sm font-medium bg-blue-100 text-blue-800">
-                          {order.orderCode}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-700">
-                        {getOrderTypeName(order.orderType)}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span
-                          className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${s.bg} ${s.text} ${s.border}`}
-                        >
-                          {s.name}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-700">
-                        {formatDate(order.createdAt)}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-700 text-right">
-                        {order.exchangeRate}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-700 text-right">
-                        {formatCurrency(order.priceBeforeFee)}
-                      </td>
-                      <td className="px-6 py-4 text-sm font-semibold text-gray-900 text-right">
-                        {formatCurrency(order.finalPriceOrder)}
-                      </td>
-                      <td
-                        className={`px-6 py-4 text-sm text-right font-medium ${leftoverClass}`}
+              <tbody className="divide-y divide-slate-200">
+                {loading &&
+                  Array.from({ length: Math.min(pagination.limit, 10) }).map(
+                    (_, i) => <SkeletonRow key={`skeleton-${i}`} />,
+                  )}
+
+                {!loading &&
+                  refundOrders.length > 0 &&
+                  refundOrders.map((order) => {
+                    const s = getStatusInfo(order.status);
+                    const leftover = order.leftoverMoney ?? 0;
+                    const leftoverClass =
+                      leftover < 0
+                        ? "text-red-600"
+                        : leftover > 0
+                          ? "text-green-600"
+                          : "text-slate-600";
+
+                    return (
+                      <tr
+                        key={order.orderId}
+                        className="hover:bg-blue-50/50 transition-colors"
                       >
-                        {formatCurrency(order.leftoverMoney)}
-                      </td>
-
-                      <td className="px-6 py-4 text-sm text-gray-700">
-                        {links.length === 0 && (
-                          <span className="text-gray-400">–</span>
-                        )}
-
-                        {links.length === 1 && (
-                          <div className="space-y-1">
-                            <p className="font-medium">
-                              {links[0].productName || "Sản phẩm"}
-                            </p>
-                            {links[0].productLink && (
-                              <p className="text-xs text-gray-500 truncate max-w-[220px]">
-                                {links[0].productLink}
-                              </p>
-                            )}
-                          </div>
-                        )}
-
-                        {links.length > 1 && (
-                          <div className="space-y-2">
-                            <div>
-                              <p className="font-medium">
-                                {links[0].productName || "Sản phẩm"}
-                              </p>
-                              {links[0].productLink && (
-                                <p className="text-xs text-gray-500 truncate max-w-[220px]">
-                                  {links[0].productLink}
-                                </p>
-                              )}
+                        <td className="px-4 py-3">
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-md text-sm font-semibold bg-blue-100 text-blue-800 border border-blue-200">
+                            {order.orderCode}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-slate-700 font-medium">
+                          {getOrderTypeName(order.orderType)}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span
+                            className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border ${s.bg} ${s.text} ${s.border}`}
+                          >
+                            {s.name}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="text-sm">
+                            <div className="font-semibold text-slate-800">
+                              {order.customerName || "—"}
                             </div>
-                            <p className="text-xs text-gray-500 italic">
-                              + {links.length - 1} link khác
-                            </p>
+                            <div className="text-xs text-slate-500">
+                              {formatDate(order.createdAt)}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-slate-700 font-medium">
+                          {order.staffName || "—"}
+                        </td>
+                        <td className="px-4 py-3 text-right font-bold text-slate-800">
+                          {formatCurrency(order.finalPriceOrder)}
+                        </td>
+                        <td
+                          className={`px-4 py-3 text-right font-bold ${leftoverClass}`}
+                        >
+                          {formatCurrency(order.leftoverMoney)}
+                        </td>
+
+                        <td className="px-4 py-3">
+                          <div className="flex justify-center gap-2">
                             <button
-                              onClick={() => openDetailDialog(item)}
-                              className="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 hover:text-blue-800 transition-colors"
+                              onClick={() =>
+                                console.log("View order:", order.orderId)
+                              }
+                              className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg transition-all shadow-md hover:shadow-lg"
+                              title="Xem chi tiết đơn"
                             >
-                              Xem chi tiết
+                              <Eye className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => openRefundDialog(order)}
+                              className="bg-green-600 hover:bg-green-700 text-white p-2 rounded-lg transition-all shadow-md hover:shadow-lg"
+                              title="Xử lý hoàn tiền"
+                            >
+                              <Banknote className="w-4 h-4" />
                             </button>
                           </div>
-                        )}
-                      </td>
+                        </td>
+                      </tr>
+                    );
+                  })}
 
-                      <td className="px-6 py-4 text-center">
-                        <div className="flex justify-center gap-2">
-                          <button
-                            onClick={() =>
-                              console.log("View order:", order.orderId)
-                            }
-                            className="p-1.5 rounded-md text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-                            title="Xem chi tiết đơn"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => openRefundDialog(order)}
-                            className="p-1.5 rounded-md text-gray-600 hover:text-green-600 hover:bg-green-50 transition-colors"
-                            title="Xử lý hoàn tiền"
-                          >
-                            <Banknote className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-
-              {!loading && refundOrders.length === 0 && (
-                <tr>
-                  <td
-                    colSpan={10}
-                    className="px-6 py-12 text-center text-gray-500"
-                  >
-                    <div className="flex flex-col items-center gap-2">
-                      <AlertCircle className="w-12 h-12 text-gray-300" />
-                      <p>Không có đơn hoàn tiền nào</p>
-                    </div>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Pagination */}
-      {pagination.total > 0 && totalPages > 1 && (
-        <div className="bg-white rounded-lg shadow-sm p-4 mt-6">
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div className="text-sm text-gray-600">
-              Hiển thị {(pagination.currentPage - 1) * pagination.limit + 1} -{" "}
-              {Math.min(
-                pagination.currentPage * pagination.limit,
-                pagination.total
-              )}{" "}
-              trong tổng số {pagination.total} đơn
-            </div>
-
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => handlePageChange(pagination.currentPage - 1)}
-                disabled={pagination.currentPage === 1 || loading}
-                className="p-2 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-
-              {[...Array(totalPages)].map((_, i) => {
-                const p = i + 1;
-                if (
-                  p === 1 ||
-                  p === totalPages ||
-                  (p >= pagination.currentPage - 2 &&
-                    p <= pagination.currentPage + 2)
-                ) {
-                  return (
-                    <button
-                      key={p}
-                      onClick={() => handlePageChange(p)}
-                      disabled={loading}
-                      className={`px-3 py-1 rounded-md text-sm font-medium ${
-                        p === pagination.currentPage
-                          ? "bg-blue-500 text-white"
-                          : "hover:bg-gray-100 text-gray-700"
-                      }`}
-                    >
-                      {p}
-                    </button>
-                  );
-                } else if (
-                  p === pagination.currentPage - 3 ||
-                  p === pagination.currentPage + 3
-                ) {
-                  return (
-                    <span key={p} className="px-2 text-gray-400">
-                      ...
-                    </span>
-                  );
-                }
-                return null;
-              })}
-
-              <button
-                onClick={() => handlePageChange(pagination.currentPage + 1)}
-                disabled={pagination.currentPage === totalPages || loading}
-                className="p-2 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
+                {!loading && refundOrders.length === 0 && (
+                  <tr>
+                    <td colSpan={8} className="py-16">
+                      <div className="flex flex-col items-center gap-3">
+                        <AlertCircle className="w-16 h-16 text-slate-300" />
+                        <p className="text-slate-500 font-medium text-lg">
+                          {activeFilter
+                            ? `Không tìm thấy đơn hàng "${activeFilter}"`
+                            : "Không có đơn hoàn tiền nào"}
+                        </p>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
-      )}
+
+        {/* ===== Pagination ===== */}
+        {pagination.total > 0 && totalPages > 1 && (
+          <div className="bg-white rounded-xl shadow-lg border border-slate-200 p-4">
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+              <div className="text-sm font-medium text-slate-700">
+                Hiển thị{" "}
+                <span className="font-bold text-blue-600">
+                  {(pagination.currentPage - 1) * pagination.limit + 1}
+                </span>{" "}
+                -{" "}
+                <span className="font-bold text-blue-600">
+                  {Math.min(
+                    pagination.currentPage * pagination.limit,
+                    pagination.total,
+                  )}
+                </span>{" "}
+                trong tổng số{" "}
+                <span className="font-bold text-blue-600">
+                  {pagination.total}
+                </span>{" "}
+                đơn
+              </div>
+
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => handlePageChange(pagination.currentPage - 1)}
+                  disabled={pagination.currentPage === 1 || loading}
+                  className="p-2 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+
+                {[...Array(totalPages)].map((_, i) => {
+                  const p = i + 1;
+                  if (
+                    p === 1 ||
+                    p === totalPages ||
+                    (p >= pagination.currentPage - 2 &&
+                      p <= pagination.currentPage + 2)
+                  ) {
+                    return (
+                      <button
+                        key={p}
+                        onClick={() => handlePageChange(p)}
+                        disabled={loading}
+                        className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${
+                          p === pagination.currentPage
+                            ? "bg-blue-600 text-white shadow-md"
+                            : "hover:bg-slate-100 text-slate-700"
+                        }`}
+                      >
+                        {p}
+                      </button>
+                    );
+                  } else if (
+                    p === pagination.currentPage - 3 ||
+                    p === pagination.currentPage + 3
+                  ) {
+                    return (
+                      <span key={p} className="px-2 text-slate-400">
+                        ...
+                      </span>
+                    );
+                  }
+                  return null;
+                })}
+
+                <button
+                  onClick={() => handlePageChange(pagination.currentPage + 1)}
+                  disabled={pagination.currentPage === totalPages || loading}
+                  className="p-2 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Modal Confirm Refund */}
       <ConfirmRefundOrder
         open={openRefundModal}
         order={selectedOrder}
         onClose={closeRefundDialog}
-        onSuccess={() => fetchRefundOrders(pagination.offset, pagination.limit)}
-      />
-
-      {/* Modal chi tiết cancelledLinks */}
-      <RefundOrderDetailModal
-        open={openDetailModal}
-        data={detailOrder}
-        onClose={closeDetailDialog}
+        onSuccess={() =>
+          fetchRefundOrders(activeFilter, pagination.offset, pagination.limit)
+        }
       />
     </div>
   );
