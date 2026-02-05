@@ -16,7 +16,6 @@ import expenseService from "../../Services/Manager/expenseService";
 import { getApiErrorMessage } from "../../Utils/getApiErrorMessage";
 import ExpenseAction from "./ExpenseAction";
 
-/* ================= Helpers ================= */
 const n0 = (v) => {
   const n = Number(v);
   return Number.isFinite(n) ? n : 0;
@@ -262,17 +261,15 @@ const ManagerExpense = () => {
   };
 
   return (
-    <div className="min-h-screen p-4 md:p-6 lg:p-8">
-      {/* ✅ Header - Đồng bộ style blue */}
+    <div className="min-h-screen  p-4 md:p-6 lg:p-8">
       <div className="mb-6 md:mb-8">
-        <div className="bg-gradient-to-r from-blue-500 to-blue-600 border border-blue-700 rounded-xl shadow-lg p-4 md:p-6">
+        <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-sm p-4 md:p-5">
           <div className="flex items-center gap-3 md:gap-4">
-            <div className="w-1.5 h-10 md:h-12 bg-white/90 rounded-full shrink-0 shadow-sm" />
-            <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-white flex items-center justify-center shrink-0 shadow-md">
-              <DollarSign className="w-7 h-7 md:w-8 md:h-8 text-blue-600" />
+            <div className="p-2 bg-white/10 rounded-lg">
+              <DollarSign className="w-6 h-6 md:w-7 md:h-7 text-white" />
             </div>
             <div className="min-w-0 flex-1">
-              <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-white leading-tight">
+              <h1 className="text-xl md:text-2xl font-bold text-white leading-tight">
                 Quản Lý Yêu Cầu Chi Phí
               </h1>
             </div>
@@ -281,7 +278,7 @@ const ManagerExpense = () => {
       </div>
 
       {/* ✅ Filter Card */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-lg p-4 md:p-6 mb-6">
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 md:p-5 mb-6">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div className="flex flex-wrap gap-2">
             {STATUS_OPTIONS.map((opt) => {
@@ -294,10 +291,10 @@ const ManagerExpense = () => {
                     setStatus(opt.value);
                     setPage(0);
                   }}
-                  className={`px-3.5 py-2 rounded-lg text-xs md:text-sm font-semibold transition-all shadow-sm ${
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all shadow-sm ${
                     active
                       ? "bg-blue-600 text-white shadow-md"
-                      : "bg-white hover:bg-slate-50 text-slate-700 border border-slate-200"
+                      : "bg-white hover:bg-gray-50 text-gray-700 border border-gray-300"
                   }`}
                 >
                   {opt.label}
@@ -310,14 +307,14 @@ const ManagerExpense = () => {
             <div className="relative">
               <Search
                 size={18}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
               />
               <input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && onSearch()}
                 placeholder="Tìm theo mô tả, note, phòng ban..."
-                className="w-full sm:w-80 pl-10 pr-10 py-2.5 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none bg-white text-sm"
+                className="w-full sm:w-80 pl-10 pr-10 py-2.5 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none bg-white text-sm"
               />
               {q && (
                 <button
@@ -329,7 +326,7 @@ const ManagerExpense = () => {
                       setPage(0);
                     }
                   }}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700"
                   title="Xóa"
                 >
                   <X size={18} />
@@ -344,9 +341,9 @@ const ManagerExpense = () => {
         </div>
 
         {/* Page Size Buttons */}
-        <div className="mt-4 pt-4 border-t border-slate-200">
+        <div className="mt-4 pt-4 border-t border-gray-200">
           <div className="flex items-center gap-3">
-            <span className="text-sm md:text-base font-semibold text-slate-700">
+            <span className="text-sm font-semibold text-gray-700">
               Hiển thị:
             </span>
             <div className="flex flex-wrap gap-2">
@@ -360,10 +357,10 @@ const ManagerExpense = () => {
                       setSize(s);
                       setPage(0);
                     }}
-                    className={`px-3.5 py-2 rounded-lg text-xs md:text-sm font-semibold transition-all shadow-sm ${
+                    className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all shadow-sm ${
                       active
                         ? "bg-blue-600 text-white shadow-md"
-                        : "bg-white hover:bg-slate-50 text-slate-700 border border-slate-200"
+                        : "bg-white hover:bg-gray-50 text-gray-700 border border-gray-300"
                     }`}
                   >
                     {s}
@@ -376,19 +373,19 @@ const ManagerExpense = () => {
       </div>
 
       {/* ✅ Table Card */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-xl overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         {/* Stats bar */}
-        <div className="px-4 md:px-6 py-4 bg-slate-50 border-b border-slate-200">
+        <div className="px-4 md:px-6 py-4 bg-gray-50 border-b border-gray-200">
           {loading ? (
-            <div className="h-4 w-56 bg-slate-200 rounded animate-pulse" />
+            <div className="h-4 w-56 bg-gray-200 rounded animate-pulse" />
           ) : (
-            <div className="text-sm md:text-base font-medium text-slate-700">
+            <div className="text-sm md:text-base font-medium text-gray-700">
               Hiển thị{" "}
               <span className="text-lg font-bold text-blue-600">
                 {filteredItems.length}
               </span>{" "}
-              / <span className="font-semibold text-slate-900">{total}</span>{" "}
-              yêu cầu
+              / <span className="font-semibold text-gray-900">{total}</span> yêu
+              cầu
             </div>
           )}
         </div>
@@ -418,7 +415,7 @@ const ManagerExpense = () => {
               </tr>
             </thead>
 
-            <tbody className="divide-y divide-slate-200">
+            <tbody className="divide-y divide-gray-200">
               {loading ? (
                 Array.from({ length: Math.min(size, 10) }).map((_, idx) => (
                   <TableRowSkeleton key={idx} />
@@ -427,10 +424,10 @@ const ManagerExpense = () => {
                 <tr>
                   <td
                     colSpan={6}
-                    className="px-4 py-16 text-center text-slate-500"
+                    className="px-4 py-16 text-center text-gray-500"
                   >
                     <div className="flex flex-col items-center gap-3">
-                      <DollarSign className="w-16 h-16 text-slate-300" />
+                      <DollarSign className="w-16 h-16 text-gray-300" />
                       <p className="font-medium text-lg">Không có dữ liệu</p>
                     </div>
                   </td>
@@ -442,7 +439,7 @@ const ManagerExpense = () => {
                     <tr className="hover:bg-blue-50/50 transition-colors">
                       <td className="px-4 py-3">
                         <div className="min-w-[280px]">
-                          <p className="font-semibold text-slate-900 line-clamp-1">
+                          <p className="font-semibold text-gray-900 line-clamp-1">
                             {it?.description || "—"}
                           </p>
                         </div>
@@ -452,11 +449,11 @@ const ManagerExpense = () => {
                         <Badge tone="blue">{it?.department || "—"}</Badge>
                       </td>
 
-                      <td className="px-4 py-3 text-slate-700 whitespace-nowrap">
+                      <td className="px-4 py-3 text-gray-700 whitespace-nowrap">
                         {fmtDateTime(it?.createdAt)}
                       </td>
 
-                      <td className="px-4 py-3 font-bold text-slate-900 whitespace-nowrap">
+                      <td className="px-4 py-3 font-bold text-gray-900 whitespace-nowrap">
                         {money(it?.totalAmount)}
                       </td>
 
@@ -468,18 +465,18 @@ const ManagerExpense = () => {
 
                       <td className="px-4 py-3">
                         {it?.note ? (
-                          <p className="text-slate-800 leading-6 line-clamp-2">
+                          <p className="text-gray-800 leading-6 line-clamp-2">
                             {it.note}
                           </p>
                         ) : (
-                          <span className="text-slate-400">—</span>
+                          <span className="text-gray-400">—</span>
                         )}
                       </td>
                     </tr>
 
-                    {/* Row 2: action */}
+                    {/* Row 2: action - Thêm khoảng cách pt-3 */}
                     <tr className="bg-white">
-                      <td className="px-4 pb-4 pt-0" colSpan={6}>
+                      <td className="px-4 pb-4 pt-3" colSpan={6}>
                         <div className="flex items-center justify-between gap-4">
                           <SoftButton
                             type="button"
@@ -508,15 +505,12 @@ const ManagerExpense = () => {
 
         {/* ✅ Pagination */}
         {!loading && totalPages > 1 && (
-          <div className="bg-slate-50 px-4 md:px-6 py-3 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div className="text-sm text-slate-600">
+          <div className="bg-gray-50 px-4 md:px-6 py-3 border-t border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="text-sm text-gray-600">
               Hiển thị{" "}
-              <span className="font-semibold text-slate-900">
-                {showingFrom}
-              </span>{" "}
-              -{" "}
-              <span className="font-semibold text-slate-900">{showingTo}</span>{" "}
-              / <span className="font-semibold text-slate-900">{total}</span>
+              <span className="font-semibold text-gray-900">{showingFrom}</span>{" "}
+              - <span className="font-semibold text-gray-900">{showingTo}</span>{" "}
+              / <span className="font-semibold text-gray-900">{total}</span>
             </div>
 
             <div className="flex items-center gap-2">
@@ -524,7 +518,7 @@ const ManagerExpense = () => {
                 type="button"
                 onClick={() => setPage(0)}
                 disabled={page === 0}
-                className="p-2 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 shadow-sm disabled:opacity-50 transition"
+                className="p-2 rounded-lg bg-white border border-gray-300 hover:bg-gray-50 shadow-sm disabled:opacity-50 transition"
                 title="Trang đầu"
               >
                 <ChevronsLeft size={18} />
@@ -534,7 +528,7 @@ const ManagerExpense = () => {
                 type="button"
                 onClick={() => setPage((p) => Math.max(0, p - 1))}
                 disabled={page === 0}
-                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 shadow-sm disabled:opacity-50 font-medium transition text-sm"
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white border border-gray-300 hover:bg-gray-50 shadow-sm disabled:opacity-50 font-medium transition text-sm"
               >
                 <ChevronLeft size={18} />
                 Trước
@@ -548,7 +542,7 @@ const ManagerExpense = () => {
                 type="button"
                 onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
                 disabled={page >= totalPages - 1}
-                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 shadow-sm disabled:opacity-50 font-medium transition text-sm"
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white border border-gray-300 hover:bg-gray-50 shadow-sm disabled:opacity-50 font-medium transition text-sm"
               >
                 Sau
                 <ChevronRight size={18} />
@@ -558,7 +552,7 @@ const ManagerExpense = () => {
                 type="button"
                 onClick={() => setPage(totalPages - 1)}
                 disabled={page >= totalPages - 1}
-                className="p-2 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 shadow-sm disabled:opacity-50 transition"
+                className="p-2 rounded-lg bg-white border border-gray-300 hover:bg-gray-50 shadow-sm disabled:opacity-50 transition"
                 title="Trang cuối"
               >
                 <ChevronsRight size={18} />
@@ -570,18 +564,16 @@ const ManagerExpense = () => {
 
       {/* ✅ Footer Navigation */}
       {!loading && total > 0 && (
-        <div className="mt-6 bg-white rounded-xl border border-slate-200 shadow-lg p-4">
+        <div className="mt-6 bg-white rounded-xl border border-gray-200 shadow-sm p-4">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="text-sm md:text-base text-slate-600">
-              Trang <span className="font-bold text-slate-900">{page + 1}</span>{" "}
-              / <span className="font-bold text-slate-900">{totalPages}</span>
+            <div className="text-sm md:text-base text-gray-600">
+              Trang <span className="font-bold text-gray-900">{page + 1}</span>{" "}
+              / <span className="font-bold text-gray-900">{totalPages}</span>
               {" • "}
               Hiển thị{" "}
-              <span className="font-semibold text-slate-900">
-                {showingFrom}
-              </span>
-              -<span className="font-semibold text-slate-900">{showingTo}</span>{" "}
-              / <span className="font-semibold text-slate-900">{total}</span>
+              <span className="font-semibold text-gray-900">{showingFrom}</span>
+              -<span className="font-semibold text-gray-900">{showingTo}</span>{" "}
+              / <span className="font-semibold text-gray-900">{total}</span>
             </div>
 
             <div className="flex items-center gap-3">
@@ -589,7 +581,7 @@ const ManagerExpense = () => {
                 type="button"
                 onClick={() => setPage((p) => Math.max(0, p - 1))}
                 disabled={page === 0}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 hover:border-blue-500 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed font-semibold transition text-sm"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white border border-gray-300 hover:bg-gray-50 hover:border-blue-500 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed font-semibold transition text-sm"
               >
                 <ChevronLeft size={18} />
                 Trang trước
@@ -612,7 +604,7 @@ const ManagerExpense = () => {
       {/* ✅ Detail Modal */}
       {detailOpen && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-          <div className="w-full max-w-3xl bg-white rounded-xl shadow-2xl overflow-hidden border border-slate-200">
+          <div className="w-full max-w-3xl bg-white rounded-xl shadow-2xl overflow-hidden border border-gray-200">
             {/* Modal Header */}
             <div className="px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-700 border-b border-blue-800 flex items-start justify-between gap-3">
               <div className="min-w-0 flex items-center gap-3">
@@ -636,13 +628,13 @@ const ManagerExpense = () => {
               </button>
             </div>
 
-            <div className="p-6 bg-slate-50 max-h-[calc(100vh-200px)] overflow-y-auto">
+            <div className="p-6 bg-gray-50 max-h-[calc(100vh-200px)] overflow-y-auto">
               {detailLoading ? (
-                <div className="py-12 text-center text-slate-600">
+                <div className="py-12 text-center text-gray-600">
                   Đang tải chi tiết...
                 </div>
               ) : !detail ? (
-                <div className="py-12 text-center text-slate-600">
+                <div className="py-12 text-center text-gray-600">
                   Không có dữ liệu
                 </div>
               ) : (
@@ -657,20 +649,20 @@ const ManagerExpense = () => {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="rounded-xl border border-slate-200 p-4 bg-white shadow-sm">
-                      <p className="text-sm text-slate-500 font-semibold">
+                    <div className="rounded-xl border border-gray-200 p-4 bg-white shadow-sm">
+                      <p className="text-sm text-gray-500 font-semibold">
                         Mô tả
                       </p>
-                      <p className="font-semibold text-slate-900 mt-1">
+                      <p className="font-semibold text-gray-900 mt-1">
                         {detail.description || "—"}
                       </p>
 
                       {detail.note && (
                         <>
-                          <p className="text-sm text-slate-500 mt-3 font-semibold">
+                          <p className="text-sm text-gray-500 mt-3 font-semibold">
                             Ghi chú
                           </p>
-                          <p className="text-slate-800 mt-1 leading-6">
+                          <p className="text-gray-800 mt-1 leading-6">
                             {detail.note}
                           </p>
                         </>
@@ -678,7 +670,7 @@ const ManagerExpense = () => {
 
                       {detail.cancelReason && (
                         <>
-                          <p className="text-sm text-slate-500 mt-3 font-semibold">
+                          <p className="text-sm text-gray-500 mt-3 font-semibold">
                             Lý do hủy
                           </p>
                           <p className="text-red-700 font-semibold mt-1">
@@ -688,13 +680,13 @@ const ManagerExpense = () => {
                       )}
                     </div>
 
-                    <div className="rounded-xl border border-slate-200 p-4 bg-white shadow-sm">
-                      <p className="text-sm text-slate-500 font-semibold">
+                    <div className="rounded-xl border border-gray-200 p-4 bg-white shadow-sm">
+                      <p className="text-sm text-gray-500 font-semibold">
                         Chi phí
                       </p>
                       <div className="mt-2 space-y-1">
                         <div className="flex justify-between">
-                          <span className="text-slate-600 text-sm">
+                          <span className="text-gray-600 text-sm">
                             Số lượng
                           </span>
                           <span className="font-semibold">
@@ -702,15 +694,13 @@ const ManagerExpense = () => {
                           </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-slate-600 text-sm">
-                            Đơn giá
-                          </span>
+                          <span className="text-gray-600 text-sm">Đơn giá</span>
                           <span className="font-semibold">
                             {money(detail.unitPrice)}
                           </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-slate-600 text-sm">Tổng</span>
+                          <span className="text-gray-600 text-sm">Tổng</span>
                           <span className="font-bold text-blue-700">
                             {money(detail.totalAmount)}
                           </span>
@@ -719,10 +709,10 @@ const ManagerExpense = () => {
 
                       {detail.bankInfo && (
                         <>
-                          <p className="text-sm text-slate-500 mt-3 font-semibold">
-                            Bank info
+                          <p className="text-sm text-gray-500 mt-3 font-semibold">
+                            Thông tin ngân hàng
                           </p>
-                          <p className="text-slate-800 mt-1 leading-6">
+                          <p className="text-gray-800 mt-1 leading-6">
                             {detail.bankInfo}
                           </p>
                         </>
@@ -730,10 +720,10 @@ const ManagerExpense = () => {
 
                       {detail.vatInfo && (
                         <>
-                          <p className="text-sm text-slate-500 mt-3 font-semibold">
-                            VAT info
+                          <p className="text-sm text-gray-500 mt-3 font-semibold">
+                            Thông tin VAT
                           </p>
-                          <p className="text-slate-800 mt-1 leading-6">
+                          <p className="text-gray-800 mt-1 leading-6">
                             {detail.vatInfo}
                           </p>
                         </>
@@ -744,15 +734,15 @@ const ManagerExpense = () => {
                   {/* Images */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {[
-                      { label: "Invoice image", url: detail.invoiceImage },
-                      { label: "Transfer image", url: detail.transferImage },
+                      { label: "Ảnh hóa đơn", url: detail.invoiceImage },
+                      { label: "Ảnh chuyển khoản", url: detail.transferImage },
                     ].map((img) => (
                       <div
                         key={img.label}
-                        className="rounded-xl border border-slate-200 p-4 bg-white shadow-sm"
+                        className="rounded-xl border border-gray-200 p-4 bg-white shadow-sm"
                       >
                         <div className="flex items-center justify-between gap-2">
-                          <p className="text-sm text-slate-600 flex items-center gap-2 font-semibold">
+                          <p className="text-sm text-gray-600 flex items-center gap-2 font-semibold">
                             <FileImage size={16} />
                             {img.label}
                           </p>
@@ -775,11 +765,11 @@ const ManagerExpense = () => {
                               <img
                                 src={img.url}
                                 alt={img.label}
-                                className="w-full max-h-72 object-contain rounded-lg border border-slate-200 bg-slate-50"
+                                className="w-full max-h-72 object-contain rounded-lg border border-gray-200 bg-gray-50"
                               />
                             </a>
                           ) : (
-                            <div className="h-40 rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center text-slate-500 text-sm">
+                            <div className="h-40 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 flex items-center justify-center text-gray-500 text-sm">
                               Không có
                             </div>
                           )}
@@ -789,7 +779,7 @@ const ManagerExpense = () => {
                   </div>
 
                   {/* Action trong Detail */}
-                  <div className="flex items-center justify-end pt-2 border-t border-slate-200">
+                  <div className="flex items-center justify-end pt-2 border-t border-gray-200">
                     <ExpenseAction
                       id={detail.id}
                       status={detail.status}

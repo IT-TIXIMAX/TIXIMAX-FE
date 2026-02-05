@@ -283,7 +283,7 @@ const CreateExpense = () => {
                 required
                 value={form.description}
                 onChange={(e) => setField("description", e.target.value)}
-                placeholder="Ví dụ: Mua thùng carton, phí vận chuyển..."
+                placeholder="......"
                 error={errors.description}
                 className="md:col-span-2"
               />
@@ -293,7 +293,7 @@ const CreateExpense = () => {
                 required
                 value={form.department}
                 onChange={(e) => setField("department", e.target.value)}
-                placeholder="Ví dụ: Kế toán, Kho vận..."
+                placeholder="......"
                 error={errors.department}
               />
 
@@ -370,7 +370,7 @@ const CreateExpense = () => {
                 rows={3}
                 value={form.note}
                 onChange={(e) => setField("note", e.target.value)}
-                placeholder="Ghi chú thêm (không bắt buộc)..."
+                placeholder="Ghi chú thêm ..."
                 className="md:col-span-2"
               />
             </div>
