@@ -113,6 +113,12 @@ const RefundOrder = () => {
         text: "text-blue-700",
         border: "border-blue-300",
       },
+      DA_GIAO: {
+        name: "Đã giao",
+        bg: "bg-slate-100",
+        text: "text-slate-700",
+        border: "border-slate-300",
+      },
     };
     return (
       map[status] || {
