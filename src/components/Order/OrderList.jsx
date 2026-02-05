@@ -16,7 +16,7 @@ import DetailOrderSale from "../Manager/DetailForSale/DetailOrderSale";
 import DetailOrderLink from "./DetailOrderLink";
 import AccountSearch from "../Order/AccountSearch";
 
-const PAGE_SIZES = [50, 100, 200, 500];
+const PAGE_SIZES = [100, 200, 500, 1000, 2000];
 
 /** ✅ Status handle ở UI (không phụ thuộc service) */
 const AVAILABLE_STATUSES = [
@@ -79,7 +79,7 @@ const OrderList = () => {
   const [totalElements, setTotalElements] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [currentPage, setCurrentPage] = useState(0);
-  const [pageSize, setPageSize] = useState(50);
+  const [pageSize, setPageSize] = useState(100);
 
   // UI states
   const [loading, setLoading] = useState(false);
