@@ -243,9 +243,9 @@ const StaffSaleSidebar = () => {
               label: "Thêm mã vận đơn",
             },
             {
-              to: "/staff-sale/shipping-history",
+              to: "/staff-sale/check-imported",
               icon: History,
-              label: "Lịch sử vận chuyển",
+              label: "Tải dữ liệu hàng ",
             },
             {
               to: "/staff-sale/tracking",
