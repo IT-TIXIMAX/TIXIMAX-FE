@@ -16,7 +16,7 @@ import DetailOrderSale from "../Manager/DetailForSale/DetailOrderSale";
 import DetailOrderLink from "./DetailOrderLink";
 import AccountSearch from "../Order/AccountSearch";
 
-const PAGE_SIZES = [50, 100, 200];
+const PAGE_SIZES = [50, 100, 200, 500];
 
 /** ✅ Status handle ở UI (không phụ thuộc service) */
 const AVAILABLE_STATUSES = [

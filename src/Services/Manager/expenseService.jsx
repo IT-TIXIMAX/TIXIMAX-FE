@@ -17,14 +17,15 @@ const expenseService = {
     return data;
   },
 
-  // ✅ POST /expense-request (tạo yêu cầu chi phí)
   create: async (payload) => {
-    // payload: { description, quantity, unitPrice, note, paymentMethod, bankInfo, vatStatus, vatInfo }
     if (!payload || typeof payload !== "object") {
       throw new Error("Payload is required");
     }
     if (!String(payload.description || "").trim()) {
       throw new Error("description is required");
+    }
+    if (!String(payload.department || "").trim()) {
+      throw new Error("department is required");
     }
 
     const body = {
@@ -36,12 +37,14 @@ const expenseService = {
       bankInfo: payload.bankInfo ?? "",
       vatStatus: payload.vatStatus ?? "CHUA_VAT",
       vatInfo: payload.vatInfo ?? "",
+      invoiceImage: payload.invoiceImage ?? "",
+      transferImage: payload.transferImage ?? "",
+      department: String(payload.department || "").trim(),
     };
 
     const { data } = await api.post("/expense-request", body);
     return data;
   },
-
   // PUT/PATCH /expense-request/approve/{id}
   approve: async (id, reason = "") => {
     if (!id) throw new Error("ExpenseRequest ID is required");

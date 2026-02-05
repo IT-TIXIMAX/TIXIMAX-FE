@@ -301,7 +301,7 @@ const Router = createBrowserRouter([
       { path: "dashboard/revenue", element: <SummaryRevenue /> },
       { path: "dashboard/weight", element: <SummaryWeight /> },
       { path: "producttype", element: <ManagerProductType /> },
-      { path: "order", element: <ManagerOrder /> },
+      { path: "order", element: <OrderList /> },
       { path: "cancelorder", element: <OrderListCancel /> },
       { path: "website", element: <ManagerWebsite /> },
       { path: "promotion", element: <ManagerPromotion /> },
