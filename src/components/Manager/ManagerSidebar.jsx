@@ -333,16 +333,21 @@ const ManagerSidebar = () => {
           icon: <ChartNoAxesCombined />,
           path: "/manager/kpistaff",
         },
-        {
-          text: t("Hiệu suất khách hàng"),
-          icon: <ChartSpline />,
-          path: "/manager/kpicustomer",
-        },
+        // {
+        //   text: t("Hiệu suất khách hàng"),
+        //   icon: <ChartSpline />,
+        //   path: "/manager/kpicustomer",
+        // },
 
         {
           text: t("Danh sách đơn hàng"),
           icon: <ShoppingCart />,
-          path: "/manager/order",
+          path: "/manager/orders",
+        },
+        {
+          text: t("Quản lý trạng thái"),
+          icon: <ShoppingCart />,
+          path: "/manager/order-status",
         },
 
         {
