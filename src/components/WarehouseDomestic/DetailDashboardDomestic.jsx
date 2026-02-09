@@ -337,7 +337,7 @@ const DetailDashboardDomestic = () => {
 
   return (
     <div className="min-h-screen ">
-      <div className="mx-auto p-4 md:p-6 lg:p-8 max-w-[1600px]">
+      <div className="mx-auto p-4 md:p-6 lg:p-8 ">
         {/* Combined Header with Month Selector */}
         <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 rounded-2xl shadow-lg border border-blue-500 p-6 md:p-8 mb-6 md:mb-8">
           {/* Title Section */}

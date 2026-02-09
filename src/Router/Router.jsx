@@ -167,6 +167,8 @@ import ManagerSettingsHubCompact from "../components/Manager/ManagerSettingsHubC
 import DetailDashboardDomestic from "../components/WarehouseDomestic/DetailDashboardDomestic";
 import WarehouseDomesticAdmin from "../components/Admin/WarehouseDomesticAdmin";
 import CheckImportFile from "../components/StaffSale/CheckImportFile";
+import RemindCustomer from "../components/StaffSale/RemindCustomer";
+import DetailPaymentChart from "../components/Dashboard/Admin/DetailPaymentChart";
 const Router = createBrowserRouter([
   {
     path: "/",
@@ -234,7 +236,7 @@ const Router = createBrowserRouter([
       { path: "staff", element: <Permission /> },
       { path: "customers", element: <NotFound /> },
       { path: "settings", element: <CreateAccountStaff /> },
-      { path: "revenue-analytics", element: <DashboardCustomer /> }, // Chua tien khai
+      { path: "revenue-analytics", element: <DashboardCustomer /> },
       // { path: "revenue-analytics", element: <RevenueDashboard /> }, // Chua tien khai
       { path: "order-status-overview", element: <TrackingOrder /> },
       { path: "profit-loss", element: <ProfitLoss /> },
@@ -255,7 +257,7 @@ const Router = createBrowserRouter([
       { path: "work-schedule", element: <NotFound /> },
       { path: "employee-performance", element: <NotFound /> },
       { path: "user-permissions", element: <NotFound /> },
-      { path: "financial-overview", element: <NotFound /> },
+      { path: "financial-overview", element: <DetailPaymentChart /> },
       { path: "cod-payments", element: <NotFound /> },
       { path: "customer-debts", element: <NotFound /> },
       { path: "financial-reports", element: <NotFound /> },
@@ -284,6 +286,7 @@ const Router = createBrowserRouter([
       { path: "stafflead", element: <StaffListPermission /> },
       { path: "createstaff", element: <CreateAccountStaff /> },
       { path: "kpicustomer", element: <PerformancesCustomer /> },
+      { path: "remind-customers", element: <RemindCustomer /> },
       { path: "warehouseperformance", element: <DashboardWarehouseForeign /> },
       { path: "warehouse-domestic", element: <DetailDashboardDomestic /> },
       { path: "warehouse-international", element: <NotFound /> },
@@ -387,6 +390,7 @@ const Router = createBrowserRouter([
       { path: "status-orders", element: <ManagerOrder /> },
       { path: "create-customer", element: <CreateAccountUser /> },
       { path: "list-customers", element: <CustomerStaffList /> },
+      { path: "loyal-customers", element: <RemindCustomer /> },
       { path: "add-shipping-order", element: <RelateOrder /> },
       { path: "export-order", element: <ExportOtherOrder /> },
       { path: "prospects", element: <NotFound /> },

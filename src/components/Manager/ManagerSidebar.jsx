@@ -275,6 +275,7 @@ import {
   Speaker,
   ChevronDown,
   List,
+  ShieldUser,
   Gift,
   UserRoundPlus,
   BookKey,
@@ -346,7 +347,7 @@ const ManagerSidebar = () => {
         },
         {
           text: t("Quản lý trạng thái"),
-          icon: <ShoppingCart />,
+          icon: <ChartSpline />,
           path: "/manager/order-status",
         },
 
@@ -354,6 +355,11 @@ const ManagerSidebar = () => {
           text: t("Danh sách khách hàng"),
           icon: <Users />,
           path: "/manager/customers",
+        },
+        {
+          text: t("Danh sách nhắc nhở"),
+          icon: <ShieldUser />,
+          path: "/manager/remind-customers",
         },
         {
           text: t("Danh sách nhân viên"),

@@ -6,13 +6,11 @@
 //   ChevronLeft,
 //   ChevronRight,
 //   ChevronsRight,
-//   Copy,
 //   Search,
 //   AlertTriangle,
 //   Barcode,
 //   Package,
 //   X,
-//   Filter,
 //   Clock,
 //   Globe,
 //   Truck,
@@ -22,9 +20,10 @@
 // } from "lucide-react";
 // import UpdateShipmentCode from "./UpdateShipmentCode";
 // import UpdateAuctionShip from "./UpdateAuctionShip";
+// import CancelPurchase from "./CancelPurchase";
 // import toast from "react-hot-toast";
 
-// const PAGE_SIZE_DEFAULT = 10;
+// const PAGE_SIZE_DEFAULT = 50;
 
 // const StatusBadge = ({ status, count }) => {
 //   if (status === "missing") {
@@ -69,18 +68,32 @@
 //   const [loading, setLoading] = useState(false);
 //   const [err, setErr] = useState(null);
 //   const [data, setData] = useState(null);
-//   const [q, setQ] = useState("");
-//   const [purchaseStatusFilter, setPurchaseStatusFilter] = useState("all");
+//   const [orderCodeSearch, setOrderCodeSearch] = useState("");
+//   const [customerCodeSearch, setCustomerCodeSearch] = useState("");
 //   const [shipmentStatusFilter, setShipmentStatusFilter] = useState("all");
 //   const [showModal, setShowModal] = useState(false);
 //   const [showAuctionModal, setShowAuctionModal] = useState(false);
+//   const [showCancelModal, setShowCancelModal] = useState(false);
 //   const [selectedPurchase, setSelectedPurchase] = useState(null);
-//   const [debouncedQ, setDebouncedQ] = useState(q);
+//   const [selectedCancelLink, setSelectedCancelLink] = useState(null);
+//   const [debouncedOrderCode, setDebouncedOrderCode] = useState(orderCodeSearch);
+//   const [debouncedCustomerCode, setDebouncedCustomerCode] =
+//     useState(customerCodeSearch);
 
+//   // Debounce order code search
 //   useEffect(() => {
-//     const t = setTimeout(() => setDebouncedQ(q), 300);
+//     const t = setTimeout(() => setDebouncedOrderCode(orderCodeSearch), 500);
 //     return () => clearTimeout(t);
-//   }, [q]);
+//   }, [orderCodeSearch]);
+
+//   // Debounce customer code search
+//   useEffect(() => {
+//     const t = setTimeout(
+//       () => setDebouncedCustomerCode(customerCodeSearch),
+//       500
+//     );
+//     return () => clearTimeout(t);
+//   }, [customerCodeSearch]);
 
 //   const dateFmt = useMemo(
 //     () =>
@@ -91,21 +104,17 @@
 //   );
 //   const formatDate = (iso) => (iso ? dateFmt.format(new Date(iso)) : "-");
 
-//   const formatPrice = (num) => {
-//     if (!num && num !== 0) return "0";
-//     return Number(num).toLocaleString("en-US");
-//   };
-
 //   const fetchData = useCallback(
 //     async (p = page, s = size) => {
 //       setLoading(true);
 //       setErr(null);
 //       try {
-//         // luôn fix status
 //         const res = await orderlinkService.getPurchasesShipmentCode(
 //           p,
 //           s,
-//           "DA_MUA"
+//           "DA_MUA",
+//           debouncedOrderCode || null,
+//           debouncedCustomerCode || null
 //         );
 //         setData(res);
 //       } catch (e) {
@@ -119,12 +128,13 @@
 //         setLoading(false);
 //       }
 //     },
-//     [page, size]
+//     [page, size, debouncedOrderCode, debouncedCustomerCode]
 //   );
 
+//   // Reset page when filters change
 //   useEffect(() => {
 //     setPage(0);
-//   }, [size, debouncedQ, purchaseStatusFilter, shipmentStatusFilter]);
+//   }, [size, debouncedOrderCode, debouncedCustomerCode, shipmentStatusFilter]);
 
 //   useEffect(() => {
 //     fetchData(page, size);
@@ -146,6 +156,7 @@
 //     return links[0]?.status || null;
 //   };
 
+//   // Client-side filtering for shipment status only
 //   const items = useMemo(() => {
 //     let list = allOnPage;
 
@@ -155,44 +166,14 @@
 //       list = list.filter((p) => hasShipment(p));
 //     }
 
-//     const s = debouncedQ.trim().toLowerCase();
-//     if (!s) return list;
-//     return list.filter((it) => {
-//       const inOrder =
-//         it.orderCode?.toLowerCase().includes(s) ||
-//         it.staffName?.toLowerCase().includes(s) ||
-//         it.purchaseCode?.toLowerCase().includes(s) ||
-//         it.customer?.name?.toLowerCase().includes(s) ||
-//         it.customer?.customerCode?.toLowerCase().includes(s) ||
-//         it.customer?.email?.toLowerCase().includes(s);
-//       const inLinks = (it.pendingLinks || []).some((l) => {
-//         const lc = String(l.linkId).toLowerCase();
-//         return (
-//           lc.includes(s) ||
-//           l.productName?.toLowerCase().includes(s) ||
-//           l.trackingCode?.toLowerCase().includes(s) ||
-//           l.website?.toLowerCase().includes(s)
-//         );
-//       });
-//       return inOrder || inLinks;
-//     });
-//   }, [allOnPage, debouncedQ, shipmentStatusFilter]);
+//     return list;
+//   }, [allOnPage, shipmentStatusFilter]);
 
 //   const hasPrev = data?.first === false || page > 0;
-//   const hasNext =
-//     data?.last === false || (items.length === size && !debouncedQ);
+//   const hasNext = data?.last === false;
 
 //   const missingCountOnPage = allOnPage.filter((p) => !hasShipment(p)).length;
 //   const completedCountOnPage = allOnPage.filter((p) => hasShipment(p)).length;
-
-//   const copy = async (text) => {
-//     try {
-//       await navigator.clipboard.writeText(text);
-//       toast.success("Tracking copied.", { position: "top-right" });
-//     } catch {
-//       toast.error("Copy failed.", { position: "top-right" });
-//     }
-//   };
 
 //   const openShipmentModal = (purchase) => {
 //     setSelectedPurchase(purchase);
@@ -214,8 +195,32 @@
 //     setSelectedPurchase(null);
 //   };
 
+//   const openCancelModal = (purchase, link) => {
+//     setSelectedPurchase(purchase);
+//     setSelectedCancelLink(link);
+//     setShowCancelModal(true);
+//   };
+
+//   const closeCancelModal = () => {
+//     setShowCancelModal(false);
+//     setSelectedPurchase(null);
+//     setSelectedCancelLink(null);
+//   };
+
 //   const handleSaveSuccess = () => {
 //     fetchData();
+//   };
+
+//   const handleCancelSuccess = () => {
+//     toast.success("Order cancelled successfully!", { position: "top-right" });
+//     fetchData();
+//   };
+
+//   const handleResetFilters = () => {
+//     setOrderCodeSearch("");
+//     setCustomerCodeSearch("");
+//     setShipmentStatusFilter("all");
+//     setPage(0);
 //   };
 
 //   const purchaseStatusLabel = (status) => {
@@ -225,6 +230,69 @@
 //     };
 //     return labels[status] || status;
 //   };
+
+//   const hasActiveFilters =
+//     orderCodeSearch || customerCodeSearch || shipmentStatusFilter !== "all";
+
+//   // Pagination Component
+//   const PaginationControls = () => (
+//     <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-4 py-3">
+//       <div className="flex items-center gap-2">
+//         <button
+//           onClick={() => setPage(0)}
+//           disabled={!hasPrev || loading}
+//           className="rounded-md p-1.5 text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
+//           title="First page"
+//         >
+//           <ChevronsLeft className="h-5 w-5" />
+//         </button>
+//         <button
+//           onClick={() => setPage((p) => Math.max(0, p - 1))}
+//           disabled={!hasPrev || loading}
+//           className="rounded-md p-1.5 text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
+//           title="Previous page"
+//         >
+//           <ChevronLeft className="h-5 w-5" />
+//         </button>
+
+//         <div className="mx-2 flex h-8 min-w-[80px] items-center justify-center rounded-md bg-slate-50 px-3 text-sm font-medium text-slate-700">
+//           Page {page + 1}
+//           {data?.totalPages > 0 && ` / ${data.totalPages}`}
+//         </div>
+
+//         <button
+//           onClick={() => setPage((p) => p + 1)}
+//           disabled={!hasNext || loading}
+//           className="rounded-md p-1.5 text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
+//           title="Next page"
+//         >
+//           <ChevronRight className="h-5 w-5" />
+//         </button>
+//         <button
+//           onClick={() => {
+//             if (data?.totalPages) setPage(data.totalPages - 1);
+//           }}
+//           disabled={!hasNext || !data?.totalPages || loading}
+//           className="rounded-md p-1.5 text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
+//           title="Last page"
+//         >
+//           <ChevronsRight className="h-5 w-5" />
+//         </button>
+
+//         <div className="ml-2 border-l border-slate-200 pl-2">
+//           <select
+//             value={size}
+//             onChange={(e) => setSize(Number(e.target.value))}
+//             className="rounded-md border border-slate-200 bg-white px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+//           >
+//             <option value={20}>20 / page</option>
+//             <option value={50}>50 / page</option>
+//             <option value={100}>100 / page</option>
+//           </select>
+//         </div>
+//       </div>
+//     </div>
+//   );
 
 //   return (
 //     <div className="min-h-screen px-4 py-6">
@@ -257,19 +325,21 @@
 //         </div>
 
 //         {/* Search & Filter Section */}
-//         <div className="mb-8 space-y-4">
-//           <div className="flex flex-col gap-3 lg:flex-row">
-//             <div className="relative flex-1">
-//               <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+//         <div className="mb-6 space-y-4">
+//           {/* Search Inputs */}
+//           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+//             {/* Order Code Search */}
+//             <div className="relative">
+//               <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
 //               <input
-//                 value={q}
-//                 onChange={(e) => setQ(e.target.value)}
-//                 placeholder="Search by Order code, Customer name, Purchase code, product..."
-//                 className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-11 pr-10 text-sm placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+//                 value={orderCodeSearch}
+//                 onChange={(e) => setOrderCodeSearch(e.target.value)}
+//                 placeholder="Search by Order Code..."
+//                 className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-10 pr-10 text-sm placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
 //               />
-//               {q && (
+//               {orderCodeSearch && (
 //                 <button
-//                   onClick={() => setQ("")}
+//                   onClick={() => setOrderCodeSearch("")}
 //                   className="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
 //                 >
 //                   <X className="h-4 w-4" />
@@ -277,22 +347,41 @@
 //               )}
 //             </div>
 
-//             <div className="flex items-center gap-3">
-//               <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5">
-//                 <Package className="h-4 w-4 text-slate-500" />
-//                 <select
-//                   value={shipmentStatusFilter}
-//                   onChange={(e) => setShipmentStatusFilter(e.target.value)}
-//                   className="border-none bg-transparent text-sm font-medium text-slate-700 focus:outline-none"
+//             {/* Customer Code Search */}
+//             <div className="relative">
+//               <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+//               <input
+//                 value={customerCodeSearch}
+//                 onChange={(e) => setCustomerCodeSearch(e.target.value)}
+//                 placeholder="Search by Customer Code..."
+//                 className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-10 pr-10 text-sm placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+//               />
+//               {customerCodeSearch && (
+//                 <button
+//                   onClick={() => setCustomerCodeSearch("")}
+//                   className="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
 //                 >
-//                   <option value="all">All shipment status</option>
-//                   <option value="missing">Missing shipment code</option>
-//                   <option value="has">Has shipment code</option>
-//                 </select>
-//               </div>
+//                   <X className="h-4 w-4" />
+//                 </button>
+//               )}
+//             </div>
+
+//             {/* Shipment Status Filter */}
+//             <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5">
+//               <Package className="h-4 w-4 text-slate-500" />
+//               <select
+//                 value={shipmentStatusFilter}
+//                 onChange={(e) => setShipmentStatusFilter(e.target.value)}
+//                 className="border-none bg-transparent text-sm font-medium text-slate-700 focus:outline-none w-full"
+//               >
+//                 <option value="all">All shipment status</option>
+//                 <option value="missing">Missing shipment code</option>
+//                 <option value="has">Has shipment code</option>
+//               </select>
 //             </div>
 //           </div>
 
+//           {/* Status Badges & Clear Filters */}
 //           <div className="flex items-center justify-between flex-wrap gap-3">
 //             <div className="flex items-center gap-3">
 //               {missingCountOnPage > 0 && (
@@ -301,14 +390,20 @@
 //               {completedCountOnPage > 0 && (
 //                 <StatusBadge status="completed" count={completedCountOnPage} />
 //               )}
+//               {hasActiveFilters && (
+//                 <button
+//                   onClick={handleResetFilters}
+//                   className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+//                 >
+//                   <X className="h-3.5 w-3.5" />
+//                   Clear filters
+//                 </button>
+//               )}
 //             </div>
-//             {debouncedQ && (
-//               <div className="text-sm text-slate-600">
-//                 Found <span className="font-medium">{items.length}</span>{" "}
-//                 result(s)
-//               </div>
-//             )}
 //           </div>
+
+//           {/* Pagination - TOP POSITION */}
+//           {!loading && items.length > 0 && <PaginationControls />}
 //         </div>
 
 //         {/* Error Message */}
@@ -335,19 +430,18 @@
 //               No results found
 //             </h3>
 //             <p className="mb-4 text-sm text-slate-600">
-//               Try adjusting your filters or search keyword.
+//               {hasActiveFilters
+//                 ? "Try adjusting your filters or search criteria."
+//                 : "No purchases available at the moment."}
 //             </p>
-//             <button
-//               onClick={() => {
-//                 setQ("");
-//                 setPurchaseStatusFilter("all");
-//                 setShipmentStatusFilter("all");
-//                 fetchData(0, size);
-//               }}
-//               className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-//             >
-//               <RefreshCw className="h-4 w-4" /> Reset filters
-//             </button>
+//             {hasActiveFilters && (
+//               <button
+//                 onClick={handleResetFilters}
+//                 className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+//               >
+//                 <RefreshCw className="h-4 w-4" /> Reset filters
+//               </button>
+//             )}
 //           </div>
 //         ) : (
 //           <>
@@ -443,7 +537,7 @@
 //                     {/* Body */}
 //                     <div className="p-4">
 //                       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-//                         {/* Left Column - Purchase Image (spans full height) */}
+//                         {/* Left Column - Purchase Image */}
 //                         <div className="lg:col-span-1">
 //                           {p.purchaseImage ? (
 //                             <div className="rounded-lg border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-3 h-full flex flex-col">
@@ -499,63 +593,84 @@
 //                               </div>
 //                             ) : (
 //                               <div className="space-y-2">
-//                                 {links.map((l) => (
-//                                   <div
-//                                     key={l.linkId}
-//                                     className="rounded-lg border border-slate-200 bg-slate-50 p-3 hover:bg-white hover:border-blue-300 transition-colors"
-//                                   >
-//                                     <div className="flex items-start justify-between gap-3 mb-2">
-//                                       <h5 className="text-sm font-medium text-slate-900 flex-1 line-clamp-2">
-//                                         {l.productName}
-//                                       </h5>
-//                                       {l.trackingCode && (
-//                                         <button
-//                                           onClick={() => copy(l.trackingCode)}
-//                                           className="flex-shrink-0 rounded-md border border-slate-200 bg-white p-1.5 text-slate-600 hover:bg-slate-100"
-//                                           title="Copy tracking"
-//                                         >
-//                                           <Copy className="h-3.5 w-3.5" />
-//                                         </button>
-//                                       )}
-//                                     </div>
+//                                 {links.map((l) => {
+//                                   const isCancelled = l.status === "HUY";
 
-//                                     <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm text-slate-600">
-//                                       <div className="flex items-center gap-1.5">
-//                                         <Globe className="h-3.5 w-3.5" />
-//                                         <span>{l.website}</span>
+//                                   return (
+//                                     <div
+//                                       key={l.linkId}
+//                                       className={`rounded-lg border p-3 transition-colors ${
+//                                         isCancelled
+//                                           ? "border-red-200 bg-red-50/50 opacity-70"
+//                                           : "border-slate-200 bg-slate-50 hover:bg-white hover:border-blue-300"
+//                                       }`}
+//                                     >
+//                                       <div className="flex items-start justify-between gap-3 mb-2">
+//                                         <h5 className="text-sm font-medium text-slate-900 flex-1 line-clamp-2">
+//                                           {l.productName}
+//                                           {isCancelled && (
+//                                             <span className="ml-2 inline-flex items-center gap-1 text-xs text-red-600 font-semibold">
+//                                               <X className="h-3 w-3" />
+//                                               CANCELLED
+//                                             </span>
+//                                           )}
+//                                         </h5>
+
+//                                         {!isCompleted && !isCancelled && (
+//                                           <button
+//                                             onClick={() =>
+//                                               openCancelModal(p, l)
+//                                             }
+//                                             className="inline-flex items-center gap-1.5 rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100 transition-colors flex-shrink-0"
+//                                           >
+//                                             <X className="h-3.5 w-3.5" />
+//                                             Cancel
+//                                           </button>
+//                                         )}
 //                                       </div>
-//                                       <div>
-//                                         <span className="font-medium">
-//                                           Qty:
-//                                         </span>{" "}
-//                                         {l.quantity}
-//                                       </div>
-//                                       {l.classify && (
-//                                         <div className="col-span-2">
-//                                           <span className="font-medium">
-//                                             Classify:
-//                                           </span>{" "}
-//                                           {l.classify}
+
+//                                       <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm text-slate-600">
+//                                         <div className="flex items-center gap-1.5">
+//                                           <Globe className="h-3.5 w-3.5" />
+//                                           <span>{l.website}</span>
 //                                         </div>
-//                                       )}
-//                                       <div className="col-span-2 flex items-start gap-1.5">
-//                                         <span className="font-medium">
-//                                           Shipment:
-//                                         </span>
-//                                         <span
-//                                           className={`flex-1 font-mono ${
-//                                             l.shipmentCode?.trim()
-//                                               ? "text-green-700 font-semibold"
-//                                               : "text-slate-400"
-//                                           }`}
-//                                         >
-//                                           {l.shipmentCode?.trim() ||
-//                                             "Not assigned yet"}
-//                                         </span>
+//                                         <div>
+//                                           <span className="font-medium">
+//                                             Qty:
+//                                           </span>{" "}
+//                                           {l.quantity}
+//                                         </div>
+//                                         {l.classify && (
+//                                           <div className="col-span-2">
+//                                             <span className="font-medium">
+//                                               Classify:
+//                                             </span>{" "}
+//                                             {l.classify}
+//                                           </div>
+//                                         )}
+//                                         <div className="col-span-2 flex items-start gap-1.5">
+//                                           <span className="font-medium">
+//                                             Shipment:
+//                                           </span>
+//                                           <span
+//                                             className={`flex-1 font-mono ${
+//                                               isCancelled
+//                                                 ? "text-red-600 line-through"
+//                                                 : l.shipmentCode?.trim()
+//                                                 ? "text-green-700 font-semibold"
+//                                                 : "text-slate-400"
+//                                             }`}
+//                                           >
+//                                             {isCancelled
+//                                               ? "Cancelled"
+//                                               : l.shipmentCode?.trim() ||
+//                                                 "Not assigned yet"}
+//                                           </span>
+//                                         </div>
 //                                       </div>
 //                                     </div>
-//                                   </div>
-//                                 ))}
+//                                   );
+//                                 })}
 //                               </div>
 //                             )}
 //                           </div>
@@ -629,68 +744,6 @@
 //                 );
 //               })}
 //             </div>
-
-//             {/* Pagination */}
-//             <div className="mt-6 flex items-center justify-between rounded-lg border border-slate-200 bg-white px-4 py-3">
-//               <div className="text-sm text-slate-600">
-//                 Showing <span className="font-medium">{items.length}</span>{" "}
-//                 result(s)
-//               </div>
-
-//               <div className="flex items-center gap-2">
-//                 <button
-//                   onClick={() => setPage(0)}
-//                   disabled={!hasPrev || loading}
-//                   className="rounded-md p-1.5 text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:hover:bg-transparent"
-//                   title="First page"
-//                 >
-//                   <ChevronsLeft className="h-5 w-5" />
-//                 </button>
-//                 <button
-//                   onClick={() => setPage((p) => Math.max(0, p - 1))}
-//                   disabled={!hasPrev || loading}
-//                   className="rounded-md p-1.5 text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:hover:bg-transparent"
-//                   title="Previous page"
-//                 >
-//                   <ChevronLeft className="h-5 w-5" />
-//                 </button>
-
-//                 <div className="mx-2 flex h-8 min-w-[80px] items-center justify-center rounded-md bg-slate-50 px-3 text-sm font-medium text-slate-700">
-//                   Page {page + 1}
-//                 </div>
-
-//                 <button
-//                   onClick={() => setPage((p) => p + 1)}
-//                   disabled={!hasNext || loading}
-//                   className="rounded-md p-1.5 text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:hover:bg-transparent"
-//                   title="Next page"
-//                 >
-//                   <ChevronRight className="h-5 w-5" />
-//                 </button>
-//                 <button
-//                   onClick={() => {
-//                     if (data?.totalPages) setPage(data.totalPages - 1);
-//                   }}
-//                   disabled={!hasNext || !data?.totalPages}
-//                   className="rounded-md p-1.5 text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:hover:bg-transparent"
-//                   title="Last page"
-//                 >
-//                   <ChevronsRight className="h-5 w-5" />
-//                 </button>
-
-//                 <div className="ml-2 border-l border-slate-200 pl-2">
-//                   <select
-//                     value={size}
-//                     onChange={(e) => setSize(Number(e.target.value))}
-//                     className="rounded-md border border-slate-200 bg-white px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-//                   >
-//                     <option value={10}>10 / page</option>
-//                     <option value={20}>20 / page</option>
-//                     <option value={50}>50 / page</option>
-//                   </select>
-//                 </div>
-//               </div>
-//             </div>
 //           </>
 //         )}
 
@@ -708,10 +761,29 @@
 //           purchase={selectedPurchase}
 //           onSaveSuccess={handleSaveSuccess}
 //         />
+
+//         <CancelPurchase
+//           isOpen={showCancelModal}
+//           onClose={closeCancelModal}
+//           orderId={selectedPurchase?.orderId}
+//           linkId={selectedCancelLink?.linkId}
+//           orderCode={selectedPurchase?.orderCode}
+//           linkInfo={
+//             selectedCancelLink
+//               ? {
+//                   productName: selectedCancelLink.productName,
+//                   trackingCode: selectedCancelLink.trackingCode,
+//                   status: selectedCancelLink.status,
+//                 }
+//               : null
+//           }
+//           onSuccess={handleCancelSuccess}
+//         />
 //       </div>
 //     </div>
 //   );
 // };
+
 // export default UpdateShipmentCodeList;
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
@@ -806,7 +878,7 @@ const UpdateShipmentCodeList = () => {
   useEffect(() => {
     const t = setTimeout(
       () => setDebouncedCustomerCode(customerCodeSearch),
-      500
+      500,
     );
     return () => clearTimeout(t);
   }, [customerCodeSearch]);
@@ -816,7 +888,7 @@ const UpdateShipmentCodeList = () => {
       new Intl.DateTimeFormat("vi-VN", {
         dateStyle: "short",
       }),
-    []
+    [],
   );
   const formatDate = (iso) => (iso ? dateFmt.format(new Date(iso)) : "-");
 
@@ -830,7 +902,7 @@ const UpdateShipmentCodeList = () => {
           s,
           "DA_MUA",
           debouncedOrderCode || null,
-          debouncedCustomerCode || null
+          debouncedCustomerCode || null,
         );
         setData(res);
       } catch (e) {
@@ -844,7 +916,7 @@ const UpdateShipmentCodeList = () => {
         setLoading(false);
       }
     },
-    [page, size, debouncedOrderCode, debouncedCustomerCode]
+    [page, size, debouncedOrderCode, debouncedCustomerCode],
   );
 
   // Reset page when filters change
@@ -862,7 +934,7 @@ const UpdateShipmentCodeList = () => {
     const links = Array.isArray(p.pendingLinks) ? p.pendingLinks : [];
     if (links.length === 0) return false;
     return links.every(
-      (l) => l.shipmentCode && l.shipmentCode.toString().trim() !== ""
+      (l) => l.shipmentCode && l.shipmentCode.toString().trim() !== "",
     );
   };
 
@@ -870,6 +942,30 @@ const UpdateShipmentCodeList = () => {
     const links = Array.isArray(p.pendingLinks) ? p.pendingLinks : [];
     if (links.length === 0) return null;
     return links[0]?.status || null;
+  };
+
+  // Get customer info from first link
+  const getCustomerInfo = (p) => {
+    const links = Array.isArray(p.pendingLinks) ? p.pendingLinks : [];
+    if (links.length === 0) return null;
+    const firstLink = links[0];
+    if (!firstLink.customerCode && !firstLink.customerName) return null;
+    return {
+      customerCode: firstLink.customerCode || "",
+      name: firstLink.customerName || "",
+    };
+  };
+
+  // Get staff info from first link
+  const getStaffInfo = (p) => {
+    const links = Array.isArray(p.pendingLinks) ? p.pendingLinks : [];
+    if (links.length === 0) return null;
+    const firstLink = links[0];
+    if (!firstLink.staffCode && !firstLink.staffName) return null;
+    return {
+      staffCode: firstLink.staffCode || "",
+      name: firstLink.staffName || "",
+    };
   };
 
   // Client-side filtering for shipment status only
@@ -1169,7 +1265,8 @@ const UpdateShipmentCodeList = () => {
                 const links = Array.isArray(p.pendingLinks)
                   ? p.pendingLinks
                   : [];
-                const customer = p.customer || {};
+                const customer = getCustomerInfo(p);
+                const staff = getStaffInfo(p);
 
                 return (
                   <div
@@ -1184,8 +1281,8 @@ const UpdateShipmentCodeList = () => {
                             ? "bg-yellow-300 border-yellow-400"
                             : "bg-emerald-300 border-emerald-400"
                           : isAuction
-                          ? "bg-yellow-300 border-yellow-400"
-                          : "bg-rose-300 border-rose-400"
+                            ? "bg-yellow-300 border-yellow-400"
+                            : "bg-rose-300 border-rose-400"
                       }`}
                     >
                       <div className="flex items-center justify-between gap-4">
@@ -1204,6 +1301,14 @@ const UpdateShipmentCodeList = () => {
                                 <span>---</span>
                                 <span className="font-medium text-black">
                                   Order: {p.orderCode}
+                                </span>
+                              </>
+                            )}
+                            {p.staffName && (
+                              <>
+                                <span>---</span>
+                                <span className="font-medium text-black">
+                                  Staff: {p.staffName}
                                 </span>
                               </>
                             )}
@@ -1310,7 +1415,7 @@ const UpdateShipmentCodeList = () => {
                             ) : (
                               <div className="space-y-2">
                                 {links.map((l) => {
-                                  const isCancelled = l.status === "HUY";
+                                  const isCancelled = l.status === "DA_HUY";
 
                                   return (
                                     <div
@@ -1346,6 +1451,19 @@ const UpdateShipmentCodeList = () => {
                                       </div>
 
                                       <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm text-slate-600">
+                                        {l.customerCode && (
+                                          <div className="col-span-2 flex items-center gap-1.5">
+                                            <User className="h-3.5 w-3.5" />
+                                            <span className="font-medium text-blue-600">
+                                              {l.customerCode}
+                                            </span>
+                                            {l.customerName && (
+                                              <span className="text-slate-900">
+                                                ({l.customerName})
+                                              </span>
+                                            )}
+                                          </div>
+                                        )}
                                         <div className="flex items-center gap-1.5">
                                           <Globe className="h-3.5 w-3.5" />
                                           <span>{l.website}</span>
@@ -1364,6 +1482,16 @@ const UpdateShipmentCodeList = () => {
                                             {l.classify}
                                           </div>
                                         )}
+                                        {l.trackingCode && (
+                                          <div className="col-span-2">
+                                            <span className="font-medium">
+                                              Tracking:
+                                            </span>{" "}
+                                            <span className="font-mono text-xs font-medium text-purple-600">
+                                              {l.trackingCode}
+                                            </span>
+                                          </div>
+                                        )}
                                         <div className="col-span-2 flex items-start gap-1.5">
                                           <span className="font-medium">
                                             Shipment:
@@ -1373,8 +1501,8 @@ const UpdateShipmentCodeList = () => {
                                               isCancelled
                                                 ? "text-red-600 line-through"
                                                 : l.shipmentCode?.trim()
-                                                ? "text-green-700 font-semibold"
-                                                : "text-slate-400"
+                                                  ? "text-green-700 font-semibold"
+                                                  : "text-slate-400"
                                             }`}
                                           >
                                             {isCancelled
@@ -1393,29 +1521,29 @@ const UpdateShipmentCodeList = () => {
 
                           {/* Staff and Customer Info */}
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {/* Staff Info */}
-                            {p.staff && (
+                            {/* Staff Info from Link */}
+                            {staff && (
                               <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
                                 <div className="flex items-center gap-2 mb-2">
                                   <User className="h-4 w-4 text-slate-600" />
                                   <span className="text-sm font-semibold text-blue-700">
-                                    Staff Information
+                                    Staff Information (Link)
                                   </span>
                                 </div>
                                 <div className="space-y-1.5 text-sm text-slate-600">
-                                  {p.staff.name && (
+                                  {staff.name && (
                                     <div className="flex justify-between">
                                       <span>Name:</span>
                                       <span className="font-medium text-slate-900">
-                                        {p.staff.name}
+                                        {staff.name}
                                       </span>
                                     </div>
                                   )}
-                                  {p.staff.staffCode && (
+                                  {staff.staffCode && (
                                     <div className="flex justify-between">
                                       <span>StaffCode:</span>
                                       <span className="font-medium text-slate-900">
-                                        {p.staff.staffCode}
+                                        {staff.staffCode}
                                       </span>
                                     </div>
                                   )}
@@ -1423,8 +1551,8 @@ const UpdateShipmentCodeList = () => {
                               </div>
                             )}
 
-                            {/* Customer Info */}
-                            {customer.name && (
+                            {/* Customer Info from Link */}
+                            {customer && (
                               <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
                                 <div className="flex items-center gap-2 mb-2">
                                   <User className="h-4 w-4 text-blue-600" />
@@ -1453,6 +1581,34 @@ const UpdateShipmentCodeList = () => {
                               </div>
                             )}
                           </div>
+
+                          {/* Additional Info */}
+                          {(p.finalPriceOrder || p.note) && (
+                            <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                              <div className="space-y-1.5 text-sm">
+                                {p.finalPriceOrder && (
+                                  <div className="flex justify-between">
+                                    <span className="text-slate-600">
+                                      Final Price:
+                                    </span>
+                                    <span className="font-medium text-green-600">
+                                      {p.finalPriceOrder.toLocaleString()}
+                                    </span>
+                                  </div>
+                                )}
+                                {p.note && (
+                                  <div>
+                                    <span className="text-slate-600 font-medium">
+                                      Note:
+                                    </span>
+                                    <p className="text-slate-900 mt-1">
+                                      {p.note}
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>

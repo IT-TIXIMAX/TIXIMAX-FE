@@ -120,6 +120,15 @@ const dashboardService = {
   },
   dailyInventory: (p = {}) =>
     api.get("/dashboard/daily-inventory", { params: p }).then((r) => r.data),
+  dailyPaymentRevenue: (p = {}) =>
+    api
+      .get("/dashboard/daily-payment-revenue", { params: p })
+      .then((r) => r.data),
+
+  dailyPaymentShipping: (p = {}) =>
+    api
+      .get("/dashboard/daily-payment-shipping", { params: p })
+      .then((r) => r.data),
 };
 
 export default dashboardService;

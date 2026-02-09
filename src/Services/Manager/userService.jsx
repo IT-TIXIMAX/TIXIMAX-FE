@@ -41,6 +41,12 @@ const userService = {
     const { data } = await api.get(`/accounts/sale-lead-staff/${page}/${size}`);
     return data;
   },
+  getInactiveCustomers: async (page = 0, size = 10) => {
+    const { data } = await api.get(
+      `/dashboard/inactive-customers/${page}/${size}`,
+    );
+    return data;
+  },
 };
 
 export default userService;

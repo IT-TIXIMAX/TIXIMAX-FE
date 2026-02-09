@@ -30,6 +30,7 @@ import {
   ChevronRight,
   MapPinHouse,
   ListChecks,
+  ShieldUser,
 } from "lucide-react";
 import Logout from "../../Page/Logout";
 import profileService from "../../Services/SharedService/profileService";
@@ -168,6 +169,11 @@ const StaffSaleSidebar = () => {
               to: "/staff-sale/list-customers",
               icon: Users,
               label: "Danh sách khách hàng",
+            },
+            {
+              to: "/staff-sale/loyal-customers",
+              icon: ShieldUser,
+              label: "Khách hàng thân thiết",
             },
 
             {

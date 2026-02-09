@@ -21,7 +21,7 @@ ChartJS.register(
   LineElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
 );
 
 const DashboardCustomer = () => {
@@ -144,7 +144,7 @@ const DashboardCustomer = () => {
         // Calculate metrics
         const totalYearly = monthlyNewCustomers.reduce(
           (sum, val) => sum + val,
-          0
+          0,
         );
         const currentMonth = new Date().getMonth() + 1; // 1-12
         const monthlyNew = monthlyNewCustomers[currentMonth - 1];

@@ -24,6 +24,7 @@
     "axios": "^1.11.0",
     "browser-image-compression": "^2.0.2",
     "chart.js": "^4.5.0",
+    "chartjs-plugin-datalabels": "^2.2.0",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "dbr": "^6.4.0",
