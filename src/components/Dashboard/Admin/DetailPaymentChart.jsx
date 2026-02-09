@@ -2,30 +2,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { Line } from "react-chartjs-2";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-} from "chart.js";
-import ChartDataLabels from "chartjs-plugin-datalabels"; // ← cần cài: npm install chartjs-plugin-datalabels
 import { DollarSign, Truck, Calendar } from "lucide-react";
 import dashboardService from "../../../Services/Dashboard/dashboardService";
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  ChartDataLabels,
-);
 
 const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
 const CURRENT_YEAR = new Date().getFullYear();
@@ -43,6 +21,7 @@ const DetailPaymentChart = () => {
   const [shippingData, setShippingData] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  /* ===================== Fetch data ===================== */
   useEffect(() => {
     const load = async () => {
       setLoading(true);
@@ -62,6 +41,7 @@ const DetailPaymentChart = () => {
     load();
   }, [month]);
 
+  /* ===================== Stats ===================== */
   const stats = useMemo(() => {
     const totalRev = revenueData.reduce((a, c) => a + (c.revenue || 0), 0);
     const totalShip = shippingData.reduce((a, c) => a + (c.revenue || 0), 0);
@@ -76,6 +56,7 @@ const DetailPaymentChart = () => {
     };
   }, [revenueData, shippingData]);
 
+  /* ===================== Chart data builder ===================== */
   const buildChartData = (data, label) => {
     const dates = [...new Set(data.map((i) => i.date))].sort();
     return {
@@ -98,6 +79,7 @@ const DetailPaymentChart = () => {
     };
   };
 
+  /* ===================== Chart options ===================== */
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
@@ -109,16 +91,6 @@ const DetailPaymentChart = () => {
           label: (ctx) =>
             `${ctx.dataset.label}: ${ctx.parsed.y.toLocaleString("vi-VN")} ₫`,
         },
-      },
-      // ← Data labels hiển thị trực tiếp trên điểm
-      datalabels: {
-        color: "#facc15",
-        anchor: "end",
-        align: "top",
-        font: { size: 12, weight: "600" },
-        formatter: (value) => value.toLocaleString("vi-VN"),
-        padding: { top: 8 },
-        display: (ctx) => ctx.dataset.data[ctx.dataIndex] > 0, // chỉ hiện khi có giá trị
       },
     },
     scales: {
@@ -152,8 +124,8 @@ const DetailPaymentChart = () => {
 
   return (
     <div className="min-h-screen p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header, Stats giữ nguyên như cũ */}
+      <div className=" mx-auto">
+        {/* Header */}
         <header className="mb-10">
           <h1 className="text-4xl font-bold text-yellow-300">
             Thống Kê Thanh Toán & Vận Chuyển
@@ -178,19 +150,20 @@ const DetailPaymentChart = () => {
           </div>
         </header>
 
+        {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
           {[
             {
               icon: <DollarSign />,
               title: "Tổng doanh thu",
               value: stats.totalRevenue,
-              sub: `Trung bình ${stats.avgRevenue.toLocaleString()} ₫/ngày`,
+              sub: `Trung bình ${stats.avgRevenue.toLocaleString()} VND/ngày`,
             },
             {
               icon: <Truck />,
               title: "Tổng phí vận chuyển",
               value: stats.totalShipping,
-              sub: `Trung bình ${stats.avgShipping.toLocaleString()} ₫/ngày`,
+              sub: `Trung bình ${stats.avgShipping.toLocaleString()} VND/ngày`,
             },
             {
               icon: <Calendar />,
@@ -206,11 +179,11 @@ const DetailPaymentChart = () => {
                 className: "w-8 h-8 text-yellow-400 mb-4",
               })}
               <p className="text-3xl font-bold text-yellow-400">
-                {item.value.toLocaleString("vi-VN")} ₫
+                {item.value.toLocaleString("vi-VN")} VND
               </p>
-              <p className="text-sm text-gray-300 mt-1">{item.title}</p>
+              <p className="text-xl text-yellow-400 mt-1">{item.title}</p>
               {item.sub && (
-                <p className="text-xs text-gray-400 mt-2">{item.sub}</p>
+                <p className="text-xl text-yellow-400 mt-2">{item.sub}</p>
               )}
             </div>
           ))}
@@ -219,12 +192,12 @@ const DetailPaymentChart = () => {
         {/* Charts */}
         {[
           {
-            title: "Doanh thu thanh toán",
+            title: "Tiền Hàng Thu",
             data: revenueData,
             label: "Doanh thu",
           },
           {
-            title: "Phí vận chuyển",
+            title: "Tiền Vận Chuyển Thu",
             data: shippingData,
             label: "Phí vận chuyển",
           },

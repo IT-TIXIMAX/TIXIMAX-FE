@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   FaChartLine,
@@ -204,7 +204,7 @@ const menuConfig = [
     icon: <FaMoneyCheckAlt />,
     items: [
       {
-        text: "Doanh thu - Chi phí",
+        text: "Tiền thu ",
         icon: <FaDollarSign />,
         path: "/admin/financial-overview",
       },
