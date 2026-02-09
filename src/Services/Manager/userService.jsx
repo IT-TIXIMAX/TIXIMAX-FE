@@ -47,6 +47,19 @@ const userService = {
     );
     return data;
   },
+  getTopCustomersAll: async (orderType = null, limit = 100) => {
+    const params = new URLSearchParams();
+    params.append("limit", limit);
+
+    if (orderType) {
+      params.append("orderType", orderType);
+    }
+
+    const { data } = await api.get(
+      `/dashboard/top-by-type?${params.toString()}`,
+    );
+    return data;
+  },
 };
 
 export default userService;

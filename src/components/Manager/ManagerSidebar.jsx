@@ -357,25 +357,30 @@ const ManagerSidebar = () => {
           path: "/manager/customers",
         },
         {
-          text: t("Danh sách nhắc nhở"),
+          text: t("Khách giảm hoạt động"),
           icon: <ShieldUser />,
           path: "/manager/remind-customers",
+        },
+        {
+          text: t("Khách hàng thân thiết"),
+          icon: <ShieldUser />,
+          path: "/manager/loyal-customers",
         },
         {
           text: t("Danh sách nhân viên"),
           icon: <List />,
           path: "/manager/team",
         },
-        {
-          text: t("Cấp quyền"),
-          icon: <BookKey />,
-          path: "/manager/permission",
-        },
-        {
-          text: t("Tạo nhân viên"),
-          icon: <UserRoundPlus />,
-          path: "/manager/createstaff",
-        },
+        // {
+        //   text: t("Cấp quyền"),
+        //   icon: <BookKey />,
+        //   path: "/manager/permission",
+        // },
+        // {
+        //   text: t("Tạo nhân viên"),
+        //   icon: <UserRoundPlus />,
+        //   path: "/manager/createstaff",
+        // },
         {
           text: t("Thống kê chi phí"),
           icon: <BarChart2 />,

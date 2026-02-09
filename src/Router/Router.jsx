@@ -169,6 +169,8 @@ import WarehouseDomesticAdmin from "../components/Admin/WarehouseDomesticAdmin";
 import CheckImportFile from "../components/StaffSale/CheckImportFile";
 import RemindCustomer from "../components/StaffSale/RemindCustomer";
 import DetailPaymentChart from "../components/Dashboard/Admin/DetailPaymentChart";
+import ManagerChartPayment from "../components/Dashboard/Manager/ManagerChartPayment";
+import LoyalCustomer from "../components/StaffSale/LoyalCustomer";
 const Router = createBrowserRouter([
   {
     path: "/",
@@ -287,9 +289,10 @@ const Router = createBrowserRouter([
       { path: "createstaff", element: <CreateAccountStaff /> },
       { path: "kpicustomer", element: <PerformancesCustomer /> },
       { path: "remind-customers", element: <RemindCustomer /> },
+      { path: "loyal-customers", element: <LoyalCustomer /> },
       { path: "warehouseperformance", element: <DashboardWarehouseForeign /> },
       { path: "warehouse-domestic", element: <DetailDashboardDomestic /> },
-      { path: "warehouse-international", element: <NotFound /> },
+      { path: "warehouse-international", element: <ManagerChartPayment /> },
       { path: "flight-info", element: <CreateInforFlight /> },
       { path: "flight-list", element: <ManagerInfoFlight /> },
       { path: "quote", element: <PaymentOrderList /> },
@@ -390,7 +393,8 @@ const Router = createBrowserRouter([
       { path: "status-orders", element: <ManagerOrder /> },
       { path: "create-customer", element: <CreateAccountUser /> },
       { path: "list-customers", element: <CustomerStaffList /> },
-      { path: "loyal-customers", element: <RemindCustomer /> },
+      { path: "remind-customers", element: <RemindCustomer /> },
+      { path: "loyal-customers", element: <LoyalCustomer /> },
       { path: "add-shipping-order", element: <RelateOrder /> },
       { path: "export-order", element: <ExportOtherOrder /> },
       { path: "prospects", element: <NotFound /> },

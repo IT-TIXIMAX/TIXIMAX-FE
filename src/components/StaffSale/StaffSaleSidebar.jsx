@@ -12,6 +12,7 @@ import {
   ChevronDown,
   User,
   CreditCard,
+  UserRoundMinus,
   Phone,
   Book,
   List,
@@ -171,11 +172,15 @@ const StaffSaleSidebar = () => {
               label: "Danh sách khách hàng",
             },
             {
+              to: "/staff-sale/remind-customers",
+              icon: UserRoundMinus,
+              label: "Khách ngưng hoạt động",
+            },
+            {
               to: "/staff-sale/loyal-customers",
               icon: ShieldUser,
               label: "Khách hàng thân thiết",
             },
-
             {
               to: "/staff-sale/prospects",
               icon: UserStar,
