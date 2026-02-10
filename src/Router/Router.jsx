@@ -87,7 +87,7 @@ import OrderAuctionList from "../components/StaffPurchaser/OrderAuctionList";
 import AuctionPayment from "../components/PaymentOrder/AuctionPayment";
 import ManagerTeam from "../components/LeadSale/ManagerTeam";
 import AuthCallback from "../Services/Auth/AuthCallback";
-import DashboardPurchase from "../components/StaffPurchaser/DashboardPurchase";
+import DashboardPurchase from "../components/Dashboard/Purchaser/DashboardPurchase";
 import DashboardWarehouse from "../components/WarehouseDomestic/DashboardWarehouse";
 import StaffProfile from "../components/common/StaffProfile";
 import ManagerPromotion from "../components/Manager/ManagerPromotion";
