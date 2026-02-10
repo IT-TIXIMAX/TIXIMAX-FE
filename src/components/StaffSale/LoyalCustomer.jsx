@@ -8,8 +8,6 @@ import {
   RefreshCw,
   X,
   Loader2,
-  Package,
-  User,
   UserCircle,
   Weight,
   Medal,
@@ -17,6 +15,7 @@ import {
   Award,
   Star,
   Hash,
+  Calendar,
 } from "lucide-react";
 import userService from "../../Services/Manager/userService";
 import toast from "react-hot-toast";
@@ -31,12 +30,32 @@ const ORDER_TYPES = [
   { key: "CHUYEN_TIEN", label: "Chuyển tiền", color: "pink" },
 ];
 
+const MONTHS = [
+  { value: 1, label: "Tháng 1" },
+  { value: 2, label: "Tháng 2" },
+  { value: 3, label: "Tháng 3" },
+  { value: 4, label: "Tháng 4" },
+  { value: 5, label: "Tháng 5" },
+  { value: 6, label: "Tháng 6" },
+  { value: 7, label: "Tháng 7" },
+  { value: 8, label: "Tháng 8" },
+  { value: 9, label: "Tháng 9" },
+  { value: 10, label: "Tháng 10" },
+  { value: 11, label: "Tháng 11" },
+  { value: 12, label: "Tháng 12" },
+];
+
 const DEFAULT_LIMIT = 100;
 
 /* ===================== Format helpers ===================== */
 const formatWeight = (weight) => {
   if (!weight && weight !== 0) return "0 kg";
   return `${parseFloat(weight).toFixed(2)} kg`;
+};
+
+/* ===================== Get Current Month ===================== */
+const getCurrentMonth = () => {
+  return new Date().getMonth() + 1; // 1-12
 };
 
 /* ===================== Skeleton ===================== */
@@ -72,8 +91,9 @@ const LoyalCustomer = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Filter states
+  // Filter states - Set default to current month
   const [selectedOrderType, setSelectedOrderType] = useState("ALL");
+  const [selectedMonth, setSelectedMonth] = useState(getCurrentMonth());
   const [searchInput, setSearchInput] = useState("");
   const [limitInput, setLimitInput] = useState(DEFAULT_LIMIT.toString());
   const [limit, setLimit] = useState(DEFAULT_LIMIT);
@@ -84,7 +104,11 @@ const LoyalCustomer = () => {
     setLoading(true);
     try {
       const orderType = selectedOrderType === "ALL" ? null : selectedOrderType;
-      const response = await userService.getTopCustomersAll(orderType, limit);
+      const response = await userService.getTopCustomersAll(
+        orderType,
+        limit,
+        selectedMonth,
+      );
       setData(response || {});
     } catch (err) {
       console.error("Error fetching loyal customers:", err);
@@ -96,7 +120,7 @@ const LoyalCustomer = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedOrderType, limit]);
+  }, [selectedOrderType, limit, selectedMonth]);
 
   useEffect(() => {
     fetchLoyalCustomers();
@@ -131,7 +155,6 @@ const LoyalCustomer = () => {
   /* ===================== Get Current List ===================== */
   const currentList = useMemo(() => {
     if (selectedOrderType === "ALL") {
-      // Combine all lists and sort by totalWeight
       const allCustomers = [];
       Object.entries(data).forEach(([orderType, customers]) => {
         customers.forEach((customer) => {
@@ -219,27 +242,51 @@ const LoyalCustomer = () => {
       <div className="mx-auto p-4 md:p-6 lg:p-8">
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-sm p-5 mb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center">
-                <Trophy size={22} className="text-white" />
+          <div className="flex flex-col gap-4">
+            {/* Top Row: Title + Actions */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center">
+                  <Trophy size={22} className="text-white" />
+                </div>
+                <div>
+                  <h1 className="text-xl font-semibold text-white">
+                    Khách Hàng Trung Thành
+                  </h1>
+                </div>
               </div>
-              <div>
-                <h1 className="text-xl font-semibold text-white">
-                  Khách Hàng Trung Thành
-                </h1>
-              </div>
+
+              <button
+                onClick={fetchLoyalCustomers}
+                disabled={loading}
+                className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/30 rounded-lg text-sm font-medium text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                type="button"
+              >
+                <RefreshCw
+                  size={16}
+                  className={loading ? "animate-spin" : ""}
+                />
+                Tải lại
+              </button>
             </div>
 
-            <button
-              onClick={fetchLoyalCustomers}
-              disabled={loading}
-              className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/30 rounded-lg text-sm font-medium text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
-              type="button"
-            >
-              <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
-              Tải lại
-            </button>
+            {/* Month Buttons Row */}
+            <div className="flex items-center gap-2 flex-wrap">
+              {MONTHS.map((month) => (
+                <button
+                  key={month.value}
+                  onClick={() => setSelectedMonth(month.value)}
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+                    selectedMonth === month.value
+                      ? "bg-white text-blue-600 shadow-sm"
+                      : "bg-white/10 text-white hover:bg-white/20 border border-white/30"
+                  }`}
+                  type="button"
+                >
+                  {month.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -364,7 +411,7 @@ const LoyalCustomer = () => {
                 />
                 <input
                   type="text"
-                  placeholder="Tìm tên khách hàng, nhân viên..."
+                  placeholder="Tìm khách hàng, nhân viên..."
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
                   className="w-full pl-10 pr-10 py-2.5 border-2 border-gray-300 rounded-lg outline-none focus:ring-0 focus:border-blue-500 transition-all text-sm"
@@ -509,7 +556,7 @@ const LoyalCustomer = () => {
                         </div>
                       </td>
 
-                      {/* Customer - ẨN ID */}
+                      {/* Customer */}
                       <td className="px-4 py-4">
                         <div className="flex items-center gap-3">
                           <div className="flex-shrink-0 h-10 w-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center">
@@ -525,7 +572,7 @@ const LoyalCustomer = () => {
                         </div>
                       </td>
 
-                      {/* Staff - ẨN ID */}
+                      {/* Staff */}
                       <td className="px-4 py-4">
                         <div className="text-sm font-medium text-gray-900">
                           {customer.staffName || "—"}

@@ -279,6 +279,7 @@ import {
   Gift,
   UserRoundPlus,
   BookKey,
+  UserRoundMinus,
   ChartSpline,
   LayoutDashboard,
   ChartNoAxesCombined,
@@ -358,7 +359,7 @@ const ManagerSidebar = () => {
         },
         {
           text: t("Khách giảm hoạt động"),
-          icon: <ShieldUser />,
+          icon: <UserRoundMinus />,
           path: "/manager/remind-customers",
         },
         {

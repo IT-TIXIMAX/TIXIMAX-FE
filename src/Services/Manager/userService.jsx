@@ -47,12 +47,16 @@ const userService = {
     );
     return data;
   },
-  getTopCustomersAll: async (orderType = null, limit = 100) => {
+  getTopCustomersAll: async (orderType = null, limit = 100, month = null) => {
     const params = new URLSearchParams();
     params.append("limit", limit);
 
     if (orderType) {
       params.append("orderType", orderType);
+    }
+
+    if (month) {
+      params.append("month", month);
     }
 
     const { data } = await api.get(
