@@ -7,7 +7,6 @@ import {
   Search,
   RefreshCw,
   X,
-  Loader2,
   UserCircle,
   Weight,
   Medal,
@@ -15,7 +14,6 @@ import {
   Award,
   Star,
   Hash,
-  Calendar,
 } from "lucide-react";
 import userService from "../../Services/Manager/userService";
 import toast from "react-hot-toast";
@@ -26,26 +24,11 @@ const ORDER_TYPES = [
   { key: "MUA_HO", label: "Mua hộ", color: "green" },
   { key: "KY_GUI", label: "Ký gửi", color: "purple" },
   { key: "DAU_GIA", label: "Đấu giá", color: "orange" },
-  { key: "THANH_TOAN_HO", label: "Thanh toán hộ", color: "indigo" },
-  { key: "CHUYEN_TIEN", label: "Chuyển tiền", color: "pink" },
 ];
 
-const MONTHS = [
-  { value: 1, label: "Tháng 1" },
-  { value: 2, label: "Tháng 2" },
-  { value: 3, label: "Tháng 3" },
-  { value: 4, label: "Tháng 4" },
-  { value: 5, label: "Tháng 5" },
-  { value: 6, label: "Tháng 6" },
-  { value: 7, label: "Tháng 7" },
-  { value: 8, label: "Tháng 8" },
-  { value: 9, label: "Tháng 9" },
-  { value: 10, label: "Tháng 10" },
-  { value: 11, label: "Tháng 11" },
-  { value: 12, label: "Tháng 12" },
-];
-
+const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
 const DEFAULT_LIMIT = 100;
+const CURRENT_YEAR = new Date().getFullYear();
 
 /* ===================== Format helpers ===================== */
 const formatWeight = (weight) => {
@@ -240,50 +223,43 @@ const LoyalCustomer = () => {
   return (
     <div className="min-h-screen">
       <div className="mx-auto p-4 md:p-6 lg:p-8">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-sm p-5 mb-6">
-          <div className="flex flex-col gap-4">
-            {/* Top Row: Title + Actions */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center">
-                  <Trophy size={22} className="text-white" />
-                </div>
-                <div>
-                  <h1 className="text-xl font-semibold text-white">
-                    Khách Hàng Trung Thành
-                  </h1>
-                </div>
-              </div>
-
-              <button
-                onClick={fetchLoyalCustomers}
-                disabled={loading}
-                className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/30 rounded-lg text-sm font-medium text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
-                type="button"
-              >
-                <RefreshCw
-                  size={16}
-                  className={loading ? "animate-spin" : ""}
-                />
-                Tải lại
-              </button>
+        {/* Header - THEO CHUẨN MỚI */}
+        <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 rounded-2xl shadow-lg border border-blue-500 p-6 md:p-8 mb-6 md:mb-8">
+          {/* Title Section */}
+          <div className="flex items-center gap-4 mb-6">
+            <div className="p-3 rounded-xl bg-white/20 backdrop-blur-sm">
+              <Trophy className="w-8 h-8 text-white" />
             </div>
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold text-white">
+                Khách Hàng Trung Thành
+              </h1>
+              <p className="text-blue-100 text-sm font-medium mt-1">
+                Báo cáo chi tiết theo tháng năm {CURRENT_YEAR}
+              </p>
+            </div>
+          </div>
 
-            {/* Month Buttons Row */}
-            <div className="flex items-center gap-2 flex-wrap">
-              {MONTHS.map((month) => (
+          {/* Month Selector */}
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-12 gap-2 md:gap-3">
+              {MONTHS.map((m) => (
                 <button
-                  key={month.value}
-                  onClick={() => setSelectedMonth(month.value)}
-                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-                    selectedMonth === month.value
-                      ? "bg-white text-blue-600 shadow-sm"
-                      : "bg-white/10 text-white hover:bg-white/20 border border-white/30"
-                  }`}
+                  key={m}
+                  onClick={() => setSelectedMonth(m)}
+                  disabled={loading}
+                  className={`
+                    px-3 py-2.5 rounded-lg font-semibold text-sm transition-all duration-200
+                    ${
+                      selectedMonth === m
+                        ? "bg-white text-blue-700 shadow-lg scale-105"
+                        : "bg-white/20 text-white hover:bg-white/30 hover:shadow-md backdrop-blur-sm"
+                    }
+                    ${loading ? "opacity-50 cursor-not-allowed" : ""}
+                  `}
                   type="button"
                 >
-                  {month.label}
+                  Tháng {m}
                 </button>
               ))}
             </div>
