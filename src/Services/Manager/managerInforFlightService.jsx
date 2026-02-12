@@ -21,6 +21,12 @@ const managerInforFlightService = {
         payload,
       )
       .then((r) => r.data),
+  getAvailableFlightCodesByRoute: (routeId) =>
+    api
+      .get("/flight-shipment/available-flight-codes/by-route", {
+        params: routeId ? { routeId } : {},
+      })
+      .then((r) => r.data),
 };
 
 export default managerInforFlightService;

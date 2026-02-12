@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   UserCircle,
-  Eye,
   Search,
   Filter,
   Users,
@@ -18,6 +17,7 @@ import {
   DollarSign,
 } from "lucide-react";
 import userService from "../../Services/Manager/userService";
+import dashboardService from "../../Services/Dashboard/dashboardService";
 import CreateRefund from "./CreateRefund";
 
 const PAGE_SIZES = [100, 200, 500, 1000, 2000];
@@ -77,6 +77,93 @@ const formatDateTime = (iso) => {
   }
 };
 
+/* ===================== Segment Cards ===================== */
+const SEGMENT_COLORS = {
+  1: {
+    bg: "bg-red-100",
+    border: "border-red-200",
+    text: "text-red-600",
+    label: "Mua 1 lần",
+  },
+  2: {
+    bg: "bg-orange-50",
+    border: "border-orange-200",
+    text: "text-orange-600",
+    label: "Mua 2 lần",
+  },
+  3: {
+    bg: "bg-orange-50",
+    border: "border-orange-200",
+    text: "text-orange-600",
+    label: "Mua 3 lần",
+  },
+  4: {
+    bg: "bg-orange-50",
+    border: "border-orange-200",
+    text: "text-orange-600",
+    label: "Mua 4 lần",
+  },
+  "5+": {
+    bg: "bg-green-100",
+    border: "border-green-200",
+    text: "text-green-600",
+    label: "Mua 5+ lần",
+  },
+};
+
+const OrderSegmentSection = ({ segments, loading }) => {
+  if (loading) {
+    return (
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div
+            key={i}
+            className="bg-white rounded-xl border border-gray-200 p-4 animate-pulse"
+          >
+            <div className="h-3 w-16 bg-gray-200 rounded mb-3" />
+            <div className="h-7 w-12 bg-gray-200 rounded mb-2" />
+            <div className="h-3 w-20 bg-gray-200 rounded" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (!segments || segments.length === 0) return null;
+
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
+      {segments.map((seg) => {
+        const colors = SEGMENT_COLORS[seg.segment] ?? {
+          bg: "bg-gray-50",
+          border: "border-gray-200",
+          text: "text-gray-600",
+          label: `Mua ${seg.segment} lần`,
+        };
+        return (
+          <div
+            key={seg.segment}
+            className={`${colors.bg} ${colors.border} border rounded-xl p-5`}
+          >
+            <p className={`text-sm font-medium text-gray-600 mb-1`}>
+              {colors.label}
+            </p>
+            <p className={`text-3xl font-bold ${colors.text}`}>
+              {seg.customers.toLocaleString("vi-VN")}
+            </p>
+            <p className="text-2xs font-semibold text-black mt-1">
+              {seg.retentionPercent > 0
+                ? `Giữ chân ${seg.retentionPercent.toFixed(1)}%`
+                : "Chưa có tỷ lệ"}
+            </p>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+/* ===================== Main Component ===================== */
 const CustomerList = () => {
   const [customerList, setCustomerList] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -89,22 +176,35 @@ const CustomerList = () => {
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [openDetailModal, setOpenDetailModal] = useState(false);
 
-  // ✅ Refund modal
   const [openRefundModal, setOpenRefundModal] = useState(false);
   const [refundCustomer, setRefundCustomer] = useState(null);
 
-  // Pagination states
+  const [segments, setSegments] = useState([]);
+  const [segmentsLoading, setSegmentsLoading] = useState(false);
+
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize, setPageSize] = useState(100);
   const [totalElements, setTotalElements] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+
+  const fetchSegments = useCallback(async () => {
+    setSegmentsLoading(true);
+    try {
+      const data = await dashboardService.customerOrderSegments();
+      setSegments(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Không thể tải phân khúc khách hàng:", err);
+      setSegments([]);
+    } finally {
+      setSegmentsLoading(false);
+    }
+  }, []);
 
   const fetchMyCustomers = useCallback(async (page, size, term) => {
     setError(null);
     setLoading(true);
     try {
       const res = await userService.getMyCustomers(page, size, term);
-
       setCustomerList(res?.content || []);
       setTotalElements(res?.totalElements || 0);
       setTotalPages(res?.totalPages || 0);
@@ -122,6 +222,10 @@ const CustomerList = () => {
   useEffect(() => {
     fetchMyCustomers(0, pageSize, appliedSearch);
   }, [pageSize, appliedSearch, fetchMyCustomers]);
+
+  useEffect(() => {
+    fetchSegments();
+  }, [fetchSegments]);
 
   const handlePageChange = useCallback(
     (newPage) => {
@@ -187,21 +291,6 @@ const CustomerList = () => {
     return stats;
   }, [customerList]);
 
-  const handleViewCustomer = useCallback(async (customer) => {
-    setSelectedCustomer(customer);
-    setOpenDetailModal(true);
-
-    setDetailLoading(true);
-    try {
-      const detail = await userService.getAccountById(customer?.accountId);
-      setSelectedCustomer((prev) => ({ ...prev, ...detail }));
-    } catch {
-      // vẫn xem được data list
-    } finally {
-      setDetailLoading(false);
-    }
-  }, []);
-
   const closeModal = useCallback(() => {
     setOpenDetailModal(false);
     setSelectedCustomer(null);
@@ -229,7 +318,6 @@ const CustomerList = () => {
               : c,
           ),
         );
-
         setSelectedCustomer((prev) =>
           prev?.accountId === refundCustomer.accountId
             ? { ...prev, balance: newBalance }
@@ -243,7 +331,7 @@ const CustomerList = () => {
   );
 
   return (
-    <div className="min-h-screen ">
+    <div className="min-h-screen">
       <div className="mx-auto p-6">
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-sm p-5 mb-6">
@@ -256,11 +344,11 @@ const CustomerList = () => {
                 Danh Sách Khách Hàng
               </h1>
             </div>
-
             <button
-              onClick={() =>
-                fetchMyCustomers(currentPage, pageSize, appliedSearch)
-              }
+              onClick={() => {
+                fetchMyCustomers(currentPage, pageSize, appliedSearch);
+                fetchSegments();
+              }}
               disabled={loading}
               className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/30 rounded-lg text-sm font-medium text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
               type="button"
@@ -297,7 +385,6 @@ const CustomerList = () => {
                   </div>
                 </div>
               </div>
-
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
                 <div className="flex items-center justify-between">
                   <div>
@@ -313,7 +400,6 @@ const CustomerList = () => {
                   </div>
                 </div>
               </div>
-
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
                 <div className="flex items-center justify-between">
                   <div>
@@ -329,7 +415,6 @@ const CustomerList = () => {
                   </div>
                 </div>
               </div>
-
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
                 <div className="flex items-center justify-between">
                   <div>
@@ -348,6 +433,9 @@ const CustomerList = () => {
             </>
           )}
         </div>
+
+        {/* Segment Cards */}
+        <OrderSegmentSection segments={segments} loading={segmentsLoading} />
 
         {/* Search Section */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
@@ -372,14 +460,12 @@ const CustomerList = () => {
                       onClick={() => setSearchInput("")}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                       type="button"
-                      title="Xóa text"
                     >
                       <X size={18} />
                     </button>
                   )}
                 </div>
               </div>
-
               <button
                 onClick={handleApplySearch}
                 disabled={loading}
@@ -390,8 +476,6 @@ const CustomerList = () => {
                 Tìm kiếm
               </button>
             </div>
-
-            {/* Page Size Selector */}
             <div className="flex items-center gap-3">
               <span className="text-sm font-medium text-gray-700 whitespace-nowrap">
                 Hiển thị:
@@ -513,7 +597,6 @@ const CustomerList = () => {
                     </th>
                   </tr>
                 </thead>
-
                 <tbody>
                   {customerList.map((customer, index) => (
                     <tr
@@ -522,7 +605,6 @@ const CustomerList = () => {
                         index % 2 === 0 ? "bg-white" : "bg-gray-50"
                       }`}
                     >
-                      {/* Khách hàng */}
                       <td className="px-4 py-4">
                         <div className="flex items-center gap-3">
                           <div className="flex-shrink-0 h-10 w-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center">
@@ -540,22 +622,16 @@ const CustomerList = () => {
                           </div>
                         </div>
                       </td>
-
-                      {/* Mã KH */}
                       <td className="px-4 py-4">
                         <span className="text-sm font-medium text-blue-600">
                           {customer?.customerCode || "—"}
                         </span>
                       </td>
-
-                      {/* SĐT */}
                       <td className="px-4 py-4">
                         <span className="text-sm text-gray-900">
                           {customer?.phone || "—"}
                         </span>
                       </td>
-
-                      {/* Email */}
                       <td className="px-4 py-4">
                         <div className="max-w-[200px]">
                           <span className="text-sm text-gray-900 truncate block">
@@ -563,81 +639,51 @@ const CustomerList = () => {
                           </span>
                         </div>
                       </td>
-
-                      {/* Tổng đơn */}
                       <td className="px-4 py-4 text-center">
                         <span className="text-sm font-medium text-gray-900">
                           {customer?.totalOrders ?? 0}
                         </span>
                       </td>
-
-                      {/* Tổng cân */}
                       <td className="px-4 py-4 text-center">
                         <span className="text-sm text-gray-900 whitespace-nowrap">
                           {formatWeight(customer?.totalWeight)}
                         </span>
                       </td>
-
-                      {/* Tổng tiền */}
                       <td className="px-4 py-4 text-right">
                         <span className="text-sm font-medium text-gray-900 tabular-nums whitespace-nowrap">
                           {formatMoney(customer?.totalAmount)}
                         </span>
                       </td>
-
-                      {/* Số dư */}
                       <td className="px-4 py-4 text-right">
                         <span className="text-sm font-semibold text-blue-600 tabular-nums whitespace-nowrap">
                           {formatMoney(customer?.balance)}
                         </span>
                       </td>
-
-                      {/* Nhân viên */}
                       <td className="px-4 py-4">
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-sm text-gray-900 truncate">
-                            {customer?.staffName || "—"}
-                          </span>
-                        </div>
+                        <span className="text-sm text-gray-900 truncate">
+                          {customer?.staffName || "—"}
+                        </span>
                       </td>
-
-                      {/* Nguồn */}
                       <td className="px-4 py-4">
                         {customer?.source && customer.source.trim() !== "" ? (
                           <span
-                            className={`inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-full ${getSourceColor(
-                              customer.source,
-                            )}`}
+                            className={`inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-full ${getSourceColor(customer.source)}`}
                           >
                             {customer.source}
                           </span>
                         ) : (
                           <span
-                            className={`inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-full ${getSourceColor(
-                              "",
-                            )}`}
+                            className={`inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-full ${getSourceColor("")}`}
                           >
                             {getSourceLabel(EMPTY_SOURCE_VALUE)}
                           </span>
                         )}
                       </td>
-
-                      {/* Thao tác */}
                       <td className="px-4 py-4">
-                        <div className="flex items-center justify-center gap-2">
-                          <button
-                            onClick={() => handleViewCustomer(customer)}
-                            className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-all flex items-center gap-2 text-sm"
-                            type="button"
-                            title="Xem chi tiết"
-                          >
-                            <Eye size={16} />
-                            Xem
-                          </button>
-
+                        <div className="flex items-center justify-center">
                           <button
                             onClick={() => handleOpenRefund(customer)}
-                            className="px-3 py-2 bg-white border border-blue-200 text-blue-700 rounded-lg hover:bg-blue-50 font-semibold transition-all flex items-center gap-2 text-sm"
+                            className="px-3 py-2 bg-white border border-blue-200 text-blue-700 rounded-lg hover:bg-blue-50 font-semibold transition-all text-sm"
                             type="button"
                             title="Hoàn tiền / hoàn số dư"
                           >
@@ -671,7 +717,6 @@ const CustomerList = () => {
                   </span>{" "}
                   khách hàng
                 </div>
-
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => handlePageChange(0)}
@@ -715,206 +760,13 @@ const CustomerList = () => {
         </div>
       </div>
 
-      {/* ✅ Refund Modal */}
+      {/* Refund Modal */}
       <CreateRefund
         open={openRefundModal}
         onClose={() => setOpenRefundModal(false)}
         customer={refundCustomer}
         onSuccess={handleRefundSuccess}
       />
-
-      {/* Detail Modal */}
-      {openDetailModal && selectedCustomer && (
-        <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50 p-4">
-          <div className="bg-white w-full max-w-4xl rounded-xl shadow-2xl overflow-hidden">
-            <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                  <UserCircle className="text-white" size={20} />
-                </div>
-                <h2 className="text-xl font-semibold text-white">
-                  Thông Tin Khách Hàng
-                </h2>
-              </div>
-              <button
-                className="text-white/80 hover:text-white transition-colors"
-                onClick={closeModal}
-                type="button"
-              >
-                <X size={24} />
-              </button>
-            </div>
-
-            <div className="px-6 py-6 space-y-4 max-h-[calc(90vh-140px)] overflow-y-auto">
-              {detailLoading && (
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Loader2 className="animate-spin" size={16} />
-                  Đang tải thêm thông tin...
-                </div>
-              )}
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 border-2 border-gray-200 rounded-lg bg-gray-50">
-                  <p className="text-sm font-medium text-gray-600 mb-1">
-                    Mã khách hàng
-                  </p>
-                  <p className="font-semibold text-gray-900 text-lg">
-                    {selectedCustomer?.customerCode || "—"}
-                  </p>
-                </div>
-
-                <div className="p-4 border-2 border-gray-200 rounded-lg bg-gray-50">
-                  <p className="text-sm font-medium text-gray-600 mb-1">
-                    Tên khách hàng
-                  </p>
-                  <p className="font-semibold text-gray-900 text-lg">
-                    {selectedCustomer?.name || "—"}
-                  </p>
-                </div>
-
-                <div className="p-4 border-2 border-gray-200 rounded-lg bg-gray-50">
-                  <p className="text-sm font-medium text-gray-600 mb-1">
-                    Số điện thoại
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <Phone className="text-blue-600" size={16} />
-                    <p className="font-semibold text-gray-900">
-                      {selectedCustomer?.phone || "—"}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="p-4 border-2 border-gray-200 rounded-lg bg-gray-50">
-                  <p className="text-sm font-medium text-gray-600 mb-1">
-                    Email
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <Mail className="text-blue-600 flex-shrink-0" size={16} />
-                    <p className="text-gray-900 break-words text-sm">
-                      {selectedCustomer?.email || "—"}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="p-4 border-2 border-gray-200 rounded-lg bg-gray-50">
-                  <p className="text-sm font-medium text-gray-600 mb-1">
-                    Tổng đơn hàng
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <ShoppingCart className="text-blue-600" size={16} />
-                    <p className="font-semibold text-gray-900 text-lg">
-                      {selectedCustomer?.totalOrders ?? 0}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="p-4 border-2 border-gray-200 rounded-lg bg-gray-50">
-                  <p className="text-sm font-medium text-gray-600 mb-1">
-                    Tổng cân nặng
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <Weight className="text-blue-600" size={16} />
-                    <p className="font-semibold text-gray-900 text-lg">
-                      {formatWeight(selectedCustomer?.totalWeight)}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="p-4 border-2 border-gray-200 rounded-lg bg-gray-50">
-                  <p className="text-sm font-medium text-gray-600 mb-1">
-                    Tổng tiền
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="text-blue-600" size={16} />
-                    <p className="font-semibold text-gray-900 text-lg">
-                      {formatMoney(selectedCustomer?.totalAmount)}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="p-4 border-2 border-gray-200 rounded-lg bg-gray-50">
-                  <p className="text-sm font-medium text-gray-600 mb-1">
-                    Số dư
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <Wallet className="text-blue-600" size={16} />
-                    <p className="font-semibold text-blue-600 text-lg">
-                      {formatMoney(selectedCustomer?.balance)}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="p-4 border-2 border-gray-200 rounded-lg bg-gray-50">
-                  <p className="text-sm font-medium text-gray-600 mb-1">
-                    Nhân viên phụ trách
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <UserCheck className="text-blue-600" size={16} />
-                    <p className="font-semibold text-gray-900">
-                      {selectedCustomer?.staffName || "—"}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="p-4 border-2 border-gray-200 rounded-lg bg-gray-50">
-                  <p className="text-sm font-medium text-gray-600 mb-1">
-                    Nguồn
-                  </p>
-                  <span
-                    className={`inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-full ${getSourceColor(
-                      selectedCustomer?.source || "",
-                    )}`}
-                  >
-                    {selectedCustomer?.source || getSourceLabel("__EMPTY__")}
-                  </span>
-                </div>
-              </div>
-
-              {/* Địa chỉ */}
-              {selectedCustomer?.addresses &&
-                Array.isArray(selectedCustomer.addresses) &&
-                selectedCustomer.addresses.length > 0 && (
-                  <div className="p-4 border-2 border-gray-200 rounded-lg bg-gray-50">
-                    <div className="flex items-center gap-2 mb-3">
-                      <MapPin className="text-blue-600" size={16} />
-                      <p className="text-sm font-medium text-gray-600">
-                        Địa chỉ
-                      </p>
-                    </div>
-
-                    <div className="flex flex-col gap-2">
-                      {selectedCustomer.addresses
-                        .filter((a) => (a?.addressName || "").trim() !== "")
-                        .map((a, i) => (
-                          <div
-                            key={a?.id ?? i}
-                            className="flex items-start gap-2 p-3 bg-white rounded-lg border border-gray-200"
-                          >
-                            <span className="inline-flex items-center justify-center w-6 h-6 bg-blue-100 text-blue-600 rounded-full text-xs font-semibold flex-shrink-0">
-                              {i + 1}
-                            </span>
-                            <span className="text-sm text-gray-900">
-                              {a?.addressName}
-                            </span>
-                          </div>
-                        ))}
-                    </div>
-                  </div>
-                )}
-            </div>
-
-            <div className="bg-gray-50 px-6 py-4 flex justify-end border-t border-gray-200">
-              <button
-                className="px-6 py-2.5 bg-blue-600 text-white rounded-lg font-medium shadow-sm hover:bg-blue-700 transition-colors"
-                onClick={closeModal}
-                type="button"
-              >
-                Đóng
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

@@ -171,6 +171,8 @@ import RemindCustomer from "../components/StaffSale/RemindCustomer";
 import DetailPaymentChart from "../components/Dashboard/Admin/DetailPaymentChart";
 import ManagerChartPayment from "../components/Dashboard/Manager/ManagerChartPayment";
 import LoyalCustomer from "../components/StaffSale/LoyalCustomer";
+import CohortAnalysis from "../components/Manager/CohortAnalysis";
+import FirstOrderAnalysis from "../components/Manager/FirstOrderAnalysis";
 const Router = createBrowserRouter([
   {
     path: "/",
@@ -290,6 +292,8 @@ const Router = createBrowserRouter([
       { path: "kpicustomer", element: <PerformancesCustomer /> },
       { path: "remind-customers", element: <RemindCustomer /> },
       { path: "loyal-customers", element: <LoyalCustomer /> },
+      { path: "retention-customers", element: <CohortAnalysis /> },
+      { path: "first-order", element: <FirstOrderAnalysis /> },
       { path: "warehouseperformance", element: <DashboardWarehouseForeign /> },
       { path: "warehouse-domestic", element: <DetailDashboardDomestic /> },
       { path: "warehouse-international", element: <ManagerChartPayment /> },

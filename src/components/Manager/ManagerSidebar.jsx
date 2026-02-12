@@ -286,6 +286,7 @@ import {
   Warehouse,
   LogOut,
   Settings,
+  Sparkles,
 } from "lucide-react";
 import Logout from "../../Page/Logout";
 
@@ -366,6 +367,16 @@ const ManagerSidebar = () => {
           text: t("Khách hàng thân thiết"),
           icon: <ShieldUser />,
           path: "/manager/loyal-customers",
+        },
+        {
+          text: t("Tỷ lệ quay lại KH"),
+          icon: <ChartSpline />,
+          path: "/manager/retention-customers",
+        },
+        {
+          text: t("Đơn hàng đầu tiên"),
+          icon: <Sparkles />,
+          path: "/manager/first-order",
         },
         {
           text: t("Danh sách nhân viên"),

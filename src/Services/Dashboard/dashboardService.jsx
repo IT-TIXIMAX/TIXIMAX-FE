@@ -129,6 +129,20 @@ const dashboardService = {
     api
       .get("/dashboard/daily-payment-shipping", { params: p })
       .then((r) => r.data),
+  customerOrderSegments: (p = {}) =>
+    api
+      .get("/dashboard/customer-order-segments", { params: p })
+      .then((r) => r.data),
+  cohortAnalysis: (p = {}) =>
+    api.get("/dashboard/cohort-analysis", { params: p }).then((r) => r.data),
+  firstTimeCustomers: (page = 0, size = 100, p = {}) =>
+    api
+      .get(`/dashboard/first-time-customers/${page}/${size}`, { params: p })
+      .then((r) => r.data),
+  staffTimeCustomers: (p = {}) =>
+    api
+      .get("/dashboard/staff-time-customers", { params: p })
+      .then((r) => r.data),
 };
 
 export default dashboardService;

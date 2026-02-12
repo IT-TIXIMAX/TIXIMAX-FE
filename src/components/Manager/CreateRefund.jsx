@@ -32,7 +32,6 @@ const formatMoney = (v) => {
   return `${n.toLocaleString("vi-VN")} ₫`;
 };
 
-// format cho input (không có ₫)
 const formatVndInput = (value) => {
   if (!value) return "";
   const n = Number(value);
@@ -40,7 +39,6 @@ const formatVndInput = (value) => {
   return n.toLocaleString("vi-VN");
 };
 
-// parse ngược từ input → số sạch
 const parseVndInput = (value) => value.replace(/[^\d]/g, "");
 
 const normalizeStr = (v) => String(v ?? "").trim();
@@ -48,7 +46,7 @@ const normalizeStr = (v) => String(v ?? "").trim();
 /* ================= COMPONENT ================= */
 const CreateRefund = ({ open, onClose, customer = null, onSuccess }) => {
   const [accountId, setAccountId] = useState("");
-  const [amountText, setAmountText] = useState(""); // số sạch dạng string
+  const [amountText, setAmountText] = useState("");
   const [image, setImage] = useState("");
   const [loading, setLoading] = useState(false);
   const [imgBusy, setImgBusy] = useState(false);
@@ -57,7 +55,8 @@ const CreateRefund = ({ open, onClose, customer = null, onSuccess }) => {
   useEffect(() => {
     if (!open) return;
 
-    const id = customer?.id ?? "";
+    // ✅ Ưu tiên accountId, fallback về id
+    const id = customer?.accountId ?? customer?.id ?? "";
     setAccountId(id ? String(id) : "");
 
     const balNum = Number(customer?.balance);
@@ -75,7 +74,8 @@ const CreateRefund = ({ open, onClose, customer = null, onSuccess }) => {
     return Math.max(0, Math.floor(n));
   }, [amountText]);
 
-  const accountLocked = !!customer?.id;
+  // ✅ Khóa field nếu có accountId hoặc id
+  const accountLocked = !!(customer?.accountId ?? customer?.id);
 
   const canSubmit = useMemo(() => {
     return (
@@ -191,7 +191,7 @@ const CreateRefund = ({ open, onClose, customer = null, onSuccess }) => {
                 value={accountId}
                 onChange={(e) => setAccountId(e.target.value)}
                 disabled={accountLocked || loading || imgBusy}
-                className="w-full px-4 py-2.5 rounded-xl border-2"
+                className="w-full px-4 py-2.5 rounded-xl border-2 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
               />
             </div>
 
