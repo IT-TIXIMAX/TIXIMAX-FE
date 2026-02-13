@@ -173,6 +173,12 @@ import ManagerChartPayment from "../components/Dashboard/Manager/ManagerChartPay
 import LoyalCustomer from "../components/StaffSale/LoyalCustomer";
 import CohortAnalysis from "../components/Manager/CohortAnalysis";
 import FirstOrderAnalysis from "../components/Manager/FirstOrderAnalysis";
+import CustomerHub from "../components/Manager/CustomerHub";
+import OrderHub from "../components/Manager/OrderHub";
+import StaffHub from "../components/Manager/StaffHub";
+import WarehouseHub from "../components/Manager/WarehouseHub";
+import FinanceHub from "../components/Manager/FinanceHub";
+import PerformanceHub from "../components/Manager/PerformanceHub";
 const Router = createBrowserRouter([
   {
     path: "/",
@@ -282,25 +288,62 @@ const Router = createBrowserRouter([
     children: [
       { index: true, element: <DashboardManager /> },
       { path: "profile", element: <ProfilePage /> },
-      { path: "team", element: <StaffList /> },
-      { path: "customers", element: <CustomerList /> },
-      { path: "kpistaff", element: <DashboardKPI /> },
-      { path: "profit", element: <DashboardManagerProfit /> },
+
+      { path: "customers", element: <CustomerHub /> },
+      { path: "customers/list-customers", element: <CustomerList /> },
+      { path: "customers/remind-customers", element: <RemindCustomer /> },
+      { path: "customers/loyal-customers", element: <LoyalCustomer /> },
+      { path: "customers/retention-customers", element: <CohortAnalysis /> },
+      { path: "customers/first-order", element: <FirstOrderAnalysis /> },
+      { path: "orders", element: <OrderHub /> },
+      { path: "orders/list-orders", element: <OrderList /> },
+      { path: "orders/status-orders", element: <ManagerOrder /> },
+      { path: "orders/cancel-orders", element: <OrderListCancel /> },
+      { path: "staffs", element: <StaffHub /> },
+      { path: "staffs/list-staff", element: <StaffList /> },
+      { path: "staffs/performance-staff", element: <DashboardKPI /> },
+      { path: "staffs/create-staff", element: <CreateAccountStaff /> },
+
       { path: "permission", element: <Permission /> },
       { path: "stafflead", element: <StaffListPermission /> },
       { path: "createstaff", element: <CreateAccountStaff /> },
-      { path: "kpicustomer", element: <PerformancesCustomer /> },
-      { path: "remind-customers", element: <RemindCustomer /> },
-      { path: "loyal-customers", element: <LoyalCustomer /> },
-      { path: "retention-customers", element: <CohortAnalysis /> },
-      { path: "first-order", element: <FirstOrderAnalysis /> },
-      { path: "warehouseperformance", element: <DashboardWarehouseForeign /> },
-      { path: "warehouse-domestic", element: <DetailDashboardDomestic /> },
-      { path: "warehouse-international", element: <ManagerChartPayment /> },
-      { path: "flight-info", element: <CreateInforFlight /> },
-      { path: "flight-list", element: <ManagerInfoFlight /> },
+
+      { path: "warehouse", element: <WarehouseHub /> },
+      {
+        path: "warehouse/warehouse-foreign",
+        element: <DashboardWarehouseForeign />,
+      },
+      {
+        path: "warehouse/warehouse-domestic",
+        element: <DetailDashboardDomestic />,
+      },
+      {
+        path: "warehouse/warehouse-inventory",
+        element: <DashboardWarehouseDomestic />,
+      },
+      { path: "finance", element: <FinanceHub /> },
+      { path: "finance/expense", element: <ManagerExpense /> },
+      { path: "finance/refund", element: <RefundOrder /> },
+      {
+        path: "finance/payment-analytics",
+        element: <ManagerChartPayment />,
+      },
+      { path: "finance/profit", element: <DashboardManagerProfit /> },
+      { path: "finance/quote", element: <PaymentOrderList /> },
       { path: "quote", element: <PaymentOrderList /> },
       { path: "refund", element: <RefundOrder /> },
+
+      { path: "performance", element: <PerformanceHub /> },
+      { path: "performance/staff", element: <DashboardKPI /> },
+      { path: "performance/customer", element: <PerformancesCustomer /> },
+      { path: "performance/purchase", element: <DashboardPurchase /> },
+      {
+        path: "performance/warehouse",
+        element: <DashboardWarehouseDomestic />,
+      },
+
+      { path: "flight-info", element: <CreateInforFlight /> },
+      { path: "flight-list", element: <ManagerInfoFlight /> },
       { path: "cost/paylater", element: <ManagerBankAccountList /> },
       { path: "cost/paybefore", element: <NotFound /> },
       { path: "routes", element: <ManagerRoutes /> },
@@ -311,14 +354,10 @@ const Router = createBrowserRouter([
       { path: "dashboard/revenue", element: <SummaryRevenue /> },
       { path: "dashboard/weight", element: <SummaryWeight /> },
       { path: "producttype", element: <ManagerProductType /> },
-      { path: "orders", element: <OrderList /> },
-      { path: "order-status", element: <ManagerOrder /> },
-      { path: "cancelorder", element: <OrderListCancel /> },
       { path: "website", element: <ManagerWebsite /> },
       { path: "promotion", element: <ManagerPromotion /> },
       { path: "notifications", element: <NotFound /> },
       { path: "exchange-routes", element: <ManagerRouteExchange /> },
-      { path: "cost/management", element: <ManagerExpense /> },
       { path: "settings", element: <ManagerSettingsHubCompact /> },
     ],
   },

@@ -294,7 +294,6 @@ const ManagerSidebar = () => {
   const { t } = useTranslation();
   const location = useLocation();
   const [openCost, setOpenCost] = useState(false);
-  const [openWarehouse, setOpenWarehouse] = useState(false);
 
   const menuSections = [
     {
@@ -305,84 +304,40 @@ const ManagerSidebar = () => {
           icon: <LayoutDashboard />,
           path: "/manager/dashboard",
         },
-        // {
-        //   text: t("Hiệu suất kho"),
-        //   icon: <Warehouse />,
-        //   path: "/manager/warehouseperformance",
-        // },
-        {
-          text: "Hiệu suất kho",
-          icon: <Warehouse />,
-          hasSubmenu: true,
-          isOpen: openWarehouse,
-          onToggle: () => setOpenWarehouse(!openWarehouse),
-          submenuItems: [
-            {
-              text: t("Hiệu suất kho"),
-              path: "/manager/warehouseperformance",
-            },
-            {
-              text: t("Quản lý kho nội địa"),
-              path: "/manager/warehouse-domestic",
-            },
-            {
-              text: t("Quản lý kho quốc tế"),
-              path: "/manager/warehouse-international",
-            },
-          ],
-        },
-        {
-          text: t("Hiệu suất nhân viên"),
-          icon: <ChartNoAxesCombined />,
-          path: "/manager/kpistaff",
-        },
-        // {
-        //   text: t("Hiệu suất khách hàng"),
-        //   icon: <ChartSpline />,
-        //   path: "/manager/kpicustomer",
-        // },
 
         {
-          text: t("Danh sách đơn hàng"),
-          icon: <ShoppingCart />,
+          text: t("Quản lý hiệu suất"),
+          icon: <ChartNoAxesCombined />,
+          path: "/manager/performance",
+        },
+        {
+          text: t("Quản lý đơn hàng"),
+          icon: <ChartSpline />,
           path: "/manager/orders",
         },
-        {
-          text: t("Quản lý trạng thái"),
-          icon: <ChartSpline />,
-          path: "/manager/order-status",
-        },
 
         {
-          text: t("Danh sách khách hàng"),
+          text: t("Quản lý khách hàng"),
           icon: <Users />,
           path: "/manager/customers",
         },
+
         {
-          text: t("Khách giảm hoạt động"),
-          icon: <UserRoundMinus />,
-          path: "/manager/remind-customers",
-        },
-        {
-          text: t("Khách hàng thân thiết"),
-          icon: <ShieldUser />,
-          path: "/manager/loyal-customers",
-        },
-        {
-          text: t("Tỷ lệ quay lại KH"),
-          icon: <ChartSpline />,
-          path: "/manager/retention-customers",
-        },
-        {
-          text: t("Đơn hàng đầu tiên"),
-          icon: <Sparkles />,
-          path: "/manager/first-order",
-        },
-        {
-          text: t("Danh sách nhân viên"),
+          text: t("Quản lý nhân viên"),
           icon: <List />,
-          path: "/manager/team",
+          path: "/manager/staffs",
         },
+        {
+          text: t("Quản Lý Tài Chính"),
+          icon: <BarChart2 />,
+          path: "/manager/finance",
+        },
+        {
+          text: t("Quản lý kho"),
+          icon: <Warehouse />,
+          path: "/manager/warehouse",
+        },
+
         // {
         //   text: t("Cấp quyền"),
         //   icon: <BookKey />,
@@ -393,16 +348,6 @@ const ManagerSidebar = () => {
         //   icon: <UserRoundPlus />,
         //   path: "/manager/createstaff",
         // },
-        {
-          text: t("Thống kê chi phí"),
-          icon: <BarChart2 />,
-          path: "/manager/profit",
-        },
-        {
-          text: t("Hủy đơn hàng"),
-          icon: <ShoppingCart />,
-          path: "/manager/cancelorder",
-        },
       ],
     },
     {
@@ -451,41 +396,6 @@ const ManagerSidebar = () => {
           path: "/manager/flight-list",
         },
 
-        // {
-        //   text: t("Tuyến vận chuyển"),
-        //   icon: <Truck />,
-        //   path: "/manager/routes",
-        // },
-        // {
-        //   text: t("Tài khoản ngân hàng"),
-        //   icon: <CreditCard />,
-        //   path: "/manager/cost/paylater",
-        // },
-        // {
-        //   text: t("Quản lí tỷ giá"),
-        //   icon: <FileText />,
-        //   path: "/manager/exchange-routes",
-        // },
-        // {
-        //   text: t("Điểm đến"),
-        //   icon: <MapPin />,
-        //   path: "/manager/transfer",
-        // },
-        // {
-        //   text: t("Loại sản phẩm"),
-        //   icon: <Box />,
-        //   path: "/manager/producttype",
-        // },
-        // {
-        //   text: t("Chương trình khuyến mãi"),
-        //   icon: <Gift />,
-        //   path: "/manager/promotion",
-        // },
-        // {
-        //   text: t("website"),
-        //   icon: <Globe />,
-        //   path: "/manager/website",
-        // },
         {
           text: t("Cấu hình hệ thống"),
           icon: <Settings />,
