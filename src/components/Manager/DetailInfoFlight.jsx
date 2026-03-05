@@ -11,6 +11,14 @@ import {
   Trash2,
   AlertTriangle,
   Edit,
+  Plane,
+  Package,
+  TrendingUp,
+  BarChart3,
+  DollarSign,
+  Calendar,
+  User,
+  Hash,
 } from "lucide-react";
 import UpdateFlightInfor from "./UpdateFlightInfor";
 
@@ -35,11 +43,11 @@ const DetailInfoFlight = ({
   error,
   data,
   onDelete,
-  onUpdate, // ✅ Thêm callback để refresh data sau khi update
+  onUpdate,
 }) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [showUpdate, setShowUpdate] = useState(false); // ✅ State cho update modal
+  const [showUpdate, setShowUpdate] = useState(false);
 
   if (!open) return null;
 
@@ -69,13 +77,8 @@ const DetailInfoFlight = ({
     toast.success(`Đang tải ${filename}...`);
   };
 
-  const handleDeleteClick = () => {
-    setShowDeleteConfirm(true);
-  };
-
   const handleConfirmDelete = async () => {
     if (!data?.flightShipmentId) return;
-
     try {
       setDeleting(true);
       await onDelete(data.flightShipmentId);
@@ -89,312 +92,388 @@ const DetailInfoFlight = ({
         e?.message ||
         "Lỗi xóa chuyến bay";
       toast.error(msg);
-      console.error(e);
     } finally {
       setDeleting(false);
     }
   };
 
-  // ✅ Handle update
   const handleUpdateSuccess = (updatedData) => {
     setShowUpdate(false);
-    if (onUpdate) {
-      onUpdate(updatedData);
-    }
+    if (onUpdate) onUpdate(updatedData);
   };
 
-  const handleUpdateCancel = () => {
-    setShowUpdate(false);
-  };
+  const grossProfitNum = Number(data?.grossProfit || 0);
 
   return (
     <>
+      {/* ── Main Modal ── */}
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
         <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
-          {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white">
-            <h3 className="text-xl font-bold">
-              Chi tiết chuyến bay{" "}
-              {data?.flightCode ? `- ${data.flightCode}` : ""}
-            </h3>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-white/20 rounded-lg transition-colors"
-              title="Đóng"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-
-          {/* Content */}
-          <div className="flex-1 overflow-y-auto p-6">
-            {loading ? (
-              <div className="flex flex-col items-center justify-center py-12">
-                <Loader2 className="w-12 h-12 text-blue-600 animate-spin mb-3" />
-                <p className="text-slate-600">Đang tải chi tiết...</p>
+          {/* Header — đồng bộ gradient blue */}
+          <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 px-6 py-5 flex items-center justify-between flex-shrink-0">
+            <div className="flex items-center gap-4">
+              <div className="p-2.5 rounded-xl bg-white/20 backdrop-blur-sm">
+                <Plane className="w-6 h-6 text-white" />
               </div>
-            ) : error ? (
-              <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-6 text-center text-red-700">
-                {error}
+              <div>
+                <h3 className="text-xl font-bold text-white">
+                  {showUpdate
+                    ? `Cập nhật chuyến bay${data?.flightCode ? ` — ${data.flightCode}` : ""}`
+                    : `Chi tiết chuyến bay${data?.flightCode ? ` — ${data.flightCode}` : ""}`}
+                </h3>
+                <p className="text-blue-100 text-sm font-medium mt-0.5">
+                  {showUpdate
+                    ? "Chỉnh sửa thông tin chuyến bay"
+                    : "Thông tin đầy đủ về chuyến bay"}
+                </p>
               </div>
-            ) : !data ? (
-              <div className="text-center py-12 text-slate-500">
-                Không có dữ liệu.
-              </div>
-            ) : (
-              <>
-                {/* Thông tin cơ bản */}
-                <div className="mb-6">
-                  <h4 className="text-lg font-semibold text-slate-800 mb-4 pb-2 border-b-2 border-blue-500">
-                    Thông tin cơ bản
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <InfoCard
-                      label="ID Chuyến bay"
-                      value={data.flightShipmentId}
-                    />
-                    <InfoCard label="Mã chuyến bay" value={data.flightCode} />
-                    <InfoCard label="Trạng thái" value={data.status} />
-                    <InfoCard label="Nhân viên" value={data.staffName} />
-                    <InfoCard
-                      label="Ngày đến"
-                      value={fmtDateTime(data.arrivalDate)}
-                    />
-                    <InfoCard
-                      label="Ngày tạo"
-                      value={fmtDateTime(data.createdAt)}
-                    />
-                  </div>
-                </div>
-
-                {/* Số liệu thống kê */}
-                <div className="mb-6">
-                  <h4 className="text-lg font-semibold text-slate-800 mb-4 pb-2 border-b-2 border-green-500">
-                    Số liệu thống kê
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <StatCard
-                      label="Số lượng kho"
-                      value={Number(
-                        data.numberOfWarehouses || 0,
-                      ).toLocaleString("vi-VN")}
-                      color="blue"
-                    />
-                    <StatCard
-                      label="Tổng khối lượng"
-                      value={`${Number(data.totalVolumeWeight || 0).toLocaleString("vi-VN")} kg`}
-                      color="purple"
-                    />
-                    <StatCard
-                      label="Tổng chi phí"
-                      value={`${money(data.totalCost)} VNĐ`}
-                      color="orange"
-                    />
-                    <StatCard
-                      label="Lợi nhuận"
-                      value={`${money(data.grossProfit)} VNĐ`}
-                      color={
-                        Number(data.grossProfit || 0) >= 0 ? "green" : "red"
-                      }
-                    />
-                  </div>
-                </div>
-
-                {/* Chi phí chi tiết */}
-                <div className="mb-6">
-                  <h4 className="text-lg font-semibold text-slate-800 mb-4 pb-2 border-b-2 border-purple-500">
-                    Chi phí chi tiết
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <CostCard
-                      label="Chi phí gốc/Kg"
-                      value={`${money(data.originCostPerKg)} VNĐ`}
-                    />
-                    <CostCard
-                      label="Chi phí vận chuyển HK"
-                      value={`${money(data.airFreightCost)} VNĐ`}
-                    />
-                    <CostCard
-                      label="Chi phí thông quan"
-                      value={`${money(data.customsClearanceCost)} VNĐ`}
-                    />
-                    <CostCard
-                      label="Chi phí vận chuyển sân bay"
-                      value={`${money(data.airportShippingCost)} VNĐ`}
-                    />
-                    <CostCard
-                      label="Chi phí khác"
-                      value={`${money(data.otherCosts)} VNĐ`}
-                    />
-                  </div>
-                </div>
-
-                {/* Trạng thái thanh toán */}
-                <div className="mb-6">
-                  <h4 className="text-lg font-semibold text-slate-800 mb-4 pb-2 border-b-2 border-yellow-500">
-                    Trạng thái thanh toán
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <PaymentCard
-                      title="Thanh toán vận chuyển hàng không"
-                      paid={data.airFreightPaid}
-                      paidDate={data.airFreightPaidDate}
-                    />
-                    <PaymentCard
-                      title="Thanh toán hải quan"
-                      paid={data.customsPaid}
-                      paidDate={data.customsPaidDate}
-                    />
-                  </div>
-                </div>
-
-                {/* Tệp đính kèm */}
-                <div>
-                  <h4 className="text-lg font-semibold text-slate-800 mb-4 pb-2 border-b-2 border-indigo-500">
-                    Tệp đính kèm
-                  </h4>
-                  {files.length === 0 ? (
-                    <div className="text-center py-8 text-slate-500 bg-slate-50 rounded-xl border border-slate-200">
-                      <FileText className="w-12 h-12 mx-auto mb-2 text-slate-400" />
-                      Không có tệp đính kèm
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {files.map((f, idx) => {
-                        const url = String(f.value);
-                        const clickable = isUrlLike(url);
-                        const filename =
-                          f.label.replace(/\s+/g, "_") +
-                          "_" +
-                          (data.flightCode || "flight");
-
-                        return clickable ? (
-                          <button
-                            key={idx}
-                            onClick={() => handleDownloadFile(url, filename)}
-                            className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl border-2 border-blue-200 bg-blue-50 hover:bg-blue-100 hover:border-blue-300 text-blue-700 transition-all group"
-                          >
-                            <div className="flex items-center gap-3">
-                              <FileText className="w-5 h-5 text-blue-600" />
-                              <span className="font-medium">{f.label}</span>
-                            </div>
-                            <Download className="w-5 h-5 group-hover:translate-y-0.5 transition-transform" />
-                          </button>
-                        ) : (
-                          <div
-                            key={idx}
-                            className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-400"
-                          >
-                            <div className="flex items-center gap-3">
-                              <FileText className="w-5 h-5" />
-                              <span>{f.label}</span>
-                            </div>
-                            <span className="text-xs">Không khả dụng</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              </>
-            )}
-          </div>
-
-          {/* Footer */}
-          <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-between">
-            <div className="flex gap-3">
-              {/* ✅ Button Chỉnh sửa */}
-              <button
-                onClick={() => setShowUpdate(true)}
-                disabled={loading || !data}
-                className="px-5 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-medium transition-colors flex items-center gap-2"
-              >
-                <Edit className="w-4 h-4" />
-                Chỉnh sửa
-              </button>
-
-              <button
-                onClick={handleDeleteClick}
-                disabled={loading || !data}
-                className="px-5 py-2.5 rounded-lg bg-red-600 hover:bg-red-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-medium transition-colors flex items-center gap-2"
-              >
-                <Trash2 className="w-4 h-4" />
-                Xóa
-              </button>
             </div>
-
             <button
               onClick={onClose}
-              className="px-6 py-2.5 rounded-lg bg-slate-600 hover:bg-slate-700 text-white font-medium transition-colors"
-            >
-              Đóng
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* ✅ Update Modal */}
-      {showUpdate && data && (
-        <div className="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto bg-black/50 p-4">
-          <div className="relative w-full max-w-7xl my-8">
-            <button
-              onClick={handleUpdateCancel}
-              className="absolute -top-4 -right-4 z-10 w-10 h-10 rounded-full bg-red-600 hover:bg-red-700 text-white flex items-center justify-center shadow-lg transition-colors"
+              className="p-2 rounded-lg bg-white/20 hover:bg-white/30 transition-colors"
               title="Đóng"
             >
-              <X className="w-5 h-5" />
+              <X className="w-5 h-5 text-white" />
             </button>
-
-            <div className="bg-gray-50 rounded-2xl shadow-2xl">
+          </div>
+          {/* Body */}
+          <div className="flex-1 overflow-y-auto">
+            {/* ── Inline Update Form ── */}
+            {showUpdate && data ? (
               <UpdateFlightInfor
                 initialData={data}
                 onSuccess={handleUpdateSuccess}
-                onCancel={handleUpdateCancel}
+                onCancel={() => setShowUpdate(false)}
               />
-            </div>
-          </div>
-        </div>
-      )}
+            ) : (
+              <div className="p-6 space-y-6">
+                {loading ? (
+                  <div className="flex flex-col items-center justify-center py-16 gap-4">
+                    <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
+                    <p className="text-gray-600 font-medium">
+                      Đang tải chi tiết...
+                    </p>
+                  </div>
+                ) : error ? (
+                  <div className="rounded-xl bg-red-50 border-2 border-red-200 px-4 py-6 text-center text-red-700 font-medium">
+                    {error}
+                  </div>
+                ) : !data ? (
+                  <div className="text-center py-16">
+                    <div className="p-4 bg-gray-100 rounded-full inline-flex mb-3">
+                      <Plane className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <p className="text-gray-600 font-medium">
+                      Không có dữ liệu
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    {/* ── Stat Cards ── */}
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                      <div className="bg-white rounded-xl shadow-md border border-blue-100 overflow-hidden">
+                        <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Package className="w-4 h-4 text-blue-700" />
+                            <span className="text-xs font-semibold text-blue-700 uppercase tracking-wide">
+                              SL kho
+                            </span>
+                          </div>
+                          <div className="text-2xl font-bold text-blue-700">
+                            {Number(
+                              data.numberOfWarehouses || 0,
+                            ).toLocaleString("vi-VN")}
+                          </div>
+                        </div>
+                      </div>
 
-      {/* Delete Confirmation Modal */}
+                      <div className="bg-white rounded-xl shadow-md border border-purple-100 overflow-hidden">
+                        <div className="p-4 bg-gradient-to-br from-purple-50 to-purple-100">
+                          <div className="flex items-center gap-2 mb-2">
+                            <BarChart3 className="w-4 h-4 text-purple-700" />
+                            <span className="text-xs font-semibold text-purple-700 uppercase tracking-wide">
+                              Khối lượng
+                            </span>
+                          </div>
+                          <div className="text-2xl font-bold text-purple-700">
+                            {Number(data.totalVolumeWeight || 0).toLocaleString(
+                              "vi-VN",
+                            )}
+                            <span className="text-sm font-medium ml-1">kg</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="bg-white rounded-xl shadow-md border border-orange-100 overflow-hidden">
+                        <div className="p-4 bg-gradient-to-br from-orange-50 to-orange-100">
+                          <div className="flex items-center gap-2 mb-2">
+                            <DollarSign className="w-4 h-4 text-orange-700" />
+                            <span className="text-xs font-semibold text-orange-700 uppercase tracking-wide">
+                              Tổng chi phí
+                            </span>
+                          </div>
+                          <div className="text-2xl font-bold text-orange-700">
+                            {money(data.totalCost)}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div
+                        className={`bg-white rounded-xl shadow-md overflow-hidden border ${grossProfitNum >= 0 ? "border-emerald-100" : "border-red-100"}`}
+                      >
+                        <div
+                          className={`p-4 bg-gradient-to-br ${grossProfitNum >= 0 ? "from-emerald-50 to-emerald-100" : "from-red-50 to-red-100"}`}
+                        >
+                          <div className="flex items-center gap-2 mb-2">
+                            <TrendingUp
+                              className={`w-4 h-4 ${grossProfitNum >= 0 ? "text-emerald-700" : "text-red-600"}`}
+                            />
+                            <span
+                              className={`text-xs font-semibold uppercase tracking-wide ${grossProfitNum >= 0 ? "text-emerald-700" : "text-red-600"}`}
+                            >
+                              Lợi nhuận
+                            </span>
+                          </div>
+                          <div
+                            className={`text-2xl font-bold ${grossProfitNum >= 0 ? "text-emerald-700" : "text-red-600"}`}
+                          >
+                            {grossProfitNum >= 0 ? "+" : ""}
+                            {money(data.grossProfit)}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* ── Thông tin cơ bản ── */}
+                    <SectionBlock
+                      title="Thông tin cơ bản"
+                      icon={<Plane className="w-5 h-5 text-white" />}
+                    >
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        <InfoRow
+                          icon={<Hash className="w-4 h-4" />}
+                          label="ID Chuyến bay"
+                          value={data.flightShipmentId}
+                        />
+                        <InfoRow
+                          icon={<Plane className="w-4 h-4" />}
+                          label="Mã chuyến bay"
+                          value={data.flightCode}
+                          highlight
+                        />
+                        <InfoRow
+                          icon={<BarChart3 className="w-4 h-4" />}
+                          label="Trạng thái"
+                          value={data.status}
+                        />
+                        <InfoRow
+                          icon={<User className="w-4 h-4" />}
+                          label="Nhân viên"
+                          value={data.staffName}
+                        />
+                        <InfoRow
+                          icon={<Calendar className="w-4 h-4" />}
+                          label="Ngày đến"
+                          value={fmtDateTime(data.arrivalDate)}
+                        />
+                        <InfoRow
+                          icon={<Calendar className="w-4 h-4" />}
+                          label="Ngày tạo"
+                          value={fmtDateTime(data.createdAt)}
+                        />
+                      </div>
+                    </SectionBlock>
+
+                    {/* ── Chi phí chi tiết ── */}
+                    <SectionBlock
+                      title="Chi phí chi tiết"
+                      icon={<DollarSign className="w-5 h-5 text-white" />}
+                      accentColor="orange"
+                    >
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <CostRow
+                          label="Chi phí gốc / Kg"
+                          value={`${money(data.originCostPerKg)} VNĐ`}
+                        />
+                        <CostRow
+                          label="Chi phí vận chuyển HK"
+                          value={`${money(data.airFreightCost)} VNĐ`}
+                        />
+                        <CostRow
+                          label="Chi phí thông quan"
+                          value={`${money(data.customsClearanceCost)} VNĐ`}
+                        />
+                        <CostRow
+                          label="Chi phí vận chuyển sân bay"
+                          value={`${money(data.airportShippingCost)} VNĐ`}
+                        />
+                        <CostRow
+                          label="Chi phí khác"
+                          value={`${money(data.otherCosts)} VNĐ`}
+                        />
+                      </div>
+                    </SectionBlock>
+
+                    {/* ── Trạng thái thanh toán ── */}
+                    <SectionBlock
+                      title="Trạng thái thanh toán"
+                      icon={<BadgeCheck className="w-5 h-5 text-white" />}
+                      accentColor="emerald"
+                    >
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <PaymentCard
+                          title="Vận chuyển hàng không"
+                          paid={data.airFreightPaid}
+                          paidDate={data.airFreightPaidDate}
+                        />
+                        <PaymentCard
+                          title="Hải quan"
+                          paid={data.customsPaid}
+                          paidDate={data.customsPaidDate}
+                        />
+                      </div>
+                    </SectionBlock>
+
+                    {/* ── Tệp đính kèm ── */}
+                    <SectionBlock
+                      title="Tệp đính kèm"
+                      icon={<FileText className="w-5 h-5 text-white" />}
+                      accentColor="purple"
+                    >
+                      {files.length === 0 ? (
+                        <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-xl border border-gray-200">
+                          <div className="p-3 bg-gray-100 rounded-full inline-flex mb-2">
+                            <FileText className="w-6 h-6 text-gray-400" />
+                          </div>
+                          <p className="text-sm font-medium">
+                            Không có tệp đính kèm
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {files.map((f, idx) => {
+                            const url = String(f.value);
+                            const clickable = isUrlLike(url);
+                            const filename =
+                              f.label.replace(/\s+/g, "_") +
+                              "_" +
+                              (data.flightCode || "flight");
+                            return clickable ? (
+                              <button
+                                key={idx}
+                                onClick={() =>
+                                  handleDownloadFile(url, filename)
+                                }
+                                className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl border-2 border-blue-200 bg-blue-50 hover:bg-blue-100 hover:border-blue-300 text-blue-700 transition-all group"
+                              >
+                                <div className="flex items-center gap-3">
+                                  <FileText className="w-4 h-4 text-blue-600" />
+                                  <span className="font-medium text-sm">
+                                    {f.label}
+                                  </span>
+                                </div>
+                                <Download className="w-4 h-4 group-hover:translate-y-0.5 transition-transform" />
+                              </button>
+                            ) : (
+                              <div
+                                key={idx}
+                                className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-400"
+                              >
+                                <div className="flex items-center gap-3">
+                                  <FileText className="w-4 h-4" />
+                                  <span className="text-sm">{f.label}</span>
+                                </div>
+                                <span className="text-xs">Không khả dụng</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </SectionBlock>
+                  </>
+                )}
+              </div>
+            )}{" "}
+            {/* end showUpdate ternary */}
+          </div>
+          {/* Footer — hidden while editing */}
+          {!showUpdate && (
+            <div className="px-6 py-4 bg-gradient-to-r from-blue-50 to-blue-100 border-t-2 border-blue-200 flex justify-between items-center flex-shrink-0">
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowUpdate(true)}
+                  disabled={loading || !data}
+                  className="px-5 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold text-sm transition-colors flex items-center gap-2 shadow-md hover:shadow-lg"
+                >
+                  <Edit className="w-4 h-4" />
+                  Chỉnh sửa
+                </button>
+                <button
+                  onClick={() => setShowDeleteConfirm(true)}
+                  disabled={loading || !data}
+                  className="px-5 py-2.5 rounded-lg bg-red-600 hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold text-sm transition-colors flex items-center gap-2 shadow-md hover:shadow-lg"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Xóa
+                </button>
+              </div>
+              <button
+                onClick={onClose}
+                className="px-5 py-2.5 rounded-lg border-2 border-gray-300 hover:bg-gray-100 text-gray-700 font-semibold text-sm transition-colors"
+              >
+                Đóng
+              </button>
+            </div>
+          )}{" "}
+          {/* end !showUpdate */}
+        </div>
+      </div>
+
+      {/* ── Delete Confirm Modal ── */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
-            <div className="flex items-center gap-3 px-6 py-4 bg-red-600 text-white">
-              <AlertTriangle className="w-6 h-6" />
-              <h3 className="text-lg font-bold">Xác nhận xóa</h3>
+            {/* Header */}
+            <div className="bg-gradient-to-r from-red-500 to-red-600 px-6 py-4 flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-white/20">
+                <AlertTriangle className="w-5 h-5 text-white" />
+              </div>
+              <h3 className="text-lg font-bold text-white">Xác nhận xóa</h3>
             </div>
 
             <div className="p-6">
-              <p className="text-slate-700 mb-2">
-                Bạn có chắc chắn muốn xóa chuyến bay này không?
+              <p className="text-gray-700 font-medium mb-4">
+                Bạn có chắc chắn muốn xóa chuyến bay này không? Hành động này
+                không thể hoàn tác.
               </p>
-              <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 mb-4">
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <span className="text-slate-600">Mã chuyến bay:</span>
-                  <span className="font-semibold text-slate-800">
+              <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                <div className="grid grid-cols-2 gap-y-2 text-sm">
+                  <span className="text-gray-600 font-medium">
+                    Mã chuyến bay:
+                  </span>
+                  <span className="font-semibold text-blue-700">
                     {data?.flightCode}
                   </span>
-                  <span className="text-slate-600">ID:</span>
-                  <span className="font-semibold text-slate-800">
+                  <span className="text-gray-600 font-medium">ID:</span>
+                  <span className="font-semibold text-gray-800">
                     {data?.flightShipmentId}
                   </span>
                 </div>
               </div>
             </div>
 
-            <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-3">
+            <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100 border-t border-gray-200 flex justify-end gap-3">
               <button
                 onClick={() => setShowDeleteConfirm(false)}
                 disabled={deleting}
-                className="px-5 py-2.5 rounded-lg bg-slate-200 hover:bg-slate-300 disabled:opacity-50 text-slate-700 font-medium transition-colors"
+                className="px-5 py-2.5 rounded-lg border-2 border-gray-300 hover:bg-gray-100 disabled:opacity-50 text-gray-700 font-semibold text-sm transition-colors"
               >
                 Hủy
               </button>
               <button
                 onClick={handleConfirmDelete}
                 disabled={deleting}
-                className="px-5 py-2.5 rounded-lg bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white font-medium transition-colors flex items-center gap-2"
+                className="px-5 py-2.5 rounded-lg bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white font-semibold text-sm transition-colors flex items-center gap-2 shadow-md"
               >
                 {deleting ? (
                   <>
@@ -416,59 +495,90 @@ const DetailInfoFlight = ({
   );
 };
 
-// Helper Components
-const InfoCard = ({ label, value }) => (
-  <div className="bg-slate-50 rounded-lg px-4 py-3 border border-slate-200">
-    <div className="text-xs font-medium text-slate-500 mb-1">{label}</div>
-    <div className="text-sm font-semibold text-slate-800">{value ?? "-"}</div>
-  </div>
-);
+// ── Sub-components ──
 
-const StatCard = ({ label, value, color = "blue" }) => {
-  const colorClasses = {
-    blue: "bg-blue-50 border-blue-200 text-blue-700",
-    green: "bg-green-50 border-green-200 text-green-700",
-    red: "bg-red-50 border-red-200 text-red-700",
-    orange: "bg-orange-50 border-orange-200 text-orange-700",
-    purple: "bg-purple-50 border-purple-200 text-purple-700",
-  };
+const accentMap = {
+  blue: {
+    icon: "bg-blue-600",
+    border: "border-blue-200",
+    title: "text-blue-900",
+  },
+  orange: {
+    icon: "bg-orange-500",
+    border: "border-orange-200",
+    title: "text-orange-900",
+  },
+  emerald: {
+    icon: "bg-emerald-600",
+    border: "border-emerald-200",
+    title: "text-emerald-900",
+  },
+  purple: {
+    icon: "bg-purple-600",
+    border: "border-purple-200",
+    title: "text-purple-900",
+  },
+};
 
+const SectionBlock = ({ title, icon, accentColor = "blue", children }) => {
+  const c = accentMap[accentColor] || accentMap.blue;
   return (
-    <div className={`rounded-lg px-4 py-3 border ${colorClasses[color]}`}>
-      <div className="text-xs font-medium mb-1 opacity-75">{label}</div>
-      <div className="text-lg font-bold">{value}</div>
+    <div className="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden">
+      <div
+        className={`px-5 py-4 bg-gradient-to-r from-blue-50 to-blue-100 border-b ${c.border} flex items-center gap-3`}
+      >
+        <div className={`p-2 rounded-lg ${c.icon}`}>{icon}</div>
+        <h4 className={`text-base font-bold ${c.title}`}>{title}</h4>
+      </div>
+      <div className="p-5">{children}</div>
     </div>
   );
 };
 
-const CostCard = ({ label, value }) => (
-  <div className="bg-white rounded-lg px-4 py-3 border border-slate-200 shadow-sm">
-    <div className="text-sm text-slate-600 mb-1">{label}</div>
-    <div className="text-base font-semibold text-slate-800">{value}</div>
+const InfoRow = ({ icon, label, value, highlight }) => (
+  <div className="bg-gray-50 rounded-lg px-4 py-3 border border-gray-200">
+    <div className="flex items-center gap-1.5 mb-1 text-gray-500">
+      {icon}
+      <span className="text-xs font-semibold uppercase tracking-wide">
+        {label}
+      </span>
+    </div>
+    <div
+      className={`text-sm font-semibold ${highlight ? "text-blue-700" : "text-gray-800"}`}
+    >
+      {value ?? "-"}
+    </div>
+  </div>
+);
+
+const CostRow = ({ label, value }) => (
+  <div className="bg-white rounded-lg px-4 py-3 border border-gray-200 shadow-sm">
+    <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+      {label}
+    </div>
+    <div className="text-sm font-semibold text-gray-900">{value}</div>
   </div>
 );
 
 const PaymentCard = ({ title, paid, paidDate }) => (
   <div
-    className={`rounded-lg px-4 py-4 border-2 ${
-      paid ? "bg-green-50 border-green-300" : "bg-red-50 border-red-300"
-    }`}
+    className={`rounded-xl px-4 py-4 border-2 ${paid ? "bg-emerald-50 border-emerald-200" : "bg-red-50 border-red-200"}`}
   >
-    <div className="font-semibold text-slate-800 mb-3">{title}</div>
+    <div className="text-sm font-semibold text-gray-800 mb-3">{title}</div>
     <div className="flex items-center gap-2 mb-2">
       {paid ? (
-        <BadgeCheck className="w-5 h-5 text-green-600" />
+        <BadgeCheck className="w-5 h-5 text-emerald-600" />
       ) : (
-        <BadgeX className="w-5 h-5 text-red-600" />
+        <BadgeX className="w-5 h-5 text-red-500" />
       )}
       <span
-        className={`font-medium ${paid ? "text-green-700" : "text-red-700"}`}
+        className={`font-semibold text-sm ${paid ? "text-emerald-700" : "text-red-600"}`}
       >
         {paid ? "Đã thanh toán" : "Chưa thanh toán"}
       </span>
     </div>
-    {paid && (
-      <div className="text-sm text-slate-600 ml-7">
+    {paid && paidDate && (
+      <div className="text-xs text-gray-600 font-medium ml-7">
         Ngày TT: {fmtDateTime(paidDate)}
       </div>
     )}

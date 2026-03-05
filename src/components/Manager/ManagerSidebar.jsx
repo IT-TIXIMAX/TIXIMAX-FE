@@ -381,15 +381,15 @@ const ManagerSidebar = () => {
             },
             {
               text: t("Quản lý thu chi"),
-              path: "/manager/cost/management",
+              path: "/manager/cost/paybefore",
             },
           ],
         },
-        {
-          text: t("Tạo thông tin bay"),
-          icon: <FileText />,
-          path: "/manager/flight-info",
-        },
+        // {
+        //   text: t("Tạo thông tin bay"),
+        //   icon: <FileText />,
+        //   path: "/manager/flight-info",
+        // },
         {
           text: t("Thông tin chuyến bay"),
           icon: <List />,

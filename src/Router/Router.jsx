@@ -342,7 +342,7 @@ const Router = createBrowserRouter([
         element: <DashboardWarehouseDomestic />,
       },
 
-      { path: "flight-info", element: <CreateInforFlight /> },
+      // { path: "flight-info", element: <CreateInforFlight /> },
       { path: "flight-list", element: <ManagerInfoFlight /> },
       { path: "cost/paylater", element: <ManagerBankAccountList /> },
       { path: "cost/paybefore", element: <NotFound /> },
