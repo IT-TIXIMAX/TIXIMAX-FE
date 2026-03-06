@@ -14,6 +14,8 @@ import {
   ChartNoAxesCombined,
   Warehouse,
   Settings,
+  ShoppingCart,
+  PackageX,
 } from "lucide-react";
 import Logout from "../../Page/Logout";
 
@@ -60,6 +62,21 @@ const ManagerSidebar = () => {
           text: t("Quản lý kho"),
           icon: <Warehouse />,
           path: "/manager/warehouse",
+        },
+        {
+          text: t("Quản Lí Mua"),
+          icon: <ShoppingCart />,
+          path: "/manager/purchase",
+        },
+        {
+          text: t("Kho Quá Hạn"),
+          icon: <PackageX />,
+          path: "/manager/warehouse-overdue",
+        },
+        {
+          text: t("Thống Kê Kho"),
+          icon: <BarChart2 />,
+          path: "/manager/warehouse-stats",
         },
       ],
     },

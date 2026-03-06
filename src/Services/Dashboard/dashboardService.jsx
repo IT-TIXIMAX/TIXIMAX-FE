@@ -143,6 +143,20 @@ const dashboardService = {
     api
       .get("/dashboard/staff-time-customers", { params: p })
       .then((r) => r.data),
+  getAvgDeliveryHours: ({ fromMonth, toMonth } = {}) =>
+    api
+      .get("/dashboard/avg-delivery-hours", { params: { fromMonth, toMonth } })
+      .then((r) => r.data),
+  getWarehouseOverdue: (page = 0, size = 20) =>
+    api.get(`/dashboard/warehouse-overdue/${page}/${size}`).then((r) => r.data),
+  getWarehouseTimeStats: ({ filterType = "MONTH", startDate, endDate } = {}) => {
+    const params = { filterType };
+    if (filterType === "CUSTOM") {
+      if (startDate) params.startDate = startDate;
+      if (endDate) params.endDate = endDate;
+    }
+    return api.get("/dashboard/warehouse-time-stats", { params }).then((r) => r.data);
+  },
 };
 
 export default dashboardService;

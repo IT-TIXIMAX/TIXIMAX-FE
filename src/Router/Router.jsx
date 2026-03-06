@@ -170,6 +170,9 @@ import CheckImportFile from "../components/StaffSale/CheckImportFile";
 import RemindCustomer from "../components/StaffSale/RemindCustomer";
 import DetailPaymentChart from "../components/Dashboard/Admin/DetailPaymentChart";
 import ManagerChartPayment from "../components/Dashboard/Manager/ManagerChartPayment";
+import AverageDeliveryHours from "../components/Dashboard/Manager/AverageDeliveryHours";
+import DashboardWHOverDue from "../components/Dashboard/Manager/DashboardWHOverDue";
+import DashboardWHStats from "../components/Dashboard/Manager/DashboardWHStats";
 import LoyalCustomer from "../components/StaffSale/LoyalCustomer";
 import CohortAnalysis from "../components/Manager/CohortAnalysis";
 import FirstOrderAnalysis from "../components/Manager/FirstOrderAnalysis";
@@ -359,6 +362,9 @@ const Router = createBrowserRouter([
       { path: "notifications", element: <NotFound /> },
       { path: "exchange-routes", element: <ManagerRouteExchange /> },
       { path: "settings", element: <ManagerSettingsHubCompact /> },
+      { path: "purchase", element: <AverageDeliveryHours /> },
+      { path: "warehouse-overdue", element: <DashboardWHOverDue /> },
+      { path: "warehouse-stats", element: <DashboardWHStats /> },
     ],
   },
   {
