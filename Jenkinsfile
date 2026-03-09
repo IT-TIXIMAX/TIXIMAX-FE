@@ -94,7 +94,7 @@ pipeline {
                     docker run -d \
                         --name "${APP_NAME_UNIQUE}" \
                         --restart unless-stopped \
-                        --network npm-network \
+                        --network at-net \
                         "${IMAGE_TAG}"
 
                     echo "--- Deploy OK"
