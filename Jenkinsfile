@@ -19,9 +19,13 @@ pipeline {
                     echo "[Init] Detected branch: ${BR}"
 
                     def branchMap = [
-                        "deploy": [
-                            envName: "deploy",
-                            credId : "tiximax-fe-old-deploy",
+                        "staging": [
+                            envName: "staging",
+                            credId : "tiximax-fe-old-staging",
+                        ],
+                        "production": [
+                            envName: "production",
+                            credId : "tiximax-fe-old-production",
                         ],
                     ]
 
