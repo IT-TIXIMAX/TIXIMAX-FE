@@ -23,7 +23,7 @@ pipeline {
                             envName: "staging",
                             credId : "tiximax-fe-old-staging",
                         ],
-                        "production": [
+                        "product": [
                             envName: "product",
                             credId : "tiximax-fe-old-product",
                         ],
