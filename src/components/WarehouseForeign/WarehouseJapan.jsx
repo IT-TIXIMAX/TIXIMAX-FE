@@ -36,7 +36,7 @@ const WarehouseJapan = () => {
       try {
         setLoadingCodes(true);
 
-        const data = await warehouseService.getWarehouseForeignLinks(0, 50, {
+        const data = await warehouseService.getWarehouseForeignLinks(0, 400, {
           shipmentCode: "",
           customerCode: "",
         });
